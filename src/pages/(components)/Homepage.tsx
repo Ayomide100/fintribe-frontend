@@ -3,6 +3,7 @@ import Head from "next/head";
 import React from "react";
 import Hero from "./Hero";
 import Platformfeatures from "./Platformfeatures";
+import Features from "./Features";
 
 const Homepage = () => {
   return (
@@ -15,6 +16,9 @@ const Homepage = () => {
       </section>
       <section>
         <Platformfeatures />
+      </section>
+      <section>
+        <Features />
       </section>
     </Mainlayouts>
   );

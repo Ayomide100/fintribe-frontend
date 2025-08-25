@@ -8,6 +8,7 @@ import {
   ChartNoAxesCombined,
 } from "lucide-react";
 import { HiOutlineLightBulb } from "react-icons/hi";
+import { FaStar } from "react-icons/fa";
 
 const features = [
   {
@@ -96,10 +97,26 @@ const Platformfeatures = () => {
 
       {/* Bottom Text */}
       <div className="flex justify-center mt-8 sm:mt-10 px-4">
-        <p className="text-gray-700 text-xs sm:text-sm">
-          <span className="text-[#226B44] font-bold">10,000+ investors</span>{" "}
-          are already building wealth with FinTribe
-        </p>
+        <div className="flex items-center gap-2">
+          <div className="flex -space-x-2">
+            <div className="w-8 h-8 bg-[#226B44] rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+              <FaStar />
+            </div>
+            <div className="w-8 h-8 bg-[#226B44] rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+              <FaStar />
+            </div>
+            <div className="w-8 h-8 bg-[#226B44] rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+              <FaStar />
+            </div>
+            <div className="w-8 h-8 bg-[#226B44] rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+              <FaStar />
+            </div>
+          </div>
+          <p className="text-gray-700 text-xs sm:text-sm ml-2">
+            <span className="text-[#226B44] font-bold">10,000+ investors</span>{" "}
+            are already building wealth with FinTribe
+          </p>
+        </div>
       </div>
     </div>
   );
