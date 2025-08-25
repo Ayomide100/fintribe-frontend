@@ -77,7 +77,7 @@ const Hero = () => {
       {/* Bottom Section */}
       <div className="w-full h-[60%]  md:h-[20%] flex flex-col-reverse md:flex-col">
         <div className="w-full h-[45%]  md:h-[30%] flex justify-between items-center px-0 md:px-10">
-          <div className="w-[30%]  flex justify-center flex-col md:items-center items-start h-[90%] md:w-[10%]">
+          <div className="w-[30%]  flex justify-center flex-col  md:items-center items-start h-[90%] md:w-[10%]">
             <div className="w-full h-[40%] gap-2 flex justify-center items-center">
               <VscVerified className="text-[#2E8B57]" size={24} />
               <p className=" font-bold text-lg ">500+</p>
@@ -86,12 +86,12 @@ const Hero = () => {
               Verified Gurus
             </span>
           </div>
-          <div className="w-[30%]  flex justify-center flex-col items-center h-[90%] md:w-[10%]">
+          <div className="w-[30%]  flex justify-center flex-col  items-center h-[90%] md:w-[10%]">
             <div className="w-full h-[40%] gap-2 flex justify-center items-center">
               <FiUsers className="text-[#17A2B8]" size={24} />
               <p className=" font-bold text-lg ">95%</p>
             </div>
-            <span className="text-sm w-full flex justify-center items-center">
+            <span className="md:text-sm text-xs  w-full flex justify-center items-center">
               User Satisfaction
             </span>
           </div>
