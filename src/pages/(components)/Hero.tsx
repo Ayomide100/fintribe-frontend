@@ -11,29 +11,29 @@ import { PiChartLineUp } from "react-icons/pi";
 const Hero = () => {
   return (
     <div
-      className="w-full h-[47rem] flex flex-col pt-[10vh]"
+      className="w-full md:h-[47rem] h-[45rem] flex flex-col pt-[10vh]"
       style={{
         background:
           "linear-gradient(to left, #CFE7DB, #E8EFF7, #FFFFFF, #FEFFFE, #FCFEFD)",
       }}
     >
       {/* Top Content Section */}
-      <div className="flex w-full h-[80%]">
+      <div className="flex flex-col md:flex-row w-full h-auto md:h-[80%]">
         {/* Left Side */}
-        <div className="w-1/2 h-full flex flex-col px-2">
+        <div className="w-full md:w-1/2 flex flex-col px-4 md:px-8">
           {/* Trusted Badge */}
-          <div className="flex justify-start items-center px-8 py-6">
+          <div className="flex md:justify-start justify-center items-center py-4">
             <div className="flex items-center gap-2 w-fit px-4 py-2 rounded-full bg-[#C8E4D6]">
-              <LuShieldCheck className="text-[#2E8B57]" size={22} />
-              <p className="text-sm text-[#226B44] font-medium">
+              <LuShieldCheck className="text-[#2E8B57]" size={20} />
+              <p className="text-xs sm:text-sm text-[#226B44] font-medium">
                 Trusted by 1000+ Nigerian Investors
               </p>
             </div>
           </div>
 
           {/* Main Heading */}
-          <div className="flex  justify-start items-center px-6">
-            <p className="text-5xl font-bold leading-snug ">
+          <div className=" md:text-start text-center md:py-0 py-4">
+            <p className="text-[26px] sm:text-2xl md:text-5xl font-bold leading-snug">
               <span className="whitespace-nowrap">
                 Discover, Learn & Connect
               </span>{" "}
@@ -43,8 +43,8 @@ const Hero = () => {
           </div>
 
           {/* Subtext */}
-          <div className="flex justify-center  items-center px-7 mt-4">
-            <p className="text-gray-700 leading-relaxed">
+          <div className="flex justify-center md:text-start text-center items-center mt-4">
+            <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
               Join Nigeria&apos;s premier social investment platform. Connect
               with vetted opportunities, learn from trusted gurus, and build
               wealth alongside a community that understands your journey.
@@ -52,18 +52,18 @@ const Hero = () => {
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-4 px-7 mt-6">
-            <button className="py-3 px-8 flex items-center gap-2 bg-[#0A2540] hover:bg-[#0e3358] text-white rounded-md">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6">
+            <button className="py-3 px-6 sm:px-8 flex items-center justify-center gap-2 bg-[#0A2540] hover:bg-[#0e3358] text-white rounded-md text-sm sm:text-base">
               Join FinTribe Today <BsArrowRight />
             </button>
-            <button className="py-3 px-6 border text-[#2E8B57] flex items-center gap-2 hover:text-white hover:bg-[#2E8B57] transition-all duration-300 rounded-md border-[#2E8B57]">
+            <button className="py-3 px-6 border text-[#2E8B57] flex items-center justify-center gap-2 hover:text-white hover:bg-[#2E8B57] transition-all duration-300 rounded-md border-[#2E8B57] text-sm sm:text-base">
               Explore Communities <AiOutlineCompass />
             </button>
           </div>
         </div>
 
         {/* Right Side (Image Placeholder) */}
-        <div className="w-1/2 h-full  flex justify-center items-center">
+        <div className="w-1/2 h-full hidden  md:flex justify-center items-center">
           <div className="w-[70%] h-[70%] bg-[#53A77B] rounded-3xl relative">
             <Image
               src={heroimg}
@@ -75,9 +75,9 @@ const Hero = () => {
       </div>
 
       {/* Bottom Section */}
-      <div className="w-full h-[20%] ">
-        <div className="w-full h-[45%] flex justify-between items-center px-10">
-          <div className="w-[10%] flex justify-center flex-col items-center h-[90%]">
+      <div className="w-full h-[60%]  md:h-[20%] flex flex-col-reverse md:flex-col">
+        <div className="w-full h-[45%]  md:h-[30%] flex justify-between items-center px-0 md:px-10">
+          <div className="w-[30%]  flex justify-center flex-col md:items-center items-start h-[90%] md:w-[10%]">
             <div className="w-full h-[40%] gap-2 flex justify-center items-center">
               <VscVerified className="text-[#2E8B57]" size={24} />
               <p className=" font-bold text-lg ">500+</p>
@@ -86,7 +86,7 @@ const Hero = () => {
               Verified Gurus
             </span>
           </div>
-          <div className="w-[10%] flex justify-center flex-col items-center h-[90%] ">
+          <div className="w-[30%]  flex justify-center flex-col items-center h-[90%] md:w-[10%]">
             <div className="w-full h-[40%] gap-2 flex justify-center items-center">
               <FiUsers className="text-[#17A2B8]" size={24} />
               <p className=" font-bold text-lg ">95%</p>
@@ -96,7 +96,7 @@ const Hero = () => {
             </span>
           </div>
         </div>
-        <div className="w-[100%] flex justify-center flex-col items-center h-[55%]">
+        <div className="w-[100%]   flex justify-center flex-col items-center h-[40%] md:h-[55%]">
           <div className="w-full h-[40%]  gap-2 flex justify-center items-center">
             <PiChartLineUp className="text-[#FFCC00]" size={24} />
             <p className=" font-bold text-lg ">₦50B+</p>

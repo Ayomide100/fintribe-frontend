@@ -1,6 +1,6 @@
 import React from "react";
 import { Facebook, Twitter, Instagram } from "lucide-react";
-import { MdOutlineWhatsapp, MdWhatsapp } from "react-icons/md";
+import { MdWhatsapp } from "react-icons/md";
 
 const Footer = () => {
   return (
