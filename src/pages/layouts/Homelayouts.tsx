@@ -10,7 +10,7 @@ interface MainlayoutProps {
 const Homelayouts: React.FC<MainlayoutProps> = ({ children }) => {
   return (
     <>
-      <div className="">
+      <div className="text">
         <Header />
       </div>
       <div className="w-full h-auto ">{children}</div>
