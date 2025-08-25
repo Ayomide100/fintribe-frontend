@@ -1,6 +1,8 @@
 import React from "react";
 import { Facebook, Twitter, Instagram } from "lucide-react";
 import { MdWhatsapp } from "react-icons/md";
+import Image from "next/image";
+import logo from "../../../assets/fintribelogo.png";
 
 const Footer = () => {
   return (
@@ -9,13 +11,13 @@ const Footer = () => {
         {/* Top Section */}
         <div className="flex flex-col md:flex-row justify-between gap-12">
           {/* Left: Logo & Description */}
-          <div className="space-y-4 max-w-sm">
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl font-bold">
-                <span className="text-[#4CAF50]">Fin</span>
-                <span className="text-white">Tribe</span>
-              </span>
-            </div>
+          <div className="space-y-4 max-w-sm ">
+            <Image
+              src={logo}
+              alt="FinTribe Logo"
+              className="w-20 h-auto object-contain"
+            />
+
             <p className="text-gray-300 text-sm leading-relaxed">
               Nigeria&apos;s premier social investment platform connecting
               investors with vetted opportunities and trusted expertise.
@@ -51,7 +53,7 @@ const Footer = () => {
           </div>
 
           {/* Right: Platform + Support */}
-          <div className="flex gap-16">
+          <div className="flex flex-col md:flex-row gap-8 md:gap-16">
             {/* Platform Links */}
             <div className="space-y-4">
               <h3 className="text-white font-semibold">Platform</h3>
