@@ -13,7 +13,7 @@ const Homelayouts: React.FC<MainlayoutProps> = ({ children }) => {
       <div className="">
         <Header />
       </div>
-      <div className="w-full h-auto bg-green-400">{children}</div>
+      <div className="w-full h-auto ">{children}</div>
       <div className="">
         <Footer />
       </div>

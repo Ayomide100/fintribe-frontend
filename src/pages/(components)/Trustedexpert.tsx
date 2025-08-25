@@ -174,7 +174,7 @@ const Trustedexpert = () => {
           ))}
         </div>
       </div>
-      <div className="flex md:hidden   w-full h-[5rem] mt-9  justify-center items-center">
+      <div className="flex md:hidden   w-full h-[1rem]  mt-5  justify-center items-center">
         <button className="border border-[#2E8B57] font-medium text-[#2E8B57] py-2 px-28 rounded-2xl flex items-center gap-2">
           View all <Compass className="w-4 h-4" />
         </button>
