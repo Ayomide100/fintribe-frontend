@@ -4,6 +4,8 @@ import React from "react";
 import Hero from "./Hero";
 import Platformfeatures from "./Platformfeatures";
 import Features from "./Features";
+import Investors from "./Investors";
+import Trustedexpert from "./Trustedexpert";
 
 const Homepage = () => {
   return (
@@ -19,6 +21,12 @@ const Homepage = () => {
       </section>
       <section>
         <Features />
+      </section>
+      <section>
+        <Trustedexpert />
+      </section>
+      <section>
+        <Investors />
       </section>
     </Mainlayouts>
   );
