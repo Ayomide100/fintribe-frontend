@@ -24,7 +24,10 @@ const Header = () => {
       </div>
 
       <div className="flex  gap-5 items-center">
-        <button className="py-1 md:px-6 px-4 border text-[#2E8B57] text-sm hover:text-white hover:bg-[#2E8B57] duration-300 transition-all rounded-md border-[#2E8B57]">
+        <button
+          onClick={() => nav.push("/auth/login")}
+          className="py-1 md:px-6 px-4 border text-[#2E8B57] text-sm hover:text-white hover:bg-[#2E8B57] duration-300 transition-all rounded-md border-[#2E8B57]"
+        >
           Login
         </button>
         <button
