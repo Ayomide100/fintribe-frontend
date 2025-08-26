@@ -18,6 +18,7 @@ const Register = () => {
           alt="Description of image"
           className="w-[92%] h-[92%] object-cover rounded-2xl"
         />
+        testing
       </div>
     </div>
   );
