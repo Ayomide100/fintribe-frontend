@@ -1,8 +1,11 @@
 import React from "react";
 import logo from "../../../assets/fintribelogo.png";
 import Image from "next/image";
+import { useRouter } from "next/router";
 
 const Header = () => {
+  const nav = useRouter();
+
   return (
     <div
       className="w-full h-[10vh]  fixed z-50 border-b border-gray-300 flex justify-between items-center px-4 md:px-8"
@@ -24,7 +27,10 @@ const Header = () => {
         <button className="py-1 md:px-6 px-4 border text-[#2E8B57] text-sm hover:text-white hover:bg-[#2E8B57] duration-300 transition-all rounded-md border-[#2E8B57]">
           Login
         </button>
-        <button className="py-2 md:px-6 px-2 bg-[#0A2540] hover:bg-[#0e3358] text-sm text-white rounded-md">
+        <button
+          onClick={() => nav.push("/auth/register")}
+          className="py-2 md:px-6 px-2 bg-[#0A2540] hover:bg-[#0e3358] text-sm text-white rounded-md"
+        >
           Join FinTribe
         </button>
       </div>
