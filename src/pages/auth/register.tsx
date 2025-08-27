@@ -1,25 +1,86 @@
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 import herosect from "../../../assets/fintribe 1.png";
 import logo from "../../../assets/fintribelogo.png";
-import { Facebook } from "lucide-react";
-import { BsGoogle } from "react-icons/bs";
-import { FaFacebook } from "react-icons/fa";
+import { BsFacebook } from "react-icons/bs";
+import { FcGoogle } from "react-icons/fc";
+import { useRouter } from "next/router";
+import CustomInput, {
+  SocialButton,
+} from "../(components)/Authcomp/custominput"; // Adjust path as needed
 
 const Register = () => {
+  const nav = useRouter();
+  const [formData, setFormData] = useState({
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+  });
+  type Errors = {
+    email?: string;
+    phone?: string;
+    password?: string;
+    confirmPassword?: string;
+    [key: string]: string | undefined;
+  };
+  const [errors, setErrors] = useState<Errors>({});
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Errors = {};
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (validateForm()) {
+      // Handle registration logic here
+      console.log("Register data:", formData);
+    }
+  };
+
   return (
     <div
-      className="w-full min-h-screen flex"
+      className="w-full min-h-screen flex items-stretch"
       style={{
         background:
           "linear-gradient(to left, #CFE7DB, #E8EFF7, #FFFFFF, #FEFFFE, #FCFEFD)",
       }}
     >
       {/* Left Section - Form */}
-      <div className="w-full md:w-[55%]  flex justify-center items-center p-6">
-        <div className="w-full max-w-[34rem] ">
+      <div className="w-full md:w-[55%] flex justify-center items-center p-6">
+        <div className="w-full max-w-[34rem]">
           {/* Logo */}
-          <div className="w-full  py-4 flex justify-start items-center">
+          <div
+            onClick={() => nav.push("/")}
+            className="w-full py-4 flex justify-start items-center cursor-pointer"
+          >
             <Image
               src={logo}
               alt="FinTribe Hero Section"
@@ -35,15 +96,11 @@ const Register = () => {
           </p>
 
           {/* Social Buttons */}
-          <div className="flex gap-3 mb-6">
-            <button className="flex justify-center items-center border border-gray-300 rounded-lg py-2 text-sm font-medium hover:bg-gray-100 transition">
-              <FaFacebook />
+          <div className="w-full flex flex-col sm:flex-row gap-3 items-center mb-6">
+            <SocialButton icon={BsFacebook} className="text-blue-600">
               Facebook
-            </button>
-            <button className="flex justify-center items-center border border-gray-300 rounded-lg py-2 text-sm font-medium hover:bg-gray-100 transition">
-              <BsGoogle />
-              Google
-            </button>
+            </SocialButton>
+            <SocialButton icon={FcGoogle}>Google</SocialButton>
           </div>
 
           <div className="flex items-center my-4">
@@ -53,54 +110,50 @@ const Register = () => {
           </div>
 
           {/* Form */}
-          <form className="flex flex-col gap-4">
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-[#0A2540] mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                placeholder="Enter your Email"
-                className="w-full border-1 border-[#6E6E6E] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#226B44]"
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <CustomInput
+              label="Email"
+              type="email"
+              name="email"
+              placeholder="Enter your Email"
+              value={formData.email}
+              onChange={handleInputChange}
+              error={errors.email}
+              required
+            />
 
-            {/* Phone */}
-            <div>
-              <label className="block text-sm font-medium text-[#0A2540] mb-1">
-                Phone
-              </label>
-              <input
-                type="tel"
-                placeholder="Enter your Phone number"
-                className="w-full border-1 border-[#6E6E6E] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#226B44]"
-              />
-            </div>
+            <CustomInput
+              label="Phone"
+              type="tel"
+              name="phone"
+              placeholder="Enter your Phone number"
+              value={formData.phone}
+              onChange={handleInputChange}
+              error={errors.phone}
+              required
+            />
 
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-medium text-[#0A2540] mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                placeholder="Create your password"
-                className="w-full border-1 border-[#6E6E6E] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#226B44]"
-              />
-            </div>
+            <CustomInput
+              label="Password"
+              type="password"
+              name="password"
+              placeholder="Create your password"
+              value={formData.password}
+              onChange={handleInputChange}
+              error={errors.password}
+              required
+            />
 
-            {/* Confirm Password */}
-            <div>
-              <label className="block text-sm font-medium text-[#0A2540] mb-1">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                placeholder="Confirm your password"
-                className="w-full border-1 border-[#6E6E6E] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#226B44]"
-              />
-            </div>
+            <CustomInput
+              label="Confirm Password"
+              type="password"
+              name="confirmPassword"
+              placeholder="Confirm your password"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              error={errors.confirmPassword}
+              required
+            />
 
             <button
               type="submit"
@@ -110,25 +163,26 @@ const Register = () => {
             </button>
           </form>
 
-          {/* Footer */}
-          <p className="text-sm text-gray-600 text-center mt-4">
-            Already have an account?{" "}
-            <a
-              href="/login"
-              className="text-[#226B44] font-medium hover:underline"
-            >
-              Login
-            </a>
-          </p>
+          <div>
+            <p className="text-sm text-gray-600 text-center mt-4">
+              Already have an account?{" "}
+              <span
+                onClick={() => nav.push("/auth/login")}
+                className="text-[#226B44] cursor-pointer font-medium hover:underline"
+              >
+                Login
+              </span>
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Right Section - Image (Hidden on Mobile) */}
-      <div className="hidden md:flex w-[45%] h-full justify-center items-center p-6">
+      <div className="hidden md:flex w-[45%] justify-center items-center p-6">
         <Image
           src={herosect}
           alt="Investment illustration"
-          className="w-full h-[90%] object-cover rounded-2xl shadow-lg"
+          className="w-full h-[100%] object-cover rounded-2xl shadow-lg"
         />
       </div>
     </div>
