@@ -14,13 +14,14 @@ const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    remember: false,
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -101,6 +102,26 @@ const Login = () => {
               onChange={handleInputChange}
               required
             />
+
+            {/* Remember Me + Forgot Password */}
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="remember"
+                  checked={formData.remember}
+                  onChange={handleInputChange}
+                  className="w-4 h-4 accent-[#226B44]"
+                />
+                Remember me
+              </label>
+              <span
+                onClick={() => nav.push("/auth/forgetpassword")}
+                className="text-[#226B44] cursor-pointer font-medium hover:underline"
+              >
+                Forgot Password?
+              </span>
+            </div>
 
             <button
               type="submit"

@@ -7,8 +7,11 @@ import Image from "next/image";
 import { VscVerified } from "react-icons/vsc";
 import { FiUsers } from "react-icons/fi";
 import { PiChartLineUp } from "react-icons/pi";
+import { useRouter } from "next/router";
 
 const Hero = () => {
+  const nav = useRouter();
+
   return (
     <div
       className="w-full md:h-[47rem] h-[45rem] flex flex-col pt-[10vh]"
@@ -53,7 +56,10 @@ const Hero = () => {
 
           {/* Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6">
-            <button className="py-3 px-6 sm:px-8 flex items-center justify-center gap-2 bg-[#0A2540] hover:bg-[#0e3358] text-white rounded-md text-sm sm:text-base">
+            <button
+              onClick={() => nav.push("/auth/register")}
+              className="py-3 px-6 sm:px-8 flex items-center justify-center gap-2 bg-[#0A2540] hover:bg-[#0e3358] text-white rounded-md text-sm sm:text-base"
+            >
               Join FinTribe Today <BsArrowRight />
             </button>
             <button className="py-3 px-6 border text-[#2E8B57] flex items-center justify-center gap-2 hover:text-white hover:bg-[#2E8B57] transition-all duration-300 rounded-md border-[#2E8B57] text-sm sm:text-base">
