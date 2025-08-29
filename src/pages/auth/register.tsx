@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import CustomInput, {
   SocialButton,
 } from "../(components)/Authcomp/custominput"; // Adjust path as needed
+import { BiArrowBack } from "react-icons/bi";
 
 const Register = () => {
   const nav = useRouter();
@@ -87,12 +88,17 @@ const Register = () => {
               className="w-[20%] h-auto object-contain"
             />
           </div>
-
+          <div className=" py-5" onClick={() => nav.push("/auth/select")}>
+            <p className="flex items-center gap-2 font-medium text-[#226B44] cursor-pointer">
+              <BiArrowBack /> Change Role
+            </p>
+          </div>
           {/* Title */}
-          <h2 className="text-xl font-semibold text-gray-800">Sign Up</h2>
+          <h2 className="text-xl font-semibold text-gray-800">
+            Welcome esteemed Investor/User 
+          </h2>
           <p className="text-sm text-gray-500 mb-6">
-            Sign up now to join a community where investing is social, simple,
-            and secure.
+            Let&lsquo;s get you started on your finTribe journey
           </p>
 
           {/* Social Buttons */}
