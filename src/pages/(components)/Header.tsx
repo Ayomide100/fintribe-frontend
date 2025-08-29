@@ -31,7 +31,7 @@ const Header = () => {
           Login
         </button>
         <button
-          onClick={() => nav.push("/auth/register")}
+          onClick={() => nav.push("/auth/select")}
           className="py-2 md:px-6 px-2 bg-[#0A2540] hover:bg-[#0e3358] text-sm text-white rounded-md"
         >
           Join FinTribe
