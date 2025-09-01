@@ -1,5 +1,6 @@
 import React from "react";
 import { Compass, School, Star } from "lucide-react";
+import { motion } from "framer-motion";
 
 const investmentData = [
   {
@@ -54,32 +55,6 @@ const investmentData = [
     riskLevel: "Medium Risk",
     riskColor: "bg-orange-100 text-orange-600",
   },
-  {
-    title: "Lagos Real Estate",
-    category: "Technology",
-    subtitle: "Tech Innovators",
-    categoryColor: "bg-blue-100 text-blue-600",
-    rating: 4.8,
-    investors: 234,
-    roi: "25-30%",
-    duration: "24 months",
-    minInvestment: "₦250,000",
-    riskLevel: "Medium Risk",
-    riskColor: "bg-orange-100 text-orange-600",
-  },
-  {
-    title: "Lagos Real Estate",
-    category: "Technology",
-    subtitle: "Tech Innovators",
-    categoryColor: "bg-blue-100 text-blue-600",
-    rating: 4.8,
-    investors: 234,
-    roi: "25-30%",
-    duration: "24 months",
-    minInvestment: "₦250,000",
-    riskLevel: "Medium Risk",
-    riskColor: "bg-orange-100 text-orange-600",
-  },
 ];
 
 interface Investment {
@@ -98,7 +73,14 @@ interface Investment {
 
 const InvestmentCard = ({ investment }: { investment: Investment }) => {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition duration-200 w-[80%] sm:w-[60%] md:w-auto flex-shrink-0">
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -40 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      viewport={{ once: false, amount: 0.3 }}
+      className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition duration-200 w-[80%] sm:w-[60%] md:w-auto flex-shrink-0"
+    >
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
         <div>
@@ -155,7 +137,7 @@ const InvestmentCard = ({ investment }: { investment: Investment }) => {
       <button className="w-full bg-[#0A2540] text-white py-2 md:py-3 text-sm rounded-lg font-medium hover:bg-[#1a3b5c] transition flex items-center justify-center gap-2">
         Join FinTribe Today →
       </button>
-    </div>
+    </motion.div>
   );
 };
 
@@ -163,7 +145,13 @@ const Features = () => {
   return (
     <div className="w-full bg-white py-12">
       {/* Header */}
-      <div className="w-full flex justify-between items-center px-4 md:px-6 mb-8">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: false, amount: 0.3 }}
+        className="w-full flex justify-between items-center px-4 md:px-6 mb-8"
+      >
         <div>
           <p className="text-sm font-medium">Featured Opportunities</p>
           <p className="font-semibold md:text-2xl text-xl text-[#2E8B57]">
@@ -179,7 +167,7 @@ const Features = () => {
             View all <Compass className="w-4 h-4" />
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Cards Section */}
       {/* Mobile: horizontal scroll */}
@@ -196,7 +184,7 @@ const Features = () => {
         ))}
       </div>
 
-      <div className="flex md:hidden   w-full h-[2rem] mt-7  justify-center items-center">
+      <div className="flex md:hidden w-full h-[2rem] mt-7 justify-center items-center">
         <button className="border border-[#2E8B57] font-medium text-[#2E8B57] py-2 px-28 rounded-2xl flex items-center gap-2">
           View all <Compass className="w-4 h-4" />
         </button>
