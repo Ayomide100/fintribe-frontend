@@ -29,13 +29,17 @@ const Select = () => {
   return (
     <div className="w-full h-screen flex flex-col">
       {/* Header */}
-      <div className="w-full h-[10%] flex justify-start items-center px-12">
-        <Image src={logo} alt="logo" className="h-12 w-32 object-contain" />
+      <div className="w-full h-[10%]  flex justify-start items-center px-12">
+        <Image
+          src={logo}
+          alt="logo"
+          className="md:h-12 md:w-32 h-7 w-20  object-contain"
+        />
       </div>
 
       {/* Title */}
-      <div className="w-full h-[20%] flex flex-col justify-center items-center">
-        <h1 className="text-black text-3xl font-bold">
+      <div className="w-full h-[20%] px-5 md:px-0 flex flex-col justify-center items-center">
+        <h1 className="text-black md:text-3xl text-xl font-bold">
           Whats Your Place in the <span className="text-[#226B44]">Tribe?</span>
         </h1>
         <p className="text-gray-400 text-center">
@@ -67,7 +71,10 @@ const Select = () => {
         </div>
 
         {/* Go Back */}
-        <div className="mt-8" onClick={() => nav.push("/")}>
+        <div
+          className="w-full h-[10%] flex justify-center items-center py-4"
+          onClick={() => nav.push("/")}
+        >
           <p className="flex items-center gap-2 font-medium text-[#226B44] cursor-pointer">
             <BiArrowBack /> Go Back
           </p>

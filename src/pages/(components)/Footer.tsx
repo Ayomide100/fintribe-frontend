@@ -1,12 +1,25 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Facebook, Twitter, Instagram } from "lucide-react";
 import { MdWhatsapp } from "react-icons/md";
 import Image from "next/image";
+import { motion, useInView } from "framer-motion";
 import logo from "../../../assets/fintribelogo.png";
 
 const Footer = () => {
+  const ref = useRef(null);
+  const inView = useInView(ref, { amount: 0.3, once: false });
+
   return (
-    <footer className="bg-[#1F3B5A] text-white py-12 px-6">
+    <motion.footer
+      ref={ref}
+      initial={{ opacity: 0, y: 50 }}
+      animate={{
+        opacity: inView ? 1 : 0,
+        y: inView ? 0 : 50,
+      }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className="bg-[#1F3B5A] text-white py-12 px-6"
+    >
       <div className="max-w-6xl mx-auto">
         {/* Top Section */}
         <div className="flex flex-col md:flex-row justify-between gap-12">
@@ -135,13 +148,13 @@ const Footer = () => {
         </div>
 
         {/* Bottom Copyright */}
-        <div className=" mt-10 pt-6 text-center">
+        <div className="mt-10 pt-6 text-center">
           <p className="text-gray-400 text-sm">
             © 2024 FinTribe. All rights reserved.
           </p>
         </div>
       </div>
-    </footer>
+    </motion.footer>
   );
 };
 

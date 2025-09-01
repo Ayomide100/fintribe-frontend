@@ -13,18 +13,20 @@ import { BiArrowBack } from "react-icons/bi";
 const Register = () => {
   const nav = useRouter();
   const [formData, setFormData] = useState({
+    fullName: "",
     email: "",
-    phone: "",
     password: "",
     confirmPassword: "",
   });
+
   type Errors = {
+    fullName?: string;
     email?: string;
-    phone?: string;
     password?: string;
     confirmPassword?: string;
     [key: string]: string | undefined;
   };
+
   const [errors, setErrors] = useState<Errors>({});
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,6 +47,10 @@ const Register = () => {
 
   const validateForm = () => {
     const newErrors: Errors = {};
+
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Full Name is required";
+    }
 
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
@@ -88,14 +94,16 @@ const Register = () => {
               className="w-[20%] h-auto object-contain"
             />
           </div>
-          <div className=" py-5" onClick={() => nav.push("/auth/select")}>
+
+          <div className="py-5" onClick={() => nav.push("/auth/select")}>
             <p className="flex items-center gap-2 font-medium text-[#226B44] cursor-pointer">
               <BiArrowBack /> Change Role
             </p>
           </div>
+
           {/* Title */}
           <h2 className="text-xl font-semibold text-gray-800">
-            Welcome esteemed Investor/User 
+            Welcome esteemed Investor/User
           </h2>
           <p className="text-sm text-gray-500 mb-6">
             Let&lsquo;s get you started on your finTribe journey
@@ -118,6 +126,17 @@ const Register = () => {
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <CustomInput
+              label="Full Name"
+              type="text"
+              name="fullName"
+              placeholder="Enter your Full Name"
+              value={formData.fullName}
+              onChange={handleInputChange}
+              error={errors.fullName}
+              required
+            />
+
+            <CustomInput
               label="Email"
               type="email"
               name="email"
@@ -125,17 +144,6 @@ const Register = () => {
               value={formData.email}
               onChange={handleInputChange}
               error={errors.email}
-              required
-            />
-
-            <CustomInput
-              label="Phone"
-              type="tel"
-              name="phone"
-              placeholder="Enter your Phone number"
-              value={formData.phone}
-              onChange={handleInputChange}
-              error={errors.phone}
               required
             />
 

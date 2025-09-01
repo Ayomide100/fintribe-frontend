@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from "react";
+import React, { useEffect } from "react";
 import { Compass } from "lucide-react";
 import Image from "next/image";
+import { TbLockAccess } from "react-icons/tb";
+import { motion, useAnimation } from "framer-motion";
+import { useInView } from "react-intersection-observer";
+
+// images
 import firstone from "../../../assets/187817fe37210c2e0093099c360898510851d788.jpg";
 import secondone from "../../../assets/2e1363bd7bba50ad27e636dd5baf25554019cbc6.jpg";
 import thirdone from "../../../assets/b05c727f512f42114b5172a761b9bec8cb0ddab0.jpg";
@@ -10,9 +15,6 @@ import fourthone from "../../../assets/fa3ade4848a2f80ff7721bbdbe3f2d9fe32d2b66.
 import firstavatar from "../../../assets/415d4678cf8060fd7cd2737b18c9f1d6805aea67.jpg";
 import secondavatar from "../../../assets/96befc06bcc1cfd2e6a85064de0253f03354026a.jpg";
 import thirdavatar from "../../../assets/a2c6e6d0de7c64b0e95e9bf35274ad5bae26def3.jpg";
-// import fourthavatar from "../../../assets/d072c25443f441b7143033251e6b7d2148a98433.jpg";
-// import fifthavatar from "../../../assets/d6ba5d2dff9956fe63003cdfa60cb70b5c67cf56.jpg";
-import { TbLockAccess } from "react-icons/tb";
 
 const circles = [
   {
@@ -41,11 +43,34 @@ const circles = [
   },
 ];
 
+const cardVariants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8 } },
+};
+
 const InvestorCard = ({ circle }: any) => {
+  const controls = useAnimation();
+  const [ref, inView] = useInView({
+    threshold: 0.2,
+    triggerOnce: false, // so it fades out when scrolling past
+  });
+
+  useEffect(() => {
+    if (inView) {
+      controls.start("visible");
+    } else {
+      controls.start("hidden");
+    }
+  }, [inView, controls]);
+
   return (
-    <div
+    <motion.div
+      ref={ref}
+      variants={cardVariants}
+      initial="hidden"
+      animate={controls}
       className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col justify-between hover:shadow-md transition 
-    min-w-[80%] sm:min-w-[280px] md:w-[340px] md:h-[360px]"
+      min-w-[80%] sm:min-w-[280px] md:w-[340px] md:h-[360px]"
     >
       <div className="w-full h-[40%]  rounded-full flex justify-center items-center">
         <div className="w-12 h-12 rounded-full bg-[#0A2540] flex items-center justify-center text-xs font-medium text-white border-2 border-[#226B44]">
@@ -96,7 +121,7 @@ const InvestorCard = ({ circle }: any) => {
       <button className="w-full bg-[#0A2540] text-white py-2 rounded-lg font-medium hover:bg-[#1a3b5c] transition text-sm">
         Join Circle →
       </button>
-    </div>
+    </motion.div>
   );
 };
 
@@ -105,10 +130,7 @@ const Investors = () => {
     <div className="w-full bg-white py-12">
       {/* Header */}
       <div className="w-full flex justify-between items-center px-4 md:px-8 mb-8">
-        <div
-          className=" px-2 
-         md:w-[46%] w-[90%]"
-        >
+        <div className="px-2 md:w-[46%] w-[90%]">
           <p className="text-sm font-medium">Investment Circles</p>
           <p className="font-semibold md:text-2xl text-xl text-[#2E8B57]">
             Grow Together, Invest Smarter
