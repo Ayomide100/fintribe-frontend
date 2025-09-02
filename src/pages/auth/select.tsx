@@ -44,7 +44,7 @@ const Select = () => {
 
       <div className="w-full h-screen flex flex-col">
         {/* Header */}
-        <div className="w-full h-[10%]  flex justify-start items-center px-12">
+        <div className="w-full h-[10%]   flex justify-start items-center px-12">
           <Image
             src={logo}
             alt="logo"
@@ -53,8 +53,8 @@ const Select = () => {
         </div>
 
         {/* Title */}
-        <div className="w-full h-[20%] px-5 md:px-0 flex flex-col justify-center items-center">
-          <h1 className="text-black md:text-3xl text-xl font-bold">
+        <div className="w-full md:h-[20%] h-[25%]  px-5 md:px-0 flex flex-col justify-center items-center">
+          <h1 className="text-black md:text-3xl text-lg font-bold">
             Whats Your Place in the{" "}
             <span className="text-[#226B44]">Tribe?</span>
           </h1>

@@ -102,6 +102,7 @@ const Register = () => {
       const res = await axios.post("/users/sign-up", payload);
 
       console.log("Registration successful:", res.data);
+      localStorage.setItem("token", res.data.content.token);
       toast.success("Registration successful!");
       setTimeout(() => {
         setFormData({
