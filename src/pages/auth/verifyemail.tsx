@@ -1,48 +1,49 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React, { useState, useRef, useEffect } from "react";
 import herosect from "../../../assets/fintribe 1.png";
 import logo from "../../../assets/fintribelogo.png";
 import Image from "next/image";
 import { useRouter } from "next/router";
 
+import toast, { Toaster } from "react-hot-toast";
+import axios from "@/config/axiosconfig";
+
 const VerifyEmail = () => {
   const nav = useRouter();
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", ""]); // 4 digits only
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
-  // Email should come from router query or context in real app
-  const userEmail = "user@example.com"; // This should be dynamic
+  const userEmail = "user@example.com"; // TODO: get dynamically
 
-  // Countdown timer for resend code
+  // Countdown timer for resend
   useEffect(() => {
     if (countdown > 0 && !canResend) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      const timer = setTimeout(() => setCountdown((prev) => prev - 1), 1000);
       return () => clearTimeout(timer);
     } else if (countdown === 0) {
       setCanResend(true);
     }
   }, [countdown, canResend]);
 
-  // Handle OTP input change
+  // Handle OTP input
   const handleOtpChange = (index: number, value: string) => {
     if (isNaN(Number(value))) return;
 
     const newOtp = [...otp];
-    newOtp[index] = value.slice(-1); // Only allow single digit
+    newOtp[index] = value.slice(-1);
     setOtp(newOtp);
-    setError(""); // Clear error when user types
+    setError("");
 
-    // Auto-focus next input
-    if (value && index < 5) {
+    if (value && index < otp.length - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  // Handle backspace
   const handleKeyDown = (
     index: number,
     e: React.KeyboardEvent<HTMLInputElement>
@@ -52,11 +53,10 @@ const VerifyEmail = () => {
     }
   };
 
-  // Handle paste
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData("text");
-    const pasteDigits = pasteData.replace(/\D/g, "").slice(0, 6);
+    const pasteDigits = pasteData.replace(/\D/g, "").slice(0, 4);
 
     const newOtp = [...otp];
     for (let i = 0; i < pasteDigits.length; i++) {
@@ -64,18 +64,18 @@ const VerifyEmail = () => {
     }
     setOtp(newOtp);
 
-    // Focus the next empty field or the last field
-    const nextIndex = Math.min(pasteDigits.length, 5);
+    const nextIndex = Math.min(pasteDigits.length, 3);
     inputRefs.current[nextIndex]?.focus();
   };
 
-  // Handle form submission
+  // Handle Verify OTP
   const handleVerify = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const otpCode = otp.join("");
 
-    if (otpCode.length !== 6) {
-      setError("Please enter a complete 6-digit code");
+    if (otpCode.length !== 4) {
+      setError("Please enter a complete 4-digit code");
+      toast.error("Please enter a complete 4-digit code");
       return;
     }
 
@@ -83,47 +83,42 @@ const VerifyEmail = () => {
     setError("");
 
     try {
-      // Simulate API call
-      await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          // Simulate verification logic
-          if (otpCode === "123456") {
-            // Mock verification
-            resolve(undefined);
-          } else {
-            reject(new Error("Invalid verification code"));
-          }
-        }, 1500);
+      const response = await axios.post("/users/verify-otp", {
+        otp: otpCode,
       });
 
-      // Success - redirect to dashboard or next step
-      nav.push("/dashboard");
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message || "Verification failed. Please try again.");
-      } else {
-        setError("Verification failed. Please try again.");
-      }
+      console.log(response.data);
+
+      toast.success("Email verified successfully!");
+      nav.push("/auth/login");
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.message || "Verification failed. Please try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle resend code
+  // Handle Resend OTP
   const handleResendCode = async () => {
     if (!canResend) return;
 
     setCanResend(false);
     setCountdown(60);
     setError("");
-    setOtp(["", "", "", "", "", ""]);
+    setOtp(["", "", "", ""]);
 
     try {
-      // Simulate resend API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // Show success message or handle resend logic
-    } catch (err) {
-      setError("Failed to resend code. Please try again.");
+      await axios.post("/users/resend-otp", { email: userEmail });
+      toast.success("OTP resent successfully!");
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.message ||
+        "Failed to resend code. Please try again.";
+      setError(msg);
+      toast.error(msg);
     }
   };
 
@@ -135,6 +130,8 @@ const VerifyEmail = () => {
           "linear-gradient(to left, #CFE7DB, #E8EFF7, #FFFFFF, #FEFFFE, #FCFEFD)",
       }}
     >
+      <Toaster position="top-center" reverseOrder={false} />
+
       {/* Left Section - Form */}
       <div className="w-full md:w-[55%] flex justify-center items-center p-6">
         <div className="w-full max-w-[34rem]">
@@ -150,7 +147,7 @@ const VerifyEmail = () => {
             />
           </div>
 
-          {/* Title and Description */}
+          {/* Title */}
           <div className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-800 mb-2">
               Verify your email
@@ -161,13 +158,12 @@ const VerifyEmail = () => {
                 {userEmail.replace(/(.{3}).*@/, "$1****@")}
               </span>
               <br />
-              Enter code below to verify.
+              Enter the 4-digit code below.
             </p>
           </div>
 
-          {/* OTP Input Form */}
+          {/* OTP Form */}
           <form onSubmit={handleVerify} className="space-y-6">
-            {/* OTP Input Fields */}
             <div className="flex justify-between gap-3">
               {otp.map((digit, index) => (
                 <input
@@ -192,12 +188,10 @@ const VerifyEmail = () => {
               ))}
             </div>
 
-            {/* Error Message */}
             {error && (
               <p className="text-red-500 text-sm text-center">{error}</p>
             )}
 
-            {/* Resend Code */}
             <div className="text-center">
               {canResend ? (
                 <button
@@ -205,21 +199,20 @@ const VerifyEmail = () => {
                   onClick={handleResendCode}
                   className="text-[#226B44] text-sm font-medium hover:underline"
                 >
-                  Didn&lsquo;t get code? Resend Code
+                  Didn’t get code? Resend Code
                 </button>
               ) : (
                 <p className="text-gray-500 text-sm">
-                  Didn&lsquo;t get code? Resend Code in {countdown}s
+                  Didn’t get code? Resend in {countdown}s
                 </p>
               )}
             </div>
 
-            {/* Verify Button */}
             <button
               type="submit"
-              disabled={isLoading || otp.join("").length !== 6}
+              disabled={isLoading || otp.join("").length !== 4}
               className={`w-full py-3 rounded-lg font-medium text-white transition-colors ${
-                isLoading || otp.join("").length !== 6
+                isLoading || otp.join("").length !== 4
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-[#0A2540] hover:bg-[#1a3b5c]"
               }`}

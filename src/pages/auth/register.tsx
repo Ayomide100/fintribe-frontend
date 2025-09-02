@@ -111,7 +111,7 @@ const Register = () => {
           confirmPassword: "",
           account_type: "",
         });
-        router.push("/auth/login");
+        router.push("/auth/verifyemail");
       }, 3000);
     } catch (error: unknown) {
       if (isAxiosError(error)) {

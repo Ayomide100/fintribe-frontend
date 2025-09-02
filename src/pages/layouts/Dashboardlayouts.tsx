@@ -18,8 +18,8 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
         <div className="w-[20%] h-full ">
           <Sidebar />
         </div>
-        <div className="w-[60%]  h-full">{children}</div>
-        <div className="w-[20%] h-full ">
+        <div className="w-[55%]  h-full">{children}</div>
+        <div className="w-[25%] h-full ">
           <Otherside />
         </div>
       </div>
