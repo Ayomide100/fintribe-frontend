@@ -1,7 +1,9 @@
 import Image from "next/image";
 import React from "react";
 import logo from "../../../assets/fintribelogo.png";
-import { Search } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
+import { IoMdNotificationsOutline } from "react-icons/io";
+import userprofilepic from "../../../assets/notfiyimg.png";
 
 const DashboardHeader = () => {
   return (
@@ -17,7 +19,13 @@ const DashboardHeader = () => {
           className=" w-[90%] h-full text-sm  outline-none focus:outline-none bg-transparent"
         />
       </div>
-      <div className="w-[16%] h-[90%] bg-emerald-400"></div>
+      <div className="w-[13%] h-[90%]  flex justify-around items-center">
+        <IoMdNotificationsOutline size={25} />
+        <div className="w-[40px] h-[40px]  rounded-full flex justify-center items-center">
+          <Image src={userprofilepic} alt="notification" />
+        </div>
+        <ChevronDown />
+      </div>
     </div>
   );
 };
