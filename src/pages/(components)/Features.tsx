@@ -55,6 +55,32 @@ const investmentData = [
     riskLevel: "Medium Risk",
     riskColor: "bg-orange-100 text-orange-600",
   },
+  {
+    title: "Lagos Real Estate",
+    category: "Agriculture",
+    subtitle: "AgriGrowth Ltd",
+    categoryColor: "bg-emerald-100 text-emerald-600",
+    rating: 4.8,
+    investors: 234,
+    roi: "35-50%",
+    duration: "24 months",
+    minInvestment: "₦250,000",
+    riskLevel: "High Risk",
+    riskColor: "bg-red-100 text-red-600",
+  },
+  {
+    title: "Lagos Real Estate",
+    subtitle: "Sterling Properties",
+    category: "Real Estate",
+    categoryColor: "bg-cyan-100 text-cyan-600",
+    rating: 4.6,
+    investors: 234,
+    roi: "18-22%",
+    duration: "24 months",
+    minInvestment: "₦250,000",
+    riskLevel: "Low Risk",
+    riskColor: "bg-green-100 text-green-600",
+  },
 ];
 
 interface Investment {
