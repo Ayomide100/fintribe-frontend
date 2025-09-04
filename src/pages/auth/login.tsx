@@ -46,7 +46,7 @@ const Login = () => {
           password: "",
           remember: false,
         });
-        nav.push("/dashboard");
+        nav.push("/dashboard/main");
       }, 3000);
     } catch (error) {
       if (isAxiosError(error)) {

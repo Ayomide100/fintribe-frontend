@@ -91,7 +91,7 @@ const VerifyEmail = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: ` ${localStorage.getItem("token")}`,
           },
         }
       );
@@ -120,7 +120,15 @@ const VerifyEmail = () => {
     setOtp(["", "", "", ""]);
 
     try {
-      await axios.post("/users/resend-otp", { email: userEmail });
+      await axios.post(
+        "/users/resend-otp",
+        { email: userEmail },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       toast.success("OTP resent successfully!");
     } catch (err: any) {
       const msg =
