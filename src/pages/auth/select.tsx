@@ -44,12 +44,20 @@ const Select = () => {
 
       <div className="w-full h-screen flex flex-col">
         {/* Header */}
-        <div className="w-full h-[10%]   flex justify-start items-center px-12">
+        <div className="w-full h-[13%]  flex justify-start items-center px-12">
           <Image
             src={logo}
             alt="logo"
             className="md:h-12 md:w-32 h-7 w-20  object-contain"
           />
+        </div>
+        <div
+          className="w-full h-[11%] md:hidden flex  justify-start px-6  items-center py-6"
+          onClick={() => nav.push("/")}
+        >
+          <p className="flex items-center gap-2 font-medium text-[#226B44] cursor-pointer">
+            <BiArrowBack /> Go Back
+          </p>
         </div>
 
         {/* Title */}
@@ -88,7 +96,7 @@ const Select = () => {
 
           {/* Go Back */}
           <div
-            className="w-full h-[10%] flex justify-center items-center py-4"
+            className="w-full h-[10%] md:flex hidden justify-center items-center py-4"
             onClick={() => nav.push("/")}
           >
             <p className="flex items-center gap-2 font-medium text-[#226B44] cursor-pointer">
