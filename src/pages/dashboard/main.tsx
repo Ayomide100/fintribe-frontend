@@ -4,7 +4,10 @@ import Head from "next/head";
 import Image from "next/image";
 import userprofilepic from "../../../assets/user.jpg";
 import postImage from "../../../assets/d072c25443f441b7143033251e6b7d2148a98433.jpg";
+import post2image from "../../../assets/57bb80ed3d1af1b175dda138130249ea0fc160b8.jpg";
+import post3image from "../../../assets/a3a16f22b871b5b60428bdef198c2d6598854556.jpg";
 import suitguy from "../../../assets/suitguy.jpg";
+
 import {
   AiOutlineComment,
   AiOutlineLike,
@@ -35,7 +38,7 @@ const Main = () => {
       avatar: userprofilepic,
       content:
         "Global markets are shifting. Here’s what Nigerian investors should know about FX policies and upcoming reforms...",
-      image: postImage,
+      image: post2image,
       likes: 34,
       comments: 15,
       shares: 10,
@@ -48,7 +51,7 @@ const Main = () => {
       avatar: suitguy,
       content:
         "Fintech adoption is rising in Africa faster than ever. These are the three trends I’m tracking closely in 2024...",
-      image: postImage,
+      image: post3image,
       likes: 45,
       comments: 20,
       shares: 17,
