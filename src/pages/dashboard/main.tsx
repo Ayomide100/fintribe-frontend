@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Dashboardlayouts from "../layouts/Dashboardlayouts";
 import Head from "next/head";
 import Image from "next/image";
@@ -13,9 +13,20 @@ import {
   AiOutlineLike,
   AiOutlineShareAlt,
 } from "react-icons/ai";
-import { Bookmark, ShieldCheck } from "lucide-react";
+import {
+  BarChart,
+  Bookmark,
+  Camera,
+  MoreHorizontal,
+  ShieldCheck,
+  Video,
+} from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 const Main = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [content, setContent] = useState("");
+
   const Newsfeed = [
     {
       id: 1,
@@ -65,17 +76,101 @@ const Main = () => {
       </Head>
       <div className="w-full h-full overflow-y-auto scrollbar-thin scrollbar-hide px-5 py-6 space-y-4">
         {/* Share Box */}
-        <div className="w-full h-[11%] bg-[#FFFFFF] cursor-pointer rounded-md shadow-md flex justify-start px-5 gap-4 items-center">
-          <div className="w-[35px] h-[35px] rounded-full flex justify-center items-center">
-            <Image
-              src={userprofilepic}
-              alt="notification"
-              className="w-full h-full object-cover rounded-full"
-            />
-          </div>
-          <p className="text-sm font-normal text-gray-700">
-            Share an investment insight, market update, or question...
-          </p>
+        <div className="w-full">
+          <AnimatePresence mode="wait">
+            {!isExpanded ? (
+              // --- Collapsed input ---
+              <motion.div
+                key="collapsed"
+                initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="w-full bg-white cursor-pointer rounded-md shadow-md flex justify-start px-5 py-3 gap-4 items-center"
+                onClick={() => setIsExpanded(true)}
+              >
+                <div className="w-[35px] h-[35px] rounded-full flex justify-center items-center">
+                  <Image
+                    src={userprofilepic}
+                    alt="user"
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                </div>
+                <p className="text-sm font-normal text-gray-700">
+                  Share an investment insight, market update, or question...
+                </p>
+              </motion.div>
+            ) : (
+              // --- Expanded composer ---
+              <motion.div
+                key="expanded"
+                initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="w-full bg-white rounded-md shadow-md p-4 space-y-4"
+              >
+                {/* Input */}
+                <div className="flex gap-3">
+                  <div className="w-[35px] h-[35px] rounded-full flex justify-center items-center">
+                    <Image
+                      src={userprofilepic}
+                      alt="user"
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  </div>
+                  <textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="Share an investment insight, market update, or question..."
+                    className="w-full resize-none focus:outline-none text-sm text-gray-800"
+                    rows={3}
+                  />
+                </div>
+
+                {/* Options */}
+                <div className="flex justify-between items-center border-t pt-3">
+                  <div className="flex gap-4 text-gray-500 text-sm">
+                    <button className="flex items-center gap-1 hover:text-gray-800">
+                      <Camera size={18} /> Photo
+                    </button>
+                    <button className="flex items-center gap-1 hover:text-gray-800">
+                      <Video size={18} /> Video
+                    </button>
+                    <button className="flex items-center gap-1 hover:text-gray-800">
+                      <BarChart size={18} /> Poll
+                    </button>
+                    <button className="flex items-center gap-1 hover:text-gray-800">
+                      <MoreHorizontal size={18} /> More
+                    </button>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setIsExpanded(false);
+                        setContent("");
+                      }}
+                      className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      disabled={!content.trim()}
+                      className={`px-4 py-2 rounded-md text-white ${
+                        content.trim()
+                          ? "bg-[#0A2540] hover:bg-[#1a3b5c]"
+                          : "bg-gray-400 cursor-not-allowed"
+                      }`}
+                    >
+                      Post
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Feed Posts */}

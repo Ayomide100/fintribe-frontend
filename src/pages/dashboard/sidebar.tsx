@@ -6,32 +6,40 @@ import {
   User,
   Settings,
 } from "lucide-react";
+import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { TbFidgetSpinner } from "react-icons/tb";
 
 const Sidebar = () => {
-  const [active, setActive] = useState("Home"); // default active
+  const [active, setActive] = useState("Home");
+
+  const router = useRouter();
 
   const NestedBar = [
     {
       name: "Home",
       icon: <Home size={20} />,
+      path: "/dashboard/main",
     },
     {
       name: "Opportunities",
       icon: <TrendingUp size={20} />,
+      path: "/dashboard/opportunities",
     },
     {
       name: "Circles",
       icon: <TbFidgetSpinner size={20} />,
+      path: "/dashboard/circles",
     },
     {
       name: "Learning Hub",
       icon: <GraduationCap size={20} />,
+      path: "/dashboard/learning",
     },
     {
       name: "Saved Items",
       icon: <Bookmark size={20} />,
+      path: "/dashboard/saved",
     },
   ];
 
@@ -42,7 +50,10 @@ const Sidebar = () => {
         {NestedBar.map((item) => (
           <button
             key={item.name}
-            onClick={() => setActive(item.name)}
+            onClick={() => {
+              setActive(item.name);
+              router.push(item.path);
+            }}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition 
               ${
                 active === item.name
