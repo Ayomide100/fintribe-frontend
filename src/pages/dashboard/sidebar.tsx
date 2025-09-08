@@ -7,12 +7,10 @@ import {
   Settings,
 } from "lucide-react";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React from "react";
 import { TbFidgetSpinner } from "react-icons/tb";
 
 const Sidebar = () => {
-  const [active, setActive] = useState("Home");
-
   const router = useRouter();
 
   const NestedBar = [
@@ -47,24 +45,24 @@ const Sidebar = () => {
     <div className="w-full h-full flex flex-col justify-around items-center">
       {/* Top Navigation */}
       <div className="w-[88%] h-[45%] bg-white p-2 shadow-lg rounded-md border border-[#E0E0E0] flex flex-col gap-2">
-        {NestedBar.map((item) => (
-          <button
-            key={item.name}
-            onClick={() => {
-              setActive(item.name);
-              router.push(item.path);
-            }}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition 
-              ${
-                active === item.name
-                  ? "bg-[#2E8B57] text-white"
-                  : " text-gray-700 hover:bg-gray-200"
-              }`}
-          >
-            {item.icon}
-            <p className="text-sm font-medium">{item.name}</p>
-          </button>
-        ))}
+        {NestedBar.map((item) => {
+          const isActive = router.pathname === item.path; // ✅ check route
+          return (
+            <button
+              key={item.name}
+              onClick={() => router.push(item.path)}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition
+                ${
+                  isActive
+                    ? "bg-[#2E8B57] text-white"
+                    : "text-gray-700 hover:bg-gray-200"
+                }`}
+            >
+              {item.icon}
+              <p className="text-sm font-medium">{item.name}</p>
+            </button>
+          );
+        })}
       </div>
 
       {/* Your Activity Card */}
