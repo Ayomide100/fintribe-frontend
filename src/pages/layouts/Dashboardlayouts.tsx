@@ -19,7 +19,7 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
           <Sidebar />
         </div>
         <div className="w-[55%]  h-full">{children}</div>
-        <div className="w-[25%] h-full ">
+        <div className="w-[25%] h-full  ">
           <Otherside />
         </div>
       </div>
