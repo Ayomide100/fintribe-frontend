@@ -10,7 +10,7 @@ import toast, { Toaster } from "react-hot-toast";
 import axios from "@/config/axiosconfig";
 import Head from "next/head";
 
-const VerifyEmail = () => {
+const VerifyForgetpassword = () => {
   const nav = useRouter();
   const [otp, setOtp] = useState(["", "", "", ""]); // 4 digits only
   const [isLoading, setIsLoading] = useState(false);
@@ -85,7 +85,7 @@ const VerifyEmail = () => {
 
     try {
       const response = await axios.post(
-        "/users/verify-otp",
+        "/users/confirm-password-otp",
         {
           otp: otpCode,
         },
@@ -97,9 +97,12 @@ const VerifyEmail = () => {
       );
 
       console.log(response.data);
+      if (response.data?.content) {
+        localStorage.setItem("userData", JSON.stringify(response.data.content));
+      }
 
       toast.success("Email verified successfully!");
-      nav.push("/auth/login");
+      nav.push("/auth/resetpassword");
     } catch (err: any) {
       const msg =
         err.response?.data?.message || "Verification failed. Please try again.";
@@ -142,18 +145,26 @@ const VerifyEmail = () => {
   return (
     <>
       <Head>
-        <title>Verify Email</title>
+        <title>Verify Forget Password</title>
       </Head>
       <div
         className="w-full min-h-screen flex items-stretch"
         style={{
           background:
-            "linear-gradient(to left, #CFE7DB, #E8EFF7, #FFFFFF, #FEFFFE, #FCFEFD)",
+            "linear-gradient(to right, #CFE7DB, #E8EFF7, #FFFFFF, #FEFFFE, #FCFEFD)",
         }}
       >
         <Toaster position="top-center" reverseOrder={false} />
+        {/* Left section */}
+        <div className="hidden md:flex w-[45%] justify-center items-center p-6">
+          <Image
+            src={herosect}
+            alt="Investment illustration"
+            className="w-full h-[100%] object-cover rounded-2xl shadow-lg"
+          />
+        </div>
 
-        {/* Left Section - Form */}
+        {/* Right Section - Form */}
         <div className="w-full md:w-[55%] flex justify-center items-center p-6">
           <div className="w-full max-w-[34rem]">
             {/* Logo */}
@@ -171,7 +182,7 @@ const VerifyEmail = () => {
             {/* Title */}
             <div className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-                Verify your email
+                Verify to change your password
               </h2>
               <p className="text-sm text-gray-500 leading-relaxed">
                 A verification code has been sent to{" "}
@@ -185,7 +196,7 @@ const VerifyEmail = () => {
 
             {/* OTP Form */}
             <form onSubmit={handleVerify} className="space-y-6">
-              <div className="flex justify-start gap-3">
+              <div className="flex md:justify-start justify-between  gap-3">
                 {otp.map((digit, index) => (
                   <input
                     key={index}
@@ -250,18 +261,9 @@ const VerifyEmail = () => {
             </form>
           </div>
         </div>
-
-        {/* Right Section - Image */}
-        <div className="hidden md:flex w-[45%] justify-center items-center p-6">
-          <Image
-            src={herosect}
-            alt="Investment illustration"
-            className="w-full h-[100%] object-cover rounded-2xl shadow-lg"
-          />
-        </div>
       </div>
     </>
   );
 };
 
-export default VerifyEmail;
+export default VerifyForgetpassword;
