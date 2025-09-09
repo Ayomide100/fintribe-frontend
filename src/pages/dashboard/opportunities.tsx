@@ -1,0 +1,15 @@
+import React from "react";
+import Dashboardlayouts from "../layouts/Dashboardlayouts";
+import Head from "next/head";
+
+const Opportunities = () => {
+  return (
+    <Dashboardlayouts>
+      <Head>
+        <title> FinTribe || Opportunities </title>
+      </Head>
+    </Dashboardlayouts>
+  );
+};
+
+export default Opportunities;
