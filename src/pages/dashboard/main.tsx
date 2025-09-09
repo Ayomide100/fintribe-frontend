@@ -104,12 +104,37 @@ const Main = () => {
               // --- Expanded composer ---
               <motion.div
                 key="expanded"
-                initial={{ opacity: 0, y: -10, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="w-full bg-white rounded-md shadow-md p-4 space-y-4"
+                className={`
+          bg-white shadow-md 
+          rounded-md p-4 space-y-4 
+          w-full
+          md:relative
+          md:rounded-md 
+          ${/* Mobile full-screen overlay */ ""}
+          fixed inset-0 z-50 md:z-auto md:inset-auto
+          md:space-y-4
+        `}
               >
+                {/* Mobile Header (only visible on small screens) */}
+                <div className="flex justify-between items-center border-b pb-2 md:hidden">
+                  <h3 className="text-base font-medium text-gray-800">
+                    Create Post
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setIsExpanded(false);
+                      setContent("");
+                    }}
+                    className="text-gray-600 hover:text-gray-900"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
                 {/* Input */}
                 <div className="flex gap-3">
                   <div className="w-[35px] h-[35px] rounded-full flex justify-center items-center">
@@ -124,7 +149,7 @@ const Main = () => {
                     onChange={(e) => setContent(e.target.value)}
                     placeholder="Share an investment insight, market update, or question..."
                     className="w-full resize-none focus:outline-none text-sm text-gray-800"
-                    rows={3}
+                    rows={4}
                   />
                 </div>
 
@@ -146,7 +171,7 @@ const Main = () => {
                   </div>
 
                   {/* Action buttons */}
-                  <div className="flex gap-3">
+                  <div className="hidden md:flex gap-3">
                     <button
                       onClick={() => {
                         setIsExpanded(false);
@@ -167,6 +192,20 @@ const Main = () => {
                       Post
                     </button>
                   </div>
+                </div>
+
+                {/* Mobile Post Button */}
+                <div className="md:hidden fixed bottom-0 left-0 w-full bg-white p-4 border-t">
+                  <button
+                    disabled={!content.trim()}
+                    className={`w-full py-3 rounded-md text-white text-sm font-medium ${
+                      content.trim()
+                        ? "bg-[#0A2540] hover:bg-[#1a3b5c]"
+                        : "bg-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    Post
+                  </button>
                 </div>
               </motion.div>
             )}
