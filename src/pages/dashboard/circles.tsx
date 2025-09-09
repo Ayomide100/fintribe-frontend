@@ -88,58 +88,63 @@ const Circles = () => {
       <Head>
         <title>FinTribe || Circles</title>
       </Head>
-      <div className="w-full h-full px-6 py-6 space-y-6">
+      <div className="w-full h-full px-4 sm:px-6 py-6 space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
           <div>
-            <h1 className="text-xl font-semibold text-gray-800">
+            <h1 className="text-lg sm:text-xl font-semibold text-gray-800">
               Investment Circles
             </h1>
             <p className="text-sm text-gray-500">
               Connect with like-minded investors and industry experts
             </p>
           </div>
-          <button className="bg-[#0A2540] text-white px-4 py-2 rounded-lg shadow hover:bg-[#0d2f57] transition">
+          <button className="bg-[#0A2540] text-white px-4 py-2 rounded-lg shadow hover:bg-[#0d2f57] transition text-sm">
             + Create a Circle
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-4 bg-gray-50 border border-gray-200 rounded-lg p-2">
-          <button className="px-4 py-2 text-sm font-medium rounded-md bg-white shadow">
+        <div className="flex gap-2 sm:gap-4 bg-gray-50 border border-gray-200 rounded-lg p-2 overflow-x-auto scrollbar-hide">
+          <button className="px-3 sm:px-4 py-2 text-sm font-medium rounded-md bg-white shadow whitespace-nowrap">
             My Circles
           </button>
-          <button className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md">
+          <button className="px-3 sm:px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md whitespace-nowrap">
             Joined Circles
           </button>
-          <button className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md">
+          <button className="px-3 sm:px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md whitespace-nowrap">
             Explore Circles
           </button>
         </div>
-        <div className="w-full h-[15%]  flex justify-between border-b  border-[#E0E0E0] items-center">
-          <div className="w-[40%] h-full  flex justify-start gap-2 px-5 items-center">
-            <div className="w-[50px] h-[50px] rounded-full flex justify-center items-center bg-green-400">
+
+        {/* Circle Header */}
+        <div className="w-full h-[15%] flex  sm:px-3 px-0  justify-between border-b border-[#E0E0E0] items-center gap-3 pb-2">
+          <div className="flex justify-start gap-2 sm:gap-4 items-center w-full sm:w-[40%]">
+            <div className="w-[45px] h-[45px] sm:w-[40px] sm:h-[40px] rounded-full flex justify-center items-center bg-green-400">
               <Image
                 src={postImage}
                 alt="Circle Image"
                 className="rounded-full object-cover w-full h-full"
               />
             </div>
-            <p className=" font-semibold text-lg">Lagos Property Investors</p>
+            <p className="font-semibold text-sm sm:text-lg">
+              Lagos Property Investors
+            </p>
           </div>
-          <div className="w-[10%] h-full flex justify-around items-center">
-            <div className=" bg-white shadow-md  px-2 py-2 rounded-md">
-              <FiEdit size={20} />
+          <div className="flex gap-3">
+            <div className="bg-white shadow-md px-2 py-2 rounded-md">
+              <FiEdit size={18} />
             </div>
-            <div className="bg-white shadow-md  px-2 py-2 rounded-md">
-              <Settings />
+            <div className="bg-white shadow-md px-2 py-2 rounded-md">
+              <Settings size={18} />
             </div>
           </div>
         </div>
+
         {/* Main Content */}
-        <div className="grid grid-cols-12 gap-6 h-[80vh]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:h-[80vh]">
           {/* Sidebar - My Circles */}
-          <div className="col-span-4 bg-white rounded-xl shadow border border-gray-100 p-4 overflow-y-auto">
+          <div className="lg:col-span-4 bg-white rounded-xl shadow border border-gray-100 p-4 max-h-[40vh] lg:max-h-full overflow-y-auto">
             <div className="flex items-center gap-2 mb-4">
               <TbFidgetSpinner size={18} className="text-green-600" />
               <h2 className="text-sm font-semibold text-gray-800">
@@ -150,9 +155,9 @@ const Circles = () => {
               {circles.map((circle) => (
                 <button
                   key={circle.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition relative"
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition relative text-left"
                 >
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-gray-200">
                     <Image
                       src={circle.image}
                       alt={circle.name}
@@ -165,10 +170,9 @@ const Circles = () => {
                     <span className="text-sm font-medium text-gray-800 truncate">
                       {circle.name}
                     </span>
-
-                    <span className="text-xs text-gray-500">
-                      <TbLockAccess className="inline-block w-4 h-4 mr-1 text-[#226B44]" />
-                      • {""} {circle.members}
+                    <span className="text-xs text-gray-500 flex items-center">
+                      <TbLockAccess className="w-4 h-4 mr-1 text-[#226B44]" />
+                      {circle.members}
                     </span>
                   </div>
                   {circle.unread > 0 && (
@@ -182,7 +186,7 @@ const Circles = () => {
           </div>
 
           {/* Newsfeed */}
-          <div className="col-span-8 space-y-5 overflow-y-auto">
+          <div className="lg:col-span-8 space-y-5 overflow-y-auto">
             {Newsfeed.map((post) => (
               <div
                 key={post.id}
@@ -190,7 +194,7 @@ const Circles = () => {
               >
                 {/* Post Header */}
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#226B44]">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-[#226B44]">
                     <Image
                       src={post.avatar}
                       alt="profile"
@@ -225,14 +229,14 @@ const Circles = () => {
 
                 {/* Actions */}
                 <div className="flex justify-between items-center text-gray-600 mt-4 border-t border-gray-200 pt-3">
-                  <div className="flex gap-6">
-                    <button className="flex items-center gap-1 text-sm hover:text-blue-600 transition">
+                  <div className="flex gap-6 text-sm">
+                    <button className="flex items-center gap-1 hover:text-blue-600 transition">
                       <AiOutlineLike size={18} /> {post.likes}
                     </button>
-                    <button className="flex items-center gap-1 text-sm hover:text-blue-600 transition">
+                    <button className="flex items-center gap-1 hover:text-blue-600 transition">
                       <AiOutlineComment size={18} /> {post.comments}
                     </button>
-                    <button className="flex items-center gap-1 text-sm hover:text-blue-600 transition">
+                    <button className="flex items-center gap-1 hover:text-blue-600 transition">
                       <AiOutlineShareAlt size={18} /> {post.shares}
                     </button>
                   </div>

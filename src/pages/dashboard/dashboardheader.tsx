@@ -5,6 +5,7 @@ import { ChevronDown, LogOut, Search, Settings, User } from "lucide-react";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import userprofilepic from "../../../assets/notfiyimg.png";
 import { MdMenu } from "react-icons/md";
+import { useRouter } from "next/router";
 
 interface Props {
   setSidebarOpen: (open: boolean) => void;
@@ -16,20 +17,12 @@ const DashboardHeader: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
 
   const HandleDropdown = () => setDropdown(!dropdown);
 
-  return (
-    <div className="w-full h-full flex shadow-md justify-between items-center px-6 relative">
-      {/* Mobile Menu Button */}
-      <div className="md:hidden">
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="flex items-center justify-center w-10 h-10 bg-[#2E8B571A] border border-[#2E8B57]/30 rounded-xl cursor-pointer transition"
-        >
-          <MdMenu size={24} className="text-[#2E8B57]" />
-        </button>
-      </div>
+  const router = useRouter();
 
+  return (
+    <div className="w-full h-full flex shadow-md justify-between items-center md:px-6 px-3 relative">
       {/* Logo - Now visible on both mobile and desktop */}
-      <div className="w-[10%] md:w-[10%]">
+      <div className="w-[25%] md:w-[10%]">
         <Image src={logo} alt="logo" />
       </div>
 
@@ -43,9 +36,34 @@ const DashboardHeader: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
         />
       </div>
 
+      <div className="w-[50%] h-[70%] rounded-md bg-[#84C2A229] text-[#E0E0E0] md:hidden flex justify-around items-center">
+        <Search className="text-[#6E6E6E]" size={20} />
+        |
+        <IoMdNotificationsOutline
+          size={20}
+          className="text-[#6E6E6E]"
+          onClick={() => router.push("/dashboard/notifications")}
+        />
+        |{/* Mobile Menu Button */}
+        <div className="md:hidden">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="flex items-center justify-center w-8 h-8 bg-[#2E8B571A] border border-[#2E8B57]/30 rounded-xl cursor-pointer transition"
+          >
+            <MdMenu size={20} className="text-[#2E8B57]" />
+          </button>
+        </div>
+      </div>
+
       {/* Right Side Icons */}
-      <div className="w-[10%] h-[90%] flex justify-around items-center relative">
-        <IoMdNotificationsOutline size={25} />
+      <div className="w-[10%] h-[90%]  md:flex hidden  justify-around items-center relative">
+        <div className="w-[30%] h-[70%] hover:bg-[#84C2A27A] cursor-pointer flex justify-center items-center rounded-md">
+          <IoMdNotificationsOutline
+            size={25}
+            onClick={() => router.push("/dashboard/notifications")}
+          />
+        </div>
+
         <div
           onClick={HandleDropdown}
           className="w-[70%] h-full hover:bg-[#84C2A27A] cursor-pointer rounded-md gap-2 flex justify-center items-center"

@@ -60,26 +60,25 @@ const Sidebar: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
       {/* Sidebar */}
       <div
         className={`
-          fixed md:relative inset-y-0 left-0 z-50 
-          w-80 md:w-full h-full 
-          bg-gray-50 
+          fixed md:relative inset-y-0 right-0 z-50 
+          w-80 md:w-full h-full  
+          bg-white shadow-lg
           transform transition-transform duration-300 ease-in-out
-          ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-          }
-          ${!sidebarOpen ? "md:w-0 md:overflow-hidden" : ""}
-          flex flex-col justify-around items-center
+          ${sidebarOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"}
+          flex flex-col justify-between  items-center
         `}
       >
-        <button
-          className="absolute bg-pink-500 top-2 right-4 md:hidden z-10"
-          onClick={() => setSidebarOpen(false)}
-        >
-          <MdClose size={28} />
-        </button>
+        <div className="md:hidden w-full flex justify-end p-3 border-b border-gray-200">
+          <button
+            className="w-9 h-9 flex items-center justify-center rounded-md border bg-[#84C2A27A] border-gray-300 hover:bg-gray-100 transition"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <MdClose size={22} className="text-gray-700" />
+          </button>
+        </div>
 
         {/* Top Navigation */}
-        <div className="w-[88%] h-[45%] bg-white p-2 shadow-lg rounded-md border border-[#E0E0E0] flex flex-col gap-2">
+        <div className="w-[88%] md:h-[45%] h-[40%] bg-white p-2 shadow-lg rounded-md border border-[#E0E0E0] flex flex-col gap-2">
           {NestedBar.map((item) => {
             const isActive = router.pathname === item.path;
             return (
@@ -107,7 +106,7 @@ const Sidebar: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
         </div>
 
         {/* Your Activity Card */}
-        <div className="w-[88%] h-[30%] bg-white shadow-md border border-[#E0E0E0] rounded-md p-4 flex flex-col gap-3">
+        <div className="w-[88%] md:h-[30%] h-[25%]  bg-white shadow-md border border-[#E0E0E0] rounded-md p-4 flex flex-col gap-3">
           <h3 className="text-sm font-semibold text-gray-800">Your Activity</h3>
           <div className="flex justify-between text-sm text-gray-700">
             <span>Circles Joined</span>
@@ -124,7 +123,7 @@ const Sidebar: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
         </div>
 
         {/* Profile & Settings */}
-        <div className="w-[88%] h-[17%] bg-white shadow-md border border-[#E0E0E0] rounded-md flex flex-col">
+        <div className="w-[88%] md:h-[17%] h-[16%] bg-white shadow-md border border-[#E0E0E0] rounded-md flex flex-col">
           <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-md">
             <User size={18} />
             <span>Profile</span>

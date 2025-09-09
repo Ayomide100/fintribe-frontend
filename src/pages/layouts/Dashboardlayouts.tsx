@@ -22,12 +22,12 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
           sidebarOpen={sidebarOpen}
         />
       </div>
-      <div className="w-full h-[90%] flex bg-amber-400">
+      <div className="w-full h-[90%] flex ">
         {/* Sidebar Container */}
         <div
           className={`
             transition-all duration-300 ease-in-out
-            ${sidebarOpen ? "w-[20%]" : "w-0 md:w-[20%]"}
+            ${sidebarOpen ? "w-[20%]" : "w-0 md:w-[26%]"}
             h-full relative
           `}
         >
@@ -52,7 +52,7 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
             className={`
               w-[25%] h-full bg-amber-500 hidden md:block
               transition-all duration-300 ease-in-out
-              ${!sidebarOpen ? "md:w-[25%]" : ""}
+              ${!sidebarOpen ? "md:w-[32%]" : ""}
             `}
           >
             <Otherside />
