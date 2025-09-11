@@ -50,7 +50,7 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
         {isMainPage && (
           <div
             className={`
-              w-[25%] h-full bg-amber-500 hidden md:block
+              w-[25%] h-full  hidden md:block
               transition-all duration-300 ease-in-out
               ${!sidebarOpen ? "md:w-[32%]" : ""}
             `}
