@@ -5,6 +5,7 @@ import {
   TrendingUp,
   User,
   Settings,
+  LogOut,
 } from "lucide-react";
 import { useRouter } from "next/router";
 import React from "react";
@@ -78,7 +79,7 @@ const Sidebar: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
         </div>
 
         {/* Top Navigation */}
-        <div className="w-[88%] md:h-[45%] h-[40%] bg-white p-2 shadow-lg rounded-md border border-[#E0E0E0] flex flex-col gap-2">
+        <div className="w-[88%] md:h-[45%] h-[40%] bg-white p-2 md:shadow-lg shadow-0 rounded-md border border-[#E0E0E0] flex flex-col gap-2">
           {NestedBar.map((item) => {
             const isActive = router.pathname === item.path;
             return (
@@ -131,6 +132,10 @@ const Sidebar: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
           <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-md">
             <Settings size={18} />
             <span>Settings</span>
+          </button>
+          <button className="flex items-center gap-2 px-3 text-red-500 py-2 text-sm md:hidden hover:bg-gray-100 rounded-b-md">
+            <LogOut size={18} />
+            <span>Logout</span>
           </button>
         </div>
       </div>

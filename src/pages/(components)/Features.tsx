@@ -105,7 +105,8 @@ const InvestmentCard = ({ investment }: { investment: Investment }) => {
       exit={{ opacity: 0, y: -40 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
       viewport={{ once: false, amount: 0.3 }}
-      className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition duration-200 w-[80%] sm:w-[60%] md:w-auto flex-shrink-0"
+      className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition duration-200 
+      w-full sm:w-[60%] md:w-auto flex-shrink-0"
     >
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
