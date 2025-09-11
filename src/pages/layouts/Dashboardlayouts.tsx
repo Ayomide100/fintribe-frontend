@@ -13,16 +13,63 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
   const router = useRouter();
   const isMainPage = router.pathname === "/dashboard/main";
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
 
   return (
     <div className="h-screen w-full relative">
+      {/* Header */}
       <div className="h-[10%]">
         <DashboardHeader
           setSidebarOpen={setSidebarOpen}
           sidebarOpen={sidebarOpen}
         />
       </div>
-      <div className="w-full h-[90%] flex ">
+
+      {/* Notification Banner */}
+      {/* Notification Banner */}
+      {showBanner && (
+        <div className="relative w-full md:h-[10%] h-[15%] bg-[#1F3B5A] text-white px-4 py-2 flex items-center justify-between text-sm">
+          {/* Mobile close button - absolute top-right */}
+          <button
+            onClick={() => setShowBanner(false)}
+            className="absolute top-2 right-3 text-white block md:hidden hover:text-gray-200 text-2xl leading-none"
+          >
+            ×
+          </button>
+
+          {/* Banner content */}
+          <div className="flex items-center gap-2 md:justify-start w-[90%] justify-center md:flex-row flex-col">
+            <p className="text-center">
+              Complete Identity Verification to fully access all Fintribe
+              Features
+            </p>
+            <button
+              className="text-[#84C2A2] px-3 py-1 rounded text-xs font-medium hover:bg-gray-100"
+              onClick={() => {
+                router.push("/dashboard/kyc");
+                console.log("Verify now clicked");
+              }}
+            >
+              Verify Now →
+            </button>
+          </div>
+
+          {/* Desktop close button - stays inline */}
+          <button
+            onClick={() => setShowBanner(false)}
+            className="text-white hidden md:block hover:text-gray-200 text-lg leading-none"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Main Layout */}
+      <div
+        className={`w-full flex transition-all duration-300 ${
+          showBanner ? "h-[calc(90%-48px)]" : "h-[90%]"
+        }`}
+      >
         {/* Sidebar Container */}
         <div
           className={`
@@ -50,7 +97,7 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
         {isMainPage && (
           <div
             className={`
-              w-[25%] h-full  hidden md:block
+              w-[25%] h-full hidden md:block
               transition-all duration-300 ease-in-out
               ${!sidebarOpen ? "md:w-[32%]" : ""}
             `}
