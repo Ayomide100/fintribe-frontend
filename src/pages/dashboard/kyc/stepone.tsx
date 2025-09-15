@@ -3,8 +3,10 @@ import Head from "next/head";
 import React from "react";
 import ProgressBar from "./progressbar";
 import Verify from "./verify";
+import { useRouter } from "next/router";
 
 const StepOne = () => {
+  const router = useRouter();
   return (
     <Dashboardlayouts>
       <Head>
@@ -74,12 +76,14 @@ const StepOne = () => {
 
               <div className="flex justify-between gap-3 mt-6">
                 <button
+                  onClick={() => router.back()}
                   type="button"
                   className="flex-1 px-4 md:px-24 py-2 rounded-md bg-[#84C2A229] border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
                 >
                   Back
                 </button>
                 <button
+                  onClick={() => router.push("/dashboard/kyc/steptwo")}
                   type="submit"
                   className="flex-1 px-4 md:px-24 py-2 rounded-md bg-[#0A2540] text-white hover:bg-[#1F3B5A] transition"
                 >

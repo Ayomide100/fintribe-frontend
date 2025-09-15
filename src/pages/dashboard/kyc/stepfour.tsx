@@ -4,8 +4,11 @@ import React from "react";
 import Verify from "./verify";
 import ProgressBar from "./progressbar";
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
+import { useRouter } from "next/router";
 
 const StepFour = () => {
+  const router = useRouter();
+
   return (
     <Dashboardlayouts>
       <Head>
@@ -93,12 +96,14 @@ const StepFour = () => {
             {/* Action Buttons */}
             <div className="flex justify-between gap-3">
               <button
+                onClick={() => router.back()}
                 type="button"
                 className="flex-1 px-2 md:px-2 py-2 rounded-md bg-[#84C2A229] border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
               >
                 Back
               </button>
               <button
+                onClick={() => router.push("/dashboard/kyc/laststep")}
                 type="submit"
                 className="flex-1 px-2 md:px-2 py-2 rounded-md bg-[#0A2540] text-white hover:bg-[#1F3B5A] transition"
               >

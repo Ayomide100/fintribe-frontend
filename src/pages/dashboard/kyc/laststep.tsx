@@ -3,8 +3,11 @@ import Head from "next/head";
 
 import Verify from "./verify";
 import { ArrowRight, Check, Clock3, ShieldCheck } from "lucide-react";
+import { useRouter } from "next/router";
 
 const LastStep = () => {
+  const router = useRouter();
+
   const submissionSteps = [
     {
       id: "review",
@@ -80,7 +83,10 @@ const LastStep = () => {
 
             {/* Action Button */}
             <div className="w-full max-w-lg">
-              <button className="w-full bg-[#0A2540] hover:bg-[#1F3B5A] flex justify-center gap-4 items-center text-white font-semibold py-3 px-6 rounded-lg transition-colors text-base">
+              <button
+                onClick={() => router.push("/dashboard/main")}
+                className="w-full bg-[#0A2540] hover:bg-[#1F3B5A] flex justify-center gap-4 items-center text-white font-semibold py-3 px-6 rounded-lg transition-colors text-base"
+              >
                 Back to Dashboard
                 <ArrowRight />
               </button>
