@@ -4,8 +4,10 @@ import React, { useState } from "react";
 import Verify from "./verify";
 import ProgressBar from "./progressbar";
 import { Car, ClipboardList } from "lucide-react";
+import { useRouter } from "next/router";
 
 const StepTwo = () => {
+  const router = useRouter();
   const [selectedIdType, setSelectedIdType] = useState("");
 
   const idTypes = [
@@ -113,12 +115,14 @@ const StepTwo = () => {
             <div className="px-6 py-4 border-t border-[#F0F0F0]">
               <div className="flex justify-between gap-3 mt-6">
                 <button
+                  onClick={() => router.back()}
                   type="button"
                   className="flex-1 px-4 md:px-24 py-2 rounded-md bg-[#84C2A229] border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
                 >
                   Back
                 </button>
                 <button
+                  onClick={() => router.push("/dashboard/kyc/stepthree")}
                   type="submit"
                   className="flex-1 px-4 md:px-24 py-2 rounded-md bg-[#0A2540] text-white hover:bg-[#1F3B5A] transition"
                 >

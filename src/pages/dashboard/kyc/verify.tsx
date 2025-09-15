@@ -2,7 +2,7 @@ import React from "react";
 
 const Verify = () => {
   return (
-    <div className=" w-full px-4 ">
+    <div className=" mb-6 w-full px-4 ">
       <h2 className="text-lg font-semibold text-[#0A2540]">
         Verify Your Identity
       </h2>
