@@ -76,20 +76,20 @@ const DashboardHeader: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
 
         {/* Dropdown */}
         {dropdown && (
-          <div className="absolute right-0 top-12 w-[200px] h-[150px] flex flex-col justify-center items-start bg-white shadow-md rounded-md z-50">
+          <div className="absolute right-0 top-12 w-[200px] h-[150px] flex flex-col justify-center items-start bg-pink-500 shadow-md rounded-md z-50">
             <ul className="space-y-2">
               <li>
-                <button className="w-full px-14 py-2 hover:bg-[#2E8B57] text-sm hover:text-white cursor-pointer rounded-md flex items-center gap-2">
+                <button className="w-full px-14 py-2 hover:bg-[#2E8B57] text-sm hover:text-white cursor-pointer rounded-md flex items-center justify-start gap-2">
                   <User className="w-4 h-4" /> Profile
                 </button>
               </li>
               <li>
-                <button className="w-full px-14 py-2 hover:bg-[#2E8B57] text-sm hover:text-white cursor-pointer rounded-md flex items-center gap-2">
+                <button className="w-full px-14 py-2 hover:bg-[#2E8B57] text-sm hover:text-white cursor-pointer rounded-md flex items-center justify-start gap-2">
                   <Settings className="w-4 h-4" /> Settings
                 </button>
               </li>
               <li>
-                <button className="w-full px-14 py-2 hover:bg-[#2E8B57] text-sm  cursor-pointer rounded-md flex items-center gap-2 text-red-500 hover:text-white">
+                <button className="w-full px-14 py-2 hover:bg-[#2E8B57] text-sm  cursor-pointer rounded-md flex items-center justify-start gap-2 text-red-500 hover:text-white">
                   <LogOut className="w-4 h-4" /> Logout
                 </button>
               </li>
