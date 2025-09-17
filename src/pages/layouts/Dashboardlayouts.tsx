@@ -25,8 +25,6 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
         />
       </div>
 
-      {/* Notification Banner */}
-      {/* Notification Banner */}
       {showBanner && (
         <div className="relative w-full md:h-[10%] h-[15%] bg-[#1F3B5A] text-white px-4 py-2 flex items-center justify-between text-sm">
           {/* Mobile close button - absolute top-right */}
