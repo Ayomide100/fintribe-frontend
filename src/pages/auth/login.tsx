@@ -13,6 +13,10 @@ import axios from "@/config/axiosconfig";
 import { BiLoaderCircle } from "react-icons/bi";
 import { toast } from "react-hot-toast";
 import { isAxiosError } from "axios";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/Global/UserSlice";
+import { setGuru } from "@/Global/GuruSlice";
+import { setPartner } from "@/Global/PartnerSlice";
 
 const Login = () => {
   const nav = useRouter();
@@ -21,6 +25,8 @@ const Login = () => {
     password: "",
     remember: false,
   });
+
+  const dispatch = useDispatch();
 
   const [loading, setloading] = useState(false);
 
@@ -31,15 +37,34 @@ const Login = () => {
       [name]: type === "checkbox" ? checked : value,
     }));
   };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setloading(true);
     const loadingId = toast.loading("Signing you in...");
+
     try {
       const res = await axios.post("/users/login", formData);
       console.log("Login successful:", res.data);
+
+      const { user, token, refreshToken } = res.data.content;
+
+      // Store tokens (optional)
+      localStorage.setItem("token", token);
+      localStorage.setItem("refreshToken", refreshToken);
+
+      // Dispatch based on account type
+      if (user.account_type === "user") {
+        dispatch(setUser(user));
+      } else if (user.account_type === "expert") {
+        dispatch(setGuru(user));
+      } else if (user.account_type === "partner") {
+        dispatch(setPartner(user));
+      } else {
+        console.warn("Unknown account type:", user.account_type);
+      }
+
       toast.success("Login successful!");
+
       setTimeout(() => {
         setFormData({
           email: "",
@@ -47,7 +72,7 @@ const Login = () => {
           remember: false,
         });
         nav.push("/dashboard/main");
-      }, 3000);
+      }, 2000);
     } catch (error) {
       if (isAxiosError(error)) {
         const apiMessage = error.response?.data?.message;
@@ -185,7 +210,7 @@ const Login = () => {
               <p className="text-sm text-gray-600 text-center mt-4">
                 Don&lsquo;t have an account?{" "}
                 <span
-                  onClick={() => nav.push("/auth/register")}
+                  onClick={() => nav.push("/auth/select")}
                   className="text-[#226B44] cursor-pointer font-medium hover:underline"
                 >
                   Sign Up
