@@ -1,9 +1,12 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import DashboardHeader from "../dashboard/dashboardheader";
 import Sidebar from "../dashboard/sidebar";
 import Otherside from "../dashboard/otherside";
 import { useRouter } from "next/router";
+import axios from "@/config/axiosconfig";
+import { isAxiosError } from "axios";
+import toast from "react-hot-toast";
 
 interface MainlayoutProps {
   children: ReactNode;
@@ -14,6 +17,35 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
   const isMainPage = router.pathname === "/dashboard/main";
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
+
+  const getUser = async () => {
+    try {
+      const res = await axios("/users/profile", {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+      });
+      console.log(res.data);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      } else {
+        toast.error("Something went wrong");
+      }
+    }
+  };
+
+  useEffect(() => {
+    getUser();
+  }, []);
 
   return (
     <div className="h-screen w-full relative">
