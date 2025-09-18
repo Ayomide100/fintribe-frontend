@@ -5,7 +5,7 @@ import Image from "next/image";
 import { FiEdit } from "react-icons/fi";
 import { Bookmark, Settings, ShieldCheck } from "lucide-react";
 import userprofilepic from "../../../assets/user.jpg";
-import postImage from "../../../assets/d072c25443f441b7143033251e6b7d2148a98433.jpg";
+// import postImage from "../../../assets/d072c25443f441b7143033251e6b7d2148a98433.jpg";
 import post2image from "../../../assets/57bb80ed3d1af1b175dda138130249ea0fc160b8.jpg";
 import post3image from "../../../assets/a3a16f22b871b5b60428bdef198c2d6598854556.jpg";
 import suitguy from "../../../assets/suitguy.jpg";
@@ -26,7 +26,7 @@ const Circles = () => {
       avatar: suitguy,
       content:
         "The Nigerian real estate market is showing strong fundamentals despite global uncertainties. Here's why I'm bullish on commercial properties in Lagos and Abuja for 2024...",
-      image: postImage,
+      image: post2image,
       likes: 12,
       comments: 8,
       shares: 4,
@@ -122,7 +122,7 @@ const Circles = () => {
           <div className="flex justify-start gap-2 sm:gap-4 items-center w-full sm:w-[40%]">
             <div className="w-[45px] h-[45px] sm:w-[40px] sm:h-[40px] rounded-full flex justify-center items-center bg-green-400">
               <Image
-                src={postImage}
+                src={post2image}
                 alt="Circle Image"
                 className="rounded-full object-cover w-full h-full"
               />
