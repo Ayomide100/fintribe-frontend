@@ -283,7 +283,7 @@ const Main = () => {
                 className="w-full bg-white cursor-pointer rounded-md shadow-md flex justify-start px-5 py-3 gap-4 items-center"
                 onClick={() => setIsExpanded(true)}
               >
-                <div className="w-[35px] h-[35px] rounded-full flex justify-center items-center">
+                <div className="md:w-[35px] md:h-[35px] h-[50px] w-[50px] rounded-full flex justify-center items-center">
                   <Image
                     src={userprofilepic}
                     alt="user"
@@ -330,7 +330,7 @@ const Main = () => {
                 </div>
 
                 {/* Input */}
-                <div className="flex gap-3">
+                <div className="flex gap-3 bg-green-500">
                   <div className="w-[35px] h-[35px] rounded-full flex justify-center items-center">
                     <Image
                       src={userprofilepic}

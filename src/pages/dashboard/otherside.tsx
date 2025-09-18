@@ -2,7 +2,7 @@ import React from "react";
 import { Star, ShieldCheck, TrendingUp } from "lucide-react";
 import { HiOutlineUserAdd } from "react-icons/hi";
 import suitguy from "../../../assets/suitguy.jpg";
-import haijya from "../../../assets/hajiya.jpg";
+// import haijya from "../../../assets/hajiya.jpg";
 import firstone from "../../../assets/187817fe37210c2e0093099c360898510851d788.jpg";
 import secondone from "../../../assets/2e1363bd7bba50ad27e636dd5baf25554019cbc6.jpg";
 import fourthone from "../../../assets/fa3ade4848a2f80ff7721bbdbe3f2d9fe32d2b66.jpg";
@@ -16,7 +16,7 @@ const Otherside = () => {
       name: "Adelaide Thompson",
       role: "Real Estate Expert",
       xp: "2.4k",
-      image: haijya,
+      image: suitguy,
     },
     {
       name: "Adelaide Thompson",
