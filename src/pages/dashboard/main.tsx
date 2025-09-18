@@ -28,6 +28,7 @@ interface MediaFile {
 }
 
 interface User {
+  _id: string;
   fullname?: string;
   avatar?: {
     url?: string;
@@ -36,7 +37,7 @@ interface User {
 }
 
 interface Post {
-  id: string;
+  _id: string;
   username: string;
   avatar?: string;
   content: string;
@@ -58,6 +59,10 @@ const Main = () => {
   const [media, setMedia] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [text, setText] = useState("");
+  const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(
+    null
+  );
 
   function timeAgoShort(dateString: string) {
     const date = new Date(dateString);
@@ -101,13 +106,13 @@ const Main = () => {
       formData.append("content", content);
       media.forEach((img) => formData.append("media", img));
 
-      const { data } = await axios.post("/posts", formData, {
+      const res = await axios.post("/posts", formData, {
         headers: {
           Authorization: ` ${localStorage.getItem("token")}`,
         },
       });
 
-      setPosts([data, ...posts]);
+      setPosts([res.data, ...posts]);
       setContent("");
       setMedia([]);
       toast.success("Post created!");
@@ -129,37 +134,34 @@ const Main = () => {
       setLoading(false);
     }
   };
+  const fetchPosts = async () => {
+    try {
+      const res = await axios.get("/posts", {
+        headers: {
+          Authorization: ` ${localStorage.getItem("token")}`,
+        },
+      });
+      console.log("Posts API:", res.data.content);
+      const apiPosts = Array.isArray(res.data.content) ? res.data.content : [];
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const res = await axios.get("/posts", {
-          headers: {
-            Authorization: ` ${localStorage.getItem("token")}`,
-          },
-        });
-        console.log("Posts API:", res.data.content);
-        const apiPosts = Array.isArray(res.data.content)
-          ? res.data.content
-          : [];
+      setPosts(apiPosts);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
 
-        setPosts(apiPosts);
-      } catch (error) {
-        if (isAxiosError(error)) {
-          const apiMessage = error.response?.data?.message;
-          const apiError = error.response?.data?.error;
-          const fallback = error.message || "An unexpected error occurred";
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
 
-          const errorMsg =
-            `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-            fallback;
-
-          toast.error(errorMsg);
-        } else {
-          toast.error("Something went wrong");
-        }
+        toast.error(errorMsg);
+      } else {
+        toast.error("Something went wrong");
       }
-    };
+    }
+  };
+  useEffect(() => {
     fetchPosts();
   }, []);
 
@@ -169,6 +171,97 @@ const Main = () => {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(" ");
   }
+
+  const handleComment = async (_id: string) => {
+    try {
+      const res = await axios.post(
+        `/posts/${_id}/comments`,
+        { text },
+        {
+          headers: {
+            Authorization: ` ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      console.log("this is teh comment:", res.data);
+
+      setText("");
+      fetchPosts();
+      setActiveCommentPostId(null);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      } else {
+        toast.error("Something went wrong");
+      }
+    }
+  };
+
+  const HandleLikesonPost = async (_id: string) => {
+    try {
+      const res = await axios.post(
+        `/posts/${_id}/like`,
+        {},
+        {
+          headers: {
+            Authorization: `${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      console.log(res.data);
+      fetchPosts();
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      } else {
+        toast.error("Something went wrong");
+      }
+    }
+  };
+
+  const HandleUnlikePost = async (_id: string) => {
+    try {
+      const res = await axios.delete(`/posts/${_id}/like`, {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+      });
+      console.log(res.data);
+      fetchPosts();
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      } else {
+        toast.error("Something went wrong");
+      }
+    }
+  };
+
+  console.log(HandleUnlikePost);
 
   return (
     <Dashboardlayouts>
@@ -274,7 +367,7 @@ const Main = () => {
                           }
                           className="absolute top-1 right-1 bg-black bg-opacity-50 text-white text-xs px-1 rounded"
                         >
-                          ×
+                          x
                         </button>
                       </div>
                     ))}
@@ -368,7 +461,7 @@ const Main = () => {
         {Array.isArray(posts) &&
           posts.map((post) => (
             <div
-              key={post.id}
+              key={post._id}
               className="w-full bg-white rounded-md shadow-md flex flex-col justify-start px-5 py-4"
             >
               {/* Post Header */}
@@ -423,25 +516,91 @@ const Main = () => {
               )}
 
               {/* Actions */}
-              <div className="w-full flex justify-between border-t border-[#E0E0E0] items-center content-gray-600 mt-4 px-2">
+              <div className="w-full flex justify-between border-t border-[#E0E0E0] items-center text-gray-600 mt-4 px-2">
                 <div className="w-[25%] flex py-2.5 justify-between gap-1.5 items-center">
-                  <button className="flex items-center gap-1 content-sm hover:content-blue-600">
+                  <button
+                    onClick={() => HandleLikesonPost(post._id)}
+                    className="flex items-center gap-1 text-sm hover:text-blue-600"
+                  >
                     <AiOutlineLike size={18} />{" "}
                     <span>{post.likes?.length || 0}</span>
                   </button>
-                  <button className="flex items-center gap-1 content-sm hover:content-blue-600">
+                  <button
+                    onClick={() =>
+                      setActiveCommentPostId(
+                        activeCommentPostId === post._id ? null : post._id
+                      )
+                    }
+                    className="flex items-center gap-1 text-sm hover:text-blue-600"
+                  >
                     <AiOutlineComment size={18} />{" "}
                     <span>{post.comments?.length || 0}</span>
                   </button>
-                  <button className="flex items-center gap-1 content-sm hover:content-blue-600">
+
+                  <button className="flex items-center gap-1 text-sm hover:text-blue-600">
                     <AiOutlineShareAlt size={18} />{" "}
                     <span>{post.shares || 0}</span>
                   </button>
                 </div>
-                <button className="flex items-center gap-1 content-sm hover:content-blue-600">
+                <button className="flex items-center gap-1 text-sm hover:text-blue-600">
                   <Bookmark size={18} />
                 </button>
               </div>
+              {/* Comments Section */}
+              {activeCommentPostId === post._id && (
+                <div className="mt-3">
+                  {/* Existing comments */}
+                  {post.comments && post.comments.length > 0 && (
+                    <div className="space-y-2 mb-3">
+                      {post.comments.map((comment) => (
+                        <div
+                          key={comment._id}
+                          className="flex gap-2 items-start"
+                        >
+                          {/* Avatar */}
+                          <Image
+                            src={
+                              comment.user?.avatar?.url || "/default-avatar.png"
+                            }
+                            alt="comment user"
+                            width={30}
+                            height={30}
+                            className="w-8 h-8 rounded-full object-cover border"
+                          />
+                          <div className="bg-gray-100 rounded-lg px-3 py-2 text-sm">
+                            <p className="font-semibold">
+                              {comment.user?.fullname
+                                ? capitalizeWords(comment.user.fullname)
+                                : "Unknown"}
+                            </p>
+                            <p className="text-gray-700">{comment.text}</p>
+                            <span className="text-xs text-gray-500">
+                              {timeAgoShort(comment.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* New comment input */}
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="text"
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="flex-1 border border-[#84C2A2] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
+                    />
+                    <button
+                      onClick={() => handleComment(post._id)}
+                      className="px-3 py-2 bg-[#0A2540] text-white rounded-md text-sm hover:bg-[#1a3b5c]"
+                    >
+                      Post
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
       </div>
