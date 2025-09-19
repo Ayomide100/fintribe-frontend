@@ -1,3 +1,6 @@
+import { clearGuru } from "@/Global/GuruSlice";
+import { clearPartner } from "@/Global/PartnerSlice";
+import { clearUser } from "@/Global/UserSlice";
 import {
   Bookmark,
   GraduationCap,
@@ -11,6 +14,7 @@ import { useRouter } from "next/router";
 import React from "react";
 import { MdClose } from "react-icons/md";
 import { TbFidgetSpinner } from "react-icons/tb";
+import { useDispatch } from "react-redux";
 
 interface Props {
   setSidebarOpen: (open: boolean) => void;
@@ -19,6 +23,16 @@ interface Props {
 
 const Sidebar: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
   const router = useRouter();
+
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(clearGuru());
+    dispatch(clearUser());
+    dispatch(clearPartner());
+    localStorage.clear();
+    router.push("/auth/login");
+  };
 
   const NestedBar = [
     {
@@ -133,7 +147,10 @@ const Sidebar: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
             <Settings size={18} />
             <span>Settings</span>
           </button>
-          <button className="flex items-center gap-2 px-3 text-red-500 py-2 text-sm md:hidden hover:bg-gray-100 rounded-b-md">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-3 text-red-500 py-2 text-sm md:hidden hover:bg-gray-100 rounded-b-md"
+          >
             <LogOut size={18} />
             <span>Logout</span>
           </button>

@@ -16,6 +16,7 @@ import {
   Camera,
   MoreHorizontal,
   ShieldCheck,
+  Trash,
   Video,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -83,6 +84,8 @@ const Main = () => {
     const years = Math.floor(days / 365);
     return `${years}y`;
   }
+
+  const userId = localStorage.getItem("_id");
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -183,7 +186,7 @@ const Main = () => {
           },
         }
       );
-      console.log("this is teh comment:", res.data);
+      console.log("this is the comment:", res.data);
 
       setText("");
       fetchPosts();
@@ -235,9 +238,9 @@ const Main = () => {
     }
   };
 
-  const HandleUnlikePost = async (_id: string) => {
+  const HandleUnlikePost = async (_PostId: string) => {
     try {
-      const res = await axios.delete(`/posts/${_id}/like`, {
+      const res = await axios.delete(`/posts/${_PostId}/like`, {
         headers: {
           Authorization: `${localStorage.getItem("token")}`,
         },
@@ -261,7 +264,31 @@ const Main = () => {
     }
   };
 
-  console.log(HandleUnlikePost);
+  const HandleDeleteComment = async (postId: string, commentId: string) => {
+    try {
+      const res = await axios.delete(`/posts/${postId}/comments/${commentId}`, {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+      });
+      console.log("Comment deleted:", res.data);
+      fetchPosts();
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      } else {
+        toast.error("Something went wrong");
+      }
+    }
+  };
 
   return (
     <Dashboardlayouts>
@@ -501,17 +528,59 @@ const Main = () => {
 
               {/* Post Media */}
               {post.media && post.media.length > 0 && (
-                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-md overflow-hidden">
-                  {post.media.map((file, idx) => (
+                <div className="mt-3">
+                  {/* If 1 image → full width */}
+                  {post.media.length === 1 ? (
                     <Image
-                      key={idx}
-                      src={file.url}
-                      alt={`Post media ${idx + 1}`}
-                      width={500}
-                      height={300}
+                      src={post.media[0].url}
+                      alt="Post media"
+                      width={800}
+                      height={500}
                       className="w-full h-auto object-cover rounded-md"
                     />
-                  ))}
+                  ) : (
+                    // If multiple → grid layout
+                    <div
+                      className={`grid gap-2 rounded-md overflow-hidden ${
+                        post.media.length === 2
+                          ? "grid-cols-2"
+                          : post.media.length === 3
+                          ? "grid-cols-2" // 2 on top, 1 bottom
+                          : "grid-cols-2" // 4+ = 2x2
+                      }`}
+                    >
+                      {post.media.slice(0, 4).map((file, idx) => (
+                        <Image
+                          key={idx}
+                          src={file.url}
+                          alt={`Post media ${idx + 1}`}
+                          width={500}
+                          height={300}
+                          className={`w-full h-auto object-cover ${
+                            post.media && post.media.length === 3 && idx === 2
+                              ? "col-span-2" // last image spans full width in 3-grid
+                              : ""
+                          } rounded-md`}
+                        />
+                      ))}
+
+                      {/* If more than 4 → show overlay on last one */}
+                      {post.media.length > 4 && (
+                        <div className="relative">
+                          <Image
+                            src={post.media[4].url}
+                            alt="extra media"
+                            width={500}
+                            height={300}
+                            className="w-full h-auto object-cover rounded-md brightness-75"
+                          />
+                          <span className="absolute inset-0 flex items-center justify-center text-white text-2xl font-bold">
+                            +{post.media.length - 4}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -519,12 +588,28 @@ const Main = () => {
               <div className="w-full flex justify-between border-t border-[#E0E0E0] items-center text-gray-600 mt-4 px-2">
                 <div className="w-[25%] flex py-2.5 justify-between gap-1.5 items-center">
                   <button
-                    onClick={() => HandleLikesonPost(post._id)}
+                    onClick={() =>
+                      post.likes?.some(
+                        (like: any) => like === userId || like._id === userId
+                      )
+                        ? HandleUnlikePost(post._id)
+                        : HandleLikesonPost(post._id)
+                    }
                     className="flex items-center gap-1 text-sm hover:text-blue-600"
                   >
-                    <AiOutlineLike size={18} />{" "}
+                    <AiOutlineLike
+                      size={18}
+                      className={
+                        post.likes?.some(
+                          (like: any) => like === userId || like._id === userId
+                        )
+                          ? "text-blue-600"
+                          : ""
+                      }
+                    />
                     <span>{post.likes?.length || 0}</span>
                   </button>
+
                   <button
                     onClick={() =>
                       setActiveCommentPostId(
@@ -550,9 +635,9 @@ const Main = () => {
               {activeCommentPostId === post._id && (
                 <div className="mt-3">
                   {/* Existing comments */}
-                  {post.comments && post.comments.length > 0 && (
-                    <div className="space-y-2 mb-3">
-                      {post.comments.map((comment) => (
+                  <div className="max-h-64 overflow-y-auto space-y-3 pr-2 mb-4">
+                    {post.comments &&
+                      post.comments.map((comment) => (
                         <div
                           key={comment._id}
                           className="flex gap-2 items-start"
@@ -567,12 +652,24 @@ const Main = () => {
                             height={30}
                             className="w-8 h-8 rounded-full object-cover border"
                           />
-                          <div className="bg-gray-100 rounded-lg px-3 py-2 text-sm">
-                            <p className="font-semibold">
-                              {comment.user?.fullname
-                                ? capitalizeWords(comment.user.fullname)
-                                : "Unknown"}
-                            </p>
+                          <div className="bg-gray-100 rounded-lg px-3 py-2 text-sm flex-1">
+                            <div className="flex justify-between items-center">
+                              <p className="font-semibold">
+                                {comment.user?.fullname
+                                  ? capitalizeWords(comment.user.fullname)
+                                  : "Unknown"}
+                              </p>
+                              {comment.user?._id === userId && (
+                                <button
+                                  onClick={() =>
+                                    HandleDeleteComment(post._id, comment._id)
+                                  }
+                                  className="text-red-500 text-xs hover:underline"
+                                >
+                                  <Trash size={18} />
+                                </button>
+                              )}
+                            </div>
                             <p className="text-gray-700">{comment.text}</p>
                             <span className="text-xs text-gray-500">
                               {timeAgoShort(comment.createdAt)}
@@ -580,11 +677,10 @@ const Main = () => {
                           </div>
                         </div>
                       ))}
-                    </div>
-                  )}
+                  </div>
 
                   {/* New comment input */}
-                  <div className="flex gap-2 items-center">
+                  <div className="flex gap-2 items-center pt-2 border-t border-gray-200">
                     <input
                       type="text"
                       value={text}

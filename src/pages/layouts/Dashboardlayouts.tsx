@@ -7,6 +7,10 @@ import { useRouter } from "next/router";
 import axios from "@/config/axiosconfig";
 import { isAxiosError } from "axios";
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/Global/UserSlice";
+import { setGuru } from "@/Global/GuruSlice";
+import { setPartner } from "@/Global/PartnerSlice";
 
 interface MainlayoutProps {
   children: ReactNode;
@@ -18,6 +22,8 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
 
+  const dispatch = useDispatch();
+
   const getUser = async () => {
     try {
       const res = await axios("/users/profile", {
@@ -25,7 +31,27 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
           Authorization: `${localStorage.getItem("token")}`,
         },
       });
-      console.log(res.data);
+
+      const user = res.data.content.user;
+      const kycStatus = res.data.content.kycStatus; // 👈 pick kycStatus here
+
+      localStorage.setItem("_id", user._id);
+      console.log(user._id, user.account_type, kycStatus);
+
+      // Dispatch based on account type
+      if (user.account_type === "user") {
+        dispatch(setUser(user));
+        setShowBanner(false); // users never see the banner
+      } else if (user.account_type === "expert") {
+        dispatch(setGuru(user));
+        setShowBanner(kycStatus !== "verified"); // only show if not verified
+      } else if (user.account_type === "partner") {
+        dispatch(setPartner(user));
+        setShowBanner(kycStatus !== "verified"); // only show if not verified
+      } else {
+        console.warn("Unknown account type:", user.account_type);
+        setShowBanner(false);
+      }
     } catch (error) {
       if (isAxiosError(error)) {
         const apiMessage = error.response?.data?.message;
@@ -75,10 +101,7 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
             </p>
             <button
               className="text-[#84C2A2] px-3 py-1 rounded text-xs font-medium hover:bg-gray-100"
-              onClick={() => {
-                router.push("/dashboard/kyc");
-                console.log("Verify now clicked");
-              }}
+              onClick={() => router.push("/dashboard/kyc")}
             >
               Verify Now →
             </button>
