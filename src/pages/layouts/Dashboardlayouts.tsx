@@ -7,6 +7,10 @@ import { useRouter } from "next/router";
 import axios from "@/config/axiosconfig";
 import { isAxiosError } from "axios";
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { setUser } from "@/Global/UserSlice";
+import { setGuru } from "@/Global/GuruSlice";
+import { setPartner } from "@/Global/PartnerSlice";
 
 interface MainlayoutProps {
   children: ReactNode;
@@ -16,7 +20,15 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
   const router = useRouter();
   const isMainPage = router.pathname === "/dashboard/main";
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showBanner, setShowBanner] = useState(true);
+
+  const dispatch = useDispatch();
+
+  const [shouldShowBannerFromServer, setShouldShowBannerFromServer] =
+    useState(false);
+  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
+
+  // Computed flag for showing banner
+  const showBanner = shouldShowBannerFromServer && !isBannerDismissed;
 
   const getUser = async () => {
     try {
@@ -25,7 +37,24 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
           Authorization: `${localStorage.getItem("token")}`,
         },
       });
-      console.log(res.data);
+
+      const user = res.data.content.user;
+      const kycStatus = res.data.content.kycStatus;
+
+      localStorage.setItem("_id", user._id);
+
+      if (user.account_type === "user") {
+        dispatch(setUser(user));
+        setShouldShowBannerFromServer(false); // normal users never see the banner
+      } else if (user.account_type === "expert") {
+        dispatch(setGuru(user));
+        setShouldShowBannerFromServer(kycStatus !== "verified");
+      } else if (user.account_type === "partner") {
+        dispatch(setPartner(user));
+        setShouldShowBannerFromServer(kycStatus !== "verified");
+      } else {
+        setShouldShowBannerFromServer(false);
+      }
     } catch (error) {
       if (isAxiosError(error)) {
         const apiMessage = error.response?.data?.message;
@@ -47,6 +76,14 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
     getUser();
   }, []);
 
+  const HandleCancelVerify = () => {
+    router.push("/dashboard/kyc").then(() => setIsBannerDismissed(true));
+  };
+
+  const handleCloseBanner = () => {
+    setIsBannerDismissed(true);
+  };
+
   return (
     <div className="h-screen w-full relative">
       {/* Header */}
@@ -57,11 +94,12 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
         />
       </div>
 
+      {/* Verification Banner */}
       {showBanner && (
         <div className="relative w-full md:h-[10%] h-[15%] bg-[#1F3B5A] text-white px-4 py-2 flex items-center justify-between text-sm">
           {/* Mobile close button - absolute top-right */}
           <button
-            onClick={() => setShowBanner(false)}
+            onClick={handleCloseBanner}
             className="absolute top-2 right-3 text-white block md:hidden hover:text-gray-200 text-2xl leading-none"
           >
             ×
@@ -74,19 +112,17 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
               Features
             </p>
             <button
+              type="button"
               className="text-[#84C2A2] px-3 py-1 rounded text-xs font-medium hover:bg-gray-100"
-              onClick={() => {
-                router.push("/dashboard/kyc");
-                console.log("Verify now clicked");
-              }}
+              onClick={HandleCancelVerify}
             >
               Verify Now →
             </button>
           </div>
 
-          {/* Desktop close button - stays inline */}
+          {/* Desktop close button */}
           <button
-            onClick={() => setShowBanner(false)}
+            onClick={handleCloseBanner}
             className="text-white hidden md:block hover:text-gray-200 text-lg leading-none"
           >
             ×
@@ -100,7 +136,7 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
           showBanner ? "h-[calc(90%-48px)]" : "h-[90%]"
         }`}
       >
-        {/* Sidebar Container */}
+        {/* Sidebar */}
         <div
           className={`
             transition-all duration-300 ease-in-out
@@ -123,7 +159,7 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
           {children}
         </div>
 
-        {/* Right Sidebar - Only on main page */}
+        {/* Right Sidebar (only main page) */}
         {isMainPage && (
           <div
             className={`
