@@ -1,12 +1,42 @@
 import Dashboardlayouts from "@/pages/layouts/Dashboardlayouts";
 import Head from "next/head";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ProgressBar from "./progressbar";
 import Verify from "./verify";
 import { useRouter } from "next/router";
 
 const StepOne = () => {
   const router = useRouter();
+
+  // State for form fields
+  const [phone, setPhone] = useState("");
+  const [dob, setDob] = useState("");
+  const [address, setAddress] = useState("");
+
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (phone && dob && address) {
+      setProgress(25);
+    } else {
+      setProgress(0);
+    }
+  }, [phone, dob, address]);
+
+  const handleNext = () => {
+    if (progress < 25) {
+      alert("Please fill out all required fields.");
+      return;
+    }
+
+    // Save to localStorage
+    const stepOneData = { phone, dob, address };
+    localStorage.setItem("kyc_step_one", JSON.stringify(stepOneData));
+
+    // Navigate to Step Two
+    router.push("/dashboard/kyc/steptwo");
+  };
+
   return (
     <Dashboardlayouts>
       <Head>
@@ -19,9 +49,11 @@ const StepOne = () => {
             <Verify />
           </div>
 
-          {/* Progress Bar */}
+          {/* Progress Bar (only show when > 0) */}
           <div className="w-full h-auto md:h-[8%] flex justify-center items-center px-2">
-            <ProgressBar progress={20} step={1} totalSteps={4} />
+            {progress > 0 && (
+              <ProgressBar progress={progress} step={1} totalSteps={4} />
+            )}
           </div>
 
           {/* Form Section */}
@@ -38,7 +70,10 @@ const StepOne = () => {
             </div>
 
             {/* Form Fields */}
-            <form className="flex flex-col gap-4 p-4 md:p-6 flex-1">
+            <form
+              className="flex flex-col gap-4 p-4 md:p-6 flex-1"
+              onSubmit={(e) => e.preventDefault()}
+            >
               {/* Phone Number */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium text-gray-700 mb-1">
@@ -47,6 +82,8 @@ const StepOne = () => {
                 <input
                   type="tel"
                   placeholder="Enter your phone number"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
@@ -58,6 +95,8 @@ const StepOne = () => {
                 </label>
                 <input
                   type="date"
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
                   className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
@@ -69,11 +108,14 @@ const StepOne = () => {
                 </label>
                 <textarea
                   placeholder="Enter your full address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
                   className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                   rows={3}
                 ></textarea>
               </div>
 
+              {/* Buttons */}
               <div className="flex justify-between gap-3 mt-6">
                 <button
                   onClick={() => router.back()}
@@ -83,8 +125,8 @@ const StepOne = () => {
                   Back
                 </button>
                 <button
-                  onClick={() => router.push("/dashboard/kyc/steptwo")}
-                  type="submit"
+                  onClick={handleNext}
+                  type="button"
                   className="flex-1 px-4 md:px-24 py-2 rounded-md bg-[#0A2540] text-white hover:bg-[#1F3B5A] transition"
                 >
                   Next
