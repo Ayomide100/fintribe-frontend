@@ -31,8 +31,16 @@ const StepFour = () => {
   const [avatar, setAvatar] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
+
   const file = useSelector((state: RootState) => state.upload.file);
+
   console.log(file);
+
+  useEffect(() => {
+    if (!file) {
+      toast.error("Selfie file is missing, please re-upload.");
+    }
+  }, [file]);
 
   useEffect(() => {
     const storedData = JSON.parse(localStorage.getItem("kyc_data") || "{}");
@@ -40,8 +48,6 @@ const StepFour = () => {
     if (storedData.stepTwo) setStepTwo(storedData.stepTwo);
     if (storedData.avatar) setAvatar(storedData.avatar);
   }, []);
-
-  if (!file) return null;
 
   // Convert dd/mm/yyyy -> yyyy-mm-dd for editing
   const getDobForInput = (dob?: string) => {
@@ -70,24 +76,15 @@ const StepFour = () => {
     try {
       setLoading(true);
 
-      // Build FormData (for file + text fields)
+      // Build FormData
       const formData = new FormData();
       formData.append("phone", stepOne?.phone || "");
       formData.append("dob", stepOne?.dob || "");
       formData.append("address", stepOne?.address || "");
-      formData.append("avatar", file);
       formData.append("proofId", stepTwo?.proofId || "");
       formData.append("type", stepTwo?.type || "");
-
-      // 🔑 Add the actual file instead of base64
-      const fileInput = document.getElementById(
-        "selfieInput"
-      ) as HTMLInputElement;
-      if (fileInput?.files && fileInput.files[0]) {
-        formData.append("avatar", fileInput.files[0]); // 👈 file
-      } else {
-        toast.error("Avatar file is missing, please re-upload.");
-        return;
+      if (file) {
+        formData.append("avatar", file);
       }
 
       // Send with multipart/form-data
@@ -105,13 +102,14 @@ const StepFour = () => {
         const apiMessage = error.response?.data?.message;
         const apiError = error.response?.data?.error;
         const fallback = error.message || "An unexpected error occurred";
+
         const errorMsg =
           `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
           fallback;
 
         toast.error(errorMsg);
       } else {
-        toast.error("Something went wrong");
+        toast.error("Error occurred");
       }
     } finally {
       setLoading(false);
