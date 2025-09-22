@@ -1,13 +1,123 @@
 import Dashboardlayouts from "@/pages/layouts/Dashboardlayouts";
 import Head from "next/head";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Verify from "./verify";
 import ProgressBar from "./progressbar";
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/router";
+import Image from "next/image";
+import axios from "@/config/axiosconfig";
+import { isAxiosError } from "axios";
+import toast from "react-hot-toast";
+import { BiLoaderCircle } from "react-icons/bi";
+import { RootState } from "@/Global/Store";
+import { useSelector } from "react-redux";
+
+type StepOneType = {
+  phone?: string;
+  dob?: string; // stored as dd/mm/yyyy
+  address?: string;
+};
+
+type StepTwoType = {
+  proofId?: string;
+  type?: string;
+};
 
 const StepFour = () => {
   const router = useRouter();
+  const [stepOne, setStepOne] = useState<StepOneType>({});
+  const [stepTwo, setStepTwo] = useState<StepTwoType>({});
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const file = useSelector((state: RootState) => state.upload.file);
+  console.log(file);
+
+  useEffect(() => {
+    const storedData = JSON.parse(localStorage.getItem("kyc_data") || "{}");
+    if (storedData.stepOne) setStepOne(storedData.stepOne);
+    if (storedData.stepTwo) setStepTwo(storedData.stepTwo);
+    if (storedData.avatar) setAvatar(storedData.avatar);
+  }, []);
+
+  if (!file) return null;
+
+  // Convert dd/mm/yyyy -> yyyy-mm-dd for editing
+  const getDobForInput = (dob?: string) => {
+    if (!dob) return "";
+    const [day, month, year] = dob.split("/");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Convert yyyy-mm-dd -> dd/mm/yyyy when saving
+  const formatDob = (value: string) => {
+    const d = new Date(value);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const handleSubmit = async () => {
+    if (!avatar) {
+      toast.error("Please upload a selfie before submitting.");
+      return;
+    }
+
+    const loadingId = toast.loading("Updating KYC...");
+
+    try {
+      setLoading(true);
+
+      // Build FormData (for file + text fields)
+      const formData = new FormData();
+      formData.append("phone", stepOne?.phone || "");
+      formData.append("dob", stepOne?.dob || "");
+      formData.append("address", stepOne?.address || "");
+      formData.append("avatar", file);
+      formData.append("proofId", stepTwo?.proofId || "");
+      formData.append("type", stepTwo?.type || "");
+
+      // 🔑 Add the actual file instead of base64
+      const fileInput = document.getElementById(
+        "selfieInput"
+      ) as HTMLInputElement;
+      if (fileInput?.files && fileInput.files[0]) {
+        formData.append("avatar", fileInput.files[0]); // 👈 file
+      } else {
+        toast.error("Avatar file is missing, please re-upload.");
+        return;
+      }
+
+      // Send with multipart/form-data
+      const res = await axios.put("/users/update-kyc", formData, {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      console.log(res.data);
+      router.push("/dashboard/kyc/laststep");
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      } else {
+        toast.error("Something went wrong");
+      }
+    } finally {
+      setLoading(false);
+      toast.dismiss(loadingId);
+    }
+  };
 
   return (
     <Dashboardlayouts>
@@ -27,8 +137,7 @@ const StepFour = () => {
           </div>
 
           {/* Review Section */}
-          <div className="w-full md:w-[60%] h-auto border border-[#E0E0E0] rounded-md flex flex-col p-6 space-y-6">
-            {/* Header */}
+          <div className="w-full md:w-[60%] border border-[#E0E0E0] rounded-md flex flex-col p-6 space-y-6">
             <div className="flex flex-col gap-1">
               <p className="font-semibold text-base md:text-lg">
                 Review and Submit
@@ -39,46 +148,139 @@ const StepFour = () => {
               </p>
             </div>
 
-            {/* Personal Information */}
+            {/* Step One Data */}
             <div className="flex justify-between items-start border-b border-[#E0E0E0] pb-4">
               <div>
                 <p className="font-medium text-sm mb-1">Personal Information</p>
-                <p className="text-sm text-gray-700">Phone number</p>
-                <p className="text-sm text-black font-semibold">
-                  +2349077879087
-                </p>
-                <p className="text-sm text-gray-700 mt-2">Date of birth</p>
-                <p className="text-sm text-black font-semibold">
-                  September 10, 2025
-                </p>
-                <p className="text-sm text-gray-700 mt-2">Address</p>
-                <p className="text-sm text-black font-semibold">
-                  Mr. John Smith, 123 Main Street, Anytown, CA 12345, USA.
-                </p>
+                {editMode ? (
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="text"
+                      value={stepOne.phone || ""}
+                      onChange={(e) =>
+                        setStepOne({ ...stepOne, phone: e.target.value })
+                      }
+                      className="border-2 border-[#226B44] p-2 rounded"
+                      placeholder="Enter phone"
+                    />
+                    <input
+                      type="date"
+                      value={getDobForInput(stepOne.dob)}
+                      onChange={(e) =>
+                        setStepOne({
+                          ...stepOne,
+                          dob: formatDob(e.target.value),
+                        })
+                      }
+                      className="border-2 border-[#226B44] p-2 rounded"
+                    />
+                    <input
+                      type="text"
+                      value={stepOne.address || ""}
+                      onChange={(e) =>
+                        setStepOne({ ...stepOne, address: e.target.value })
+                      }
+                      className="border-2 border-[#226B44] p-2 rounded"
+                      placeholder="Enter address"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-700">Phone number</p>
+                    <p className="text-sm font-semibold">
+                      {stepOne?.phone || "Not provided"}
+                    </p>
+
+                    <p className="text-sm text-gray-700 mt-2">Date of Birth</p>
+                    <p className="text-sm font-semibold">
+                      {stepOne?.dob || "Not provided"}
+                    </p>
+
+                    <p className="text-sm text-gray-700 mt-2">Address</p>
+                    <p className="text-sm font-semibold">
+                      {stepOne?.address || "Not provided"}
+                    </p>
+                  </>
+                )}
               </div>
-              <PencilSquareIcon className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
+
+              <PencilSquareIcon
+                onClick={() => setEditMode(!editMode)}
+                className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600"
+              />
             </div>
 
-            {/* Identity Documents */}
+            {/* Step Two Data */}
             <div className="flex justify-between items-start border-b border-[#E0E0E0] pb-4">
-              <div>
-                <p className="font-medium text-sm mb-1">Identity Documents</p>
-                <p className="text-sm text-gray-700">National ID Number</p>
-                <p className="text-sm text-black font-semibold">87593048394</p>
-              </div>
-              <PencilSquareIcon className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
+              {editMode ? (
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="text"
+                    value={stepTwo.proofId || ""}
+                    onChange={(e) =>
+                      setStepTwo({ ...stepTwo, proofId: e.target.value })
+                    }
+                    className="border p-2 rounded"
+                    placeholder="Enter ID Number"
+                  />
+                  <select
+                    value={stepTwo.type || ""}
+                    onChange={(e) =>
+                      setStepTwo({ ...stepTwo, type: e.target.value })
+                    }
+                    className="border p-2 rounded"
+                  >
+                    <option value="">Select ID Type</option>
+                    <option value="national_id">National ID</option>
+                    <option value="passport">Passport</option>
+                    <option value="drivers_license">Driver’s License</option>
+                  </select>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <p className="font-medium text-sm mb-1">
+                      Identity Documents
+                    </p>
+
+                    <p className="text-sm text-gray-700">ID Number</p>
+                    <p className="text-sm font-semibold">
+                      {stepTwo?.proofId || "Not provided"}
+                    </p>
+
+                    <p className="text-sm text-gray-700 mt-2">ID Type</p>
+                    <p className="text-sm font-semibold">
+                      {stepTwo?.type || "Not provided"}
+                    </p>
+                  </div>
+
+                  <PencilSquareIcon
+                    onClick={() => setEditMode(!editMode)}
+                    className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600"
+                  />
+                </>
+              )}
             </div>
 
-            {/* Identity Verification Selfie */}
+            {/* Selfie */}
             <div className="flex justify-between items-start border-b border-[#E0E0E0] pb-4">
               <div>
                 <p className="font-medium text-sm mb-1">
                   Identity Verification Selfie
                 </p>
-                <p className="text-sm text-gray-700">Selfie Captured</p>
-                <span className="inline-block px-2 py-0.5 text-xs font-medium text-green-700 bg-green-100 rounded-full">
-                  Captured
-                </span>
+                {avatar ? (
+                  <Image
+                    src={avatar}
+                    alt="Selfie"
+                    width={200}
+                    height={200}
+                    className="w-20 h-20 rounded-full object-cover border"
+                  />
+                ) : (
+                  <span className="text-sm text-gray-500">
+                    No selfie captured
+                  </span>
+                )}
               </div>
               <PencilSquareIcon className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
             </div>
@@ -88,8 +290,7 @@ const StepFour = () => {
               <p className="font-medium text-sm mb-2">Important Notice:</p>
               <p className="text-sm text-gray-600">
                 By submitting this verification, you confirm that all
-                information provided is accurate and belongs to you. False
-                information may result in account suspension.
+                information provided is accurate and belongs to you.
               </p>
             </div>
 
@@ -98,16 +299,22 @@ const StepFour = () => {
               <button
                 onClick={() => router.back()}
                 type="button"
-                className="flex-1 px-2 md:px-2 py-2 rounded-md bg-[#84C2A229] border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                className="flex-1 px-2 py-2 rounded-md bg-[#84C2A229] border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
               >
                 Back
               </button>
               <button
-                onClick={() => router.push("/dashboard/kyc/laststep")}
+                onClick={handleSubmit}
                 type="submit"
-                className="flex-1 px-2 md:px-2 py-2 rounded-md bg-[#0A2540] text-white hover:bg-[#1F3B5A] transition"
+                className="flex-1 px-2 py-2 rounded-md bg-[#0A2540] text-white hover:bg-[#1F3B5A] transition"
               >
-                Submit for Verification
+                {loading ? (
+                  <span className="flex justify-center text-white items-center">
+                    <BiLoaderCircle className="mr-2 animate-spin" size={22} />
+                  </span>
+                ) : (
+                  <span>Submit for Verification</span>
+                )}
               </button>
             </div>
           </div>
