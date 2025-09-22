@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import ProgressBar from "./progressbar";
 import Verify from "./verify";
 import { useRouter } from "next/router";
+import toast from "react-hot-toast";
 
 const StepOne = () => {
   const router = useRouter();
@@ -25,15 +26,30 @@ const StepOne = () => {
 
   const handleNext = () => {
     if (progress < 25) {
-      alert("Please fill out all required fields.");
+      toast.error("Please fill out all required fields.");
       return;
     }
 
-    // Save to localStorage
-    const stepOneData = { phone, dob, address };
-    localStorage.setItem("kyc_step_one", JSON.stringify(stepOneData));
+    const nigerianPhoneRegex = /^(?:\+234\d{10}|0\d{10})$/;
+    if (!nigerianPhoneRegex.test(phone)) {
+      toast.error("Please enter a valid Nigerian phone number.");
+      return;
+    }
 
-    // Navigate to Step Two
+    const d = new Date(dob);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    const formattedDob = `${day}/${month}/${year}`;
+
+    const stepOneData = { phone, dob: formattedDob, address };
+
+    // merge instead of overwrite
+    const existingData = JSON.parse(localStorage.getItem("kyc_data") || "{}");
+    const updatedData = { ...existingData, stepOne: stepOneData };
+
+    localStorage.setItem("kyc_data", JSON.stringify(updatedData));
+
     router.push("/dashboard/kyc/steptwo");
   };
 

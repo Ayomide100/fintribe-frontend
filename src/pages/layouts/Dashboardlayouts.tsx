@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { ReactNode, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import DashboardHeader from "../dashboard/dashboardheader";
@@ -29,7 +30,6 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
 
   // Computed flag for showing banner
   const showBanner = shouldShowBannerFromServer && !isBannerDismissed;
-
   const getUser = async () => {
     try {
       const res = await axios("/users/profile", {
@@ -48,10 +48,14 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
         setShouldShowBannerFromServer(false); // normal users never see the banner
       } else if (user.account_type === "expert") {
         dispatch(setGuru(user));
-        setShouldShowBannerFromServer(kycStatus !== "verified");
+        setShouldShowBannerFromServer(
+          kycStatus !== "verified" && kycStatus !== "pending"
+        );
       } else if (user.account_type === "partner") {
         dispatch(setPartner(user));
-        setShouldShowBannerFromServer(kycStatus !== "verified");
+        setShouldShowBannerFromServer(
+          kycStatus !== "verified" && kycStatus !== "pending"
+        );
       } else {
         setShouldShowBannerFromServer(false);
       }
@@ -66,8 +70,6 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
           fallback;
 
         toast.error(errorMsg);
-      } else {
-        toast.error("Something went wrong");
       }
     }
   };

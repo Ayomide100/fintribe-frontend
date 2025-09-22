@@ -1,13 +1,46 @@
 import Dashboardlayouts from "@/pages/layouts/Dashboardlayouts";
 import Head from "next/head";
-import React from "react";
+import React, { useState } from "react";
 import Verify from "./verify";
 import ProgressBar from "./progressbar";
 import { Camera } from "lucide-react";
 import { useRouter } from "next/router";
+import Image from "next/image";
+import { useDispatch } from "react-redux";
+import { setFile } from "@/Global/uploadSlice";
 
 const StepThree = () => {
   const router = useRouter();
+  const [selfie, setSelfie] = useState<string | null>(null);
+
+  const dispatch = useDispatch();
+  const handleSelfieCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    const file = files && files[0];
+    if (file) {
+      // For preview (base64)
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setSelfie(base64String);
+
+        // Save preview + filename in localStorage
+        const existingData = JSON.parse(
+          localStorage.getItem("kyc_data") || "{}"
+        );
+        const updatedData = {
+          ...existingData,
+          avatarPreview: base64String,
+          avatarFileName: file.name,
+        };
+        localStorage.setItem("kyc_data", JSON.stringify(updatedData));
+
+        // ✅ Keep File object in Redux (for backend upload later)
+        dispatch(setFile(file));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <Dashboardlayouts>
@@ -39,40 +72,40 @@ const StepThree = () => {
               </p>
             </div>
 
-            {/* Selfie Frame */}
+            {/* Selfie Preview */}
             <div className="flex justify-center items-center mb-6">
-              <div className="w-40 h-40 md:w-52 md:h-52 border-2 border-dashed border-green-500 rounded-md flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-16 w-16 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 14c1.656 0 3-1.567 3-3.5S13.656 7 12 7s-3 1.567-3 3.5S10.344 14 12 14z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 20c0-3.314 2.686-6 6-6s6 2.686 6 6"
-                  />
-                </svg>
-              </div>
+              {selfie ? (
+                <Image
+                  src={selfie}
+                  alt="Selfie Preview"
+                  width={200}
+                  height={200}
+                  className="w-40 h-40 md:w-52 md:h-52 object-cover rounded-md border"
+                />
+              ) : (
+                <div className="w-40 h-40 md:w-52 md:h-52 border-2 border-dashed border-green-500 rounded-md flex items-center justify-center">
+                  <Camera className="text-gray-400 w-10 h-10" />
+                </div>
+              )}
             </div>
 
             {/* Take Selfie Button */}
             <div className="flex justify-center mb-6">
-              <button
-                type="button"
-                className="px-8 flex justify-center gap-4 items-center py-2 rounded-md bg-[#0A2540] border border-gray-300 text-[#F5F5F5] hover:bg-[#1F3B5A] transition"
+              <label
+                htmlFor="selfieInput"
+                className="px-8 flex justify-center gap-4 items-center py-2 rounded-md bg-[#0A2540] border border-gray-300 text-[#F5F5F5] hover:bg-[#1F3B5A] transition cursor-pointer"
               >
-                Take Selfie
+                {selfie ? "Retake Selfie" : "Take Selfie"}
                 <Camera size={12} />
-              </button>
+              </label>
+              <input
+                id="selfieInput"
+                type="file"
+                accept="image/*"
+                capture="user"
+                className="hidden"
+                onChange={handleSelfieCapture}
+              />
             </div>
 
             {/* Selfie Guidelines */}
@@ -100,6 +133,7 @@ const StepThree = () => {
                 onClick={() => router.push("/dashboard/kyc/stepfour")}
                 type="submit"
                 className="flex-1 px-4 md:px-20 py-2 rounded-md bg-[#0A2540] text-white hover:bg-[#1F3B5A] transition"
+                disabled={!selfie} // disable until selfie taken
               >
                 Next
               </button>

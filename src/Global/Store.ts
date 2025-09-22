@@ -4,6 +4,7 @@ import storage from "redux-persist/lib/storage"; // defaults to localStorage for
 import GuruReducer from "./GuruSlice";
 import UserReducer from "./UserSlice";
 import PartnerReducer from "./PartnerSlice";
+import UploadReducer from "./uploadSlice";
 
 const persistConfig = {
   key: "root",
@@ -13,12 +14,14 @@ const persistConfig = {
 const persistedGuruReducer = persistReducer(persistConfig, GuruReducer);
 const persistedUserReducer = persistReducer(persistConfig, UserReducer);
 const persistedPartnerReducer = persistReducer(persistConfig, PartnerReducer);
+const persistedUploadReducer = persistReducer(persistConfig, UploadReducer);
 
 export const store = configureStore({
   reducer: {
     guru: persistedGuruReducer,
     user: persistedUserReducer,
     partner: persistedPartnerReducer,
+    upload: persistedUploadReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
