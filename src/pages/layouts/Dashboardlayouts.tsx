@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { ReactNode, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import DashboardHeader from "../dashboard/dashboardheader";
