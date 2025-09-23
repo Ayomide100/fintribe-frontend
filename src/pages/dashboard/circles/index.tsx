@@ -1,22 +1,75 @@
 import Head from "next/head";
-import React from "react";
-import Dashboardlayouts from "../layouts/Dashboardlayouts";
+import React, { useEffect, useState } from "react";
+import Dashboardlayouts from "../../layouts/Dashboardlayouts";
 import Image from "next/image";
 import { FiEdit } from "react-icons/fi";
 import { Bookmark, Settings, ShieldCheck } from "lucide-react";
-import userprofilepic from "../../../assets/user.jpg";
+import userprofilepic from "../../../../assets/user.jpg";
 // import postImage from "../../../assets/d072c25443f441b7143033251e6b7d2148a98433.jpg";
-import post2image from "../../../assets/57bb80ed3d1af1b175dda138130249ea0fc160b8.jpg";
-import post3image from "../../../assets/a3a16f22b871b5b60428bdef198c2d6598854556.jpg";
-import suitguy from "../../../assets/suitguy.jpg";
+import post2image from "../../../../assets/57bb80ed3d1af1b175dda138130249ea0fc160b8.jpg";
+import post3image from "../../../../assets/a3a16f22b871b5b60428bdef198c2d6598854556.jpg";
+import suitguy from "../../../../assets/suitguy.jpg";
 import {
   AiOutlineComment,
   AiOutlineLike,
   AiOutlineShareAlt,
 } from "react-icons/ai";
 import { TbFidgetSpinner, TbLockAccess } from "react-icons/tb";
+import CreateCircleModal from "@/Modals/createcirclemodal";
+import axios from "@/config/axiosconfig";
+
+interface Circle {
+  _id: string;
+  name: string;
+  description: string;
+  icon: {
+    url: string;
+    id: string;
+  };
+  type: "public" | "private";
+  createdAt: string;
+  updatedAt: string;
+  totalMembers: number;
+  topMembers: {
+    _id: string;
+    avatar: {
+      url: string | null;
+      id?: string;
+    } | null;
+    name: string;
+  }[];
+  remainingCount: number;
+
+  // Optional extra fields for UI
+  unread?: number;
+  image?: string;
+  members?: number;
+}
 
 const Circles = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [circles, setCircles] = useState<Circle[]>([]);
+
+  const getAllCircles = async () => {
+    try {
+      const res = await axios.get("circle?page=1&limit=6", {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      // ✅ Extract circles properly
+      setCircles(res.data.content.circles);
+    } catch (error) {
+      console.error("Error fetching circles:", error);
+    }
+  };
+
+  useEffect(() => {
+    getAllCircles();
+  }, []);
   const Newsfeed = [
     {
       id: 1,
@@ -59,30 +112,6 @@ const Circles = () => {
     },
   ];
 
-  const circles = [
-    {
-      id: 1,
-      name: "Lagos Property Investors",
-      members: "2.3k Members",
-      image: "/circle1.png",
-      unread: 0,
-    },
-    {
-      id: 2,
-      name: "Crypto Gurus",
-      members: "5.1k Members",
-      image: "/circle2.png",
-      unread: 32,
-    },
-    {
-      id: 3,
-      name: "Stock Market Watch",
-      members: "1.9k Members",
-      image: "/circle3.png",
-      unread: 12,
-    },
-  ];
-
   return (
     <Dashboardlayouts>
       <Head>
@@ -99,7 +128,10 @@ const Circles = () => {
               Connect with like-minded investors and industry experts
             </p>
           </div>
-          <button className="bg-[#0A2540] text-white px-4 py-2 rounded-lg shadow hover:bg-[#0d2f57] transition text-sm">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-[#0A2540] text-white px-4 py-2 rounded-lg shadow hover:bg-[#0d2f57] transition text-sm"
+          >
             + Create a Circle
           </button>
         </div>
@@ -154,17 +186,17 @@ const Circles = () => {
             <div className="flex flex-col gap-3">
               {circles.map((circle) => (
                 <button
-                  key={circle.id}
+                  key={circle._id}
                   className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition relative text-left"
                 >
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-gray-200">
-                    <Image
+                    {/* <Image
                       src={circle.image}
                       alt={circle.name}
                       width={40}
                       height={40}
                       className="object-cover"
-                    />
+                    /> */}
                   </div>
                   <div className="flex flex-col items-start">
                     <span className="text-sm font-medium text-gray-800 truncate">
@@ -175,11 +207,11 @@ const Circles = () => {
                       {circle.members}
                     </span>
                   </div>
-                  {circle.unread > 0 && (
+                  {/* {circle.unread > 0 && (
                     <span className="absolute right-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                       {circle.unread}
                     </span>
-                  )}
+                  )} */}
                 </button>
               ))}
             </div>
@@ -248,6 +280,10 @@ const Circles = () => {
             ))}
           </div>
         </div>
+        <CreateCircleModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
       </div>
     </Dashboardlayouts>
   );

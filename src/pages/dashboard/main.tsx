@@ -307,14 +307,14 @@ const Main = () => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.98 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="w-full bg-white cursor-pointer rounded-md shadow-md flex justify-start px-5 py-3 gap-4 items-center"
+                className="w-full bg-white cursor-pointer rounded-md shadow-md flex justify-start px-5 py-3 gap-2 items-center"
                 onClick={() => setIsExpanded(true)}
               >
-                <div className="md:w-[35px] md:h-[35px] h-[50px] w-[50px] rounded-full flex justify-center items-center">
+                <div className="md:w-[35px] md:h-[35px] w-[50px] h-[50px] rounded-full flex justify-center items-center">
                   <Image
                     src={userprofilepic}
                     alt="user"
-                    className="w-full h-full object-cover rounded-full"
+                    className="w-[90%] h-[90%] object-cover rounded-full "
                   />
                 </div>
                 <p className="text-sm font-normal text-gray-700">
@@ -341,7 +341,7 @@ const Main = () => {
         `}
               >
                 {/* Mobile Header (only visible on small screens) */}
-                <div className="flex justify-between items-center border-b pb-2 md:hidden">
+                <div className="flex justify-between  items-center border-b pb-2 md:hidden">
                   <h3 className="text-base font-medium text-gray-800">
                     Create Post
                   </h3>
@@ -357,7 +357,7 @@ const Main = () => {
                 </div>
 
                 {/* Input */}
-                <div className="flex gap-3 bg-green-500">
+                <div className="flex gap-3">
                   <div className="w-[35px] h-[35px] rounded-full flex justify-center items-center">
                     <Image
                       src={userprofilepic}
