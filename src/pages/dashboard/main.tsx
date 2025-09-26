@@ -23,6 +23,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
 import { isAxiosError } from "axios";
+import Otherside from "./otherside";
 
 interface MediaFile {
   url: string;
@@ -699,6 +700,9 @@ const Main = () => {
               )}
             </div>
           ))}
+        <div className="block md:hidden">
+          <Otherside accountType="user" />
+        </div>
       </div>
     </Dashboardlayouts>
   );

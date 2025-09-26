@@ -22,6 +22,10 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
   const isMainPage = router.pathname === "/dashboard/main";
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const [accountType, setAccountType] = useState<
+    "user" | "expert" | "partner" | null
+  >(null);
+
   const dispatch = useDispatch();
 
   const [shouldShowBannerFromServer, setShouldShowBannerFromServer] =
@@ -42,6 +46,7 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
       const kycStatus = res.data.content.kycStatus;
 
       localStorage.setItem("_id", user._id);
+      setAccountType(user.account_type);
 
       if (user.account_type === "user") {
         dispatch(setUser(user));
@@ -170,7 +175,7 @@ const Dashboardlayouts: React.FC<MainlayoutProps> = ({ children }) => {
               ${!sidebarOpen ? "md:w-[32%]" : ""}
             `}
           >
-            <Otherside />
+            {accountType && <Otherside accountType={accountType} />}
           </div>
         )}
       </div>

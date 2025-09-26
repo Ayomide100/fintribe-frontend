@@ -10,6 +10,7 @@ import { useDispatch } from "react-redux";
 import { clearGuru } from "@/Global/GuruSlice";
 import { clearUser } from "@/Global/UserSlice";
 import { clearPartner } from "@/Global/PartnerSlice";
+import Createlogoutmodal from "@/Modals/createlogoutmodal";
 
 interface Props {
   setSidebarOpen: (open: boolean) => void;
@@ -20,6 +21,7 @@ const DashboardHeader: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
   const [dropdown, setDropdown] = useState(false);
 
   const HandleDropdown = () => setDropdown(!dropdown);
+  const [OpenModal, setOpenModal] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -104,7 +106,7 @@ const DashboardHeader: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
               </li>
               <li>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => setOpenModal(true)}
                   className="w-full px-11 py-2 hover:bg-[#2E8B57] text-sm  cursor-pointer rounded-md flex items-center justify-start gap-2 text-red-500 hover:text-white"
                 >
                   <LogOut className="w-4 h-4" /> Logout
@@ -114,6 +116,12 @@ const DashboardHeader: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
           </div>
         )}
       </div>
+      {OpenModal && (
+        <Createlogoutmodal
+          onClose={() => setOpenModal(false)}
+          onConfirm={handleLogout}
+        />
+      )}
     </div>
   );
 };

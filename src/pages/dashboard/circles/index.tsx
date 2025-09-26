@@ -17,6 +17,9 @@ import {
 import { TbFidgetSpinner, TbLockAccess } from "react-icons/tb";
 import CreateCircleModal from "@/Modals/createcirclemodal";
 import axios from "@/config/axiosconfig";
+import { useRouter } from "next/router";
+import { isAxiosError } from "axios";
+import toast from "react-hot-toast";
 
 interface Circle {
   _id: string;
@@ -51,6 +54,36 @@ const Circles = () => {
 
   const [circles, setCircles] = useState<Circle[]>([]);
 
+  const [accountType, setAccountType] = useState<string | null>(null);
+
+  const router = useRouter();
+
+  const getUser = async () => {
+    try {
+      const res = await axios("/users/profile", {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+      });
+
+      console.log(res.data.content.user.account_type);
+
+      setAccountType(res.data.content.user.account_type);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
+    }
+  };
+
   const getAllCircles = async () => {
     try {
       const res = await axios.get("circle?page=1&limit=6", {
@@ -69,6 +102,7 @@ const Circles = () => {
 
   useEffect(() => {
     getAllCircles();
+    getUser();
   }, []);
   const Newsfeed = [
     {
