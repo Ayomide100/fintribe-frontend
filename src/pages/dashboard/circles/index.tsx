@@ -3,7 +3,12 @@ import React, { useEffect, useState } from "react";
 import Dashboardlayouts from "../../layouts/Dashboardlayouts";
 import Image from "next/image";
 import { FiEdit } from "react-icons/fi";
-import { Bookmark, Settings, ShieldCheck } from "lucide-react";
+import {
+  Bookmark,
+  EllipsisVertical,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
 import userprofilepic from "../../../../assets/user.jpg";
 // import postImage from "../../../assets/d072c25443f441b7143033251e6b7d2148a98433.jpg";
 import post2image from "../../../../assets/57bb80ed3d1af1b175dda138130249ea0fc160b8.jpg";
@@ -17,9 +22,11 @@ import {
 import { TbFidgetSpinner, TbLockAccess } from "react-icons/tb";
 import CreateCircleModal from "@/Modals/createcirclemodal";
 import axios from "@/config/axiosconfig";
-import { useRouter } from "next/router";
+
 import { isAxiosError } from "axios";
 import toast from "react-hot-toast";
+import Joinedcircles from "./joinedcircles";
+import Explorecircles from "./explorecircles";
 
 interface Circle {
   _id: string;
@@ -56,7 +63,14 @@ const Circles = () => {
 
   const [accountType, setAccountType] = useState<string | null>(null);
 
-  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"joined" | "explore" | "my">(
+    "joined"
+  );
+  const tabs = [
+    { key: "joined", label: "Joined Circles" },
+    { key: "explore", label: "Explore Circles" },
+    ...(accountType === "expert" ? [{ key: "my", label: "My Circles" }] : []),
+  ];
 
   const getUser = async () => {
     try {
@@ -65,7 +79,6 @@ const Circles = () => {
           Authorization: `${localStorage.getItem("token")}`,
         },
       });
-
       console.log(res.data.content.user.account_type);
 
       setAccountType(res.data.content.user.account_type);
@@ -162,25 +175,37 @@ const Circles = () => {
               Connect with like-minded investors and industry experts
             </p>
           </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-[#0A2540] text-white px-4 py-2 rounded-lg shadow hover:bg-[#0d2f57] transition text-sm"
-          >
-            + Create a Circle
-          </button>
+          {accountType === "expert" && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-[#0A2540] text-white px-4 py-2 rounded-lg shadow hover:bg-[#0d2f57] transition text-sm"
+            >
+              + Create a Circle
+            </button>
+          )}
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 sm:gap-4 bg-gray-50 border border-gray-200 rounded-lg p-2 overflow-x-auto scrollbar-hide">
-          <button className="px-3 sm:px-4 py-2 text-sm font-medium rounded-md bg-white shadow whitespace-nowrap">
-            My Circles
-          </button>
-          <button className="px-3 sm:px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md whitespace-nowrap">
-            Joined Circles
-          </button>
-          <button className="px-3 sm:px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-md whitespace-nowrap">
-            Explore Circles
-          </button>
+        <div className="flex gap-4 border-b border-gray-200">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onClick={() => setActiveTab(tab.key as any)}
+              className={`px-3 py-2 text-sm font-medium ${
+                activeTab === tab.key
+                  ? "border-b-2 border-blue-600 text-blue-600"
+                  : "text-gray-600 hover:text-gray-800"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+          <div className="flex-1">
+            {activeTab === "joined" && <Joinedcircles />}
+            {activeTab === "explore" && <Explorecircles />}
+            {/* {activeTab === "my" && accountType === "expert" && <MyCircles />} */}
+          </div>
         </div>
 
         {/* Circle Header */}
@@ -197,13 +222,22 @@ const Circles = () => {
               Lagos Property Investors
             </p>
           </div>
+
           <div className="flex gap-3">
-            <div className="bg-white shadow-md px-2 py-2 rounded-md">
-              <FiEdit size={18} />
-            </div>
-            <div className="bg-white shadow-md px-2 py-2 rounded-md">
-              <Settings size={18} />
-            </div>
+            {accountType === "user" ? (
+              <div className="bg-white shadow-md px-2 py-2 rounded-md">
+                <EllipsisVertical size={18} />
+              </div>
+            ) : (
+              <>
+                <div className="bg-white shadow-md px-2 py-2 rounded-md">
+                  <FiEdit size={18} />
+                </div>
+                <div className="bg-white shadow-md px-2 py-2 rounded-md">
+                  <Settings size={18} />
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -259,26 +293,30 @@ const Circles = () => {
                 className="bg-white rounded-xl shadow border border-gray-100 p-5"
               >
                 {/* Post Header */}
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-[#226B44]">
-                    <Image
-                      src={post.avatar}
-                      alt="profile"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-1">
-                      {post.name}
-                      <ShieldCheck
-                        size={16}
-                        className="text-[#2E8B57] inline-block"
+                <div className="flex items-center justify-between gap-3">
+                  <div className="w-[40%] h-full flex  items-center px-1 gap-2">
+                    <div className="w-11 h-11  sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-[#226B44]">
+                      <Image
+                        src={post.avatar}
+                        alt="profile"
+                        className="w-full h-full object-cover"
                       />
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      {post.role} · {post.time}
-                    </p>
+                    </div>
+                    <div className="w-[82%] h-full">
+                      <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-1">
+                        {post.name}
+                        <ShieldCheck
+                          size={16}
+                          className="text-[#2E8B57] inline-block"
+                        />
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {post.role} · {post.time}
+                      </p>
+                    </div>
                   </div>
+
+                  {accountType === "user" && <EllipsisVertical />}
                 </div>
 
                 {/* Content */}
