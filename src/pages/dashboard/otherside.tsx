@@ -2,15 +2,17 @@ import React from "react";
 import { Star, ShieldCheck, TrendingUp } from "lucide-react";
 import { HiOutlineUserAdd } from "react-icons/hi";
 import suitguy from "../../../assets/suitguy.jpg";
-// import haijya from "../../../assets/hajiya.jpg";
 import firstone from "../../../assets/187817fe37210c2e0093099c360898510851d788.jpg";
 import secondone from "../../../assets/2e1363bd7bba50ad27e636dd5baf25554019cbc6.jpg";
 import fourthone from "../../../assets/fa3ade4848a2f80ff7721bbdbe3f2d9fe32d2b66.jpg";
 import Image from "next/image";
-import { TbLockAccess } from "react-icons/tb";
-import { TbFidgetSpinner } from "react-icons/tb";
+import { TbLockAccess, TbFidgetSpinner } from "react-icons/tb";
 
-const Otherside = () => {
+interface OthersideProps {
+  accountType: "user" | "expert" | "partner";
+}
+
+const Otherside: React.FC<OthersideProps> = ({ accountType }) => {
   const gurus = [
     {
       name: "Adelaide Thompson",
@@ -36,68 +38,69 @@ const Otherside = () => {
     {
       name: "Lagos Property Investors",
       members: "32.2k",
-
       image: firstone,
     },
     {
       name: "Lagos Property Investors",
       members: "32.2k",
-
       image: secondone,
     },
     {
       name: "Lagos Property Investors",
       members: "32.2k",
-
       image: fourthone,
     },
   ];
 
   return (
     <div className="w-full h-full overflow-y-auto px-3 py-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-      {/* Suggested Gurus */}
-      <div className="bg-white rounded-lg shadow-md p-3 space-y-3">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-          <Star className="w-4 h-4 text-yellow-500" /> Suggested Gurus
-        </h2>
-        {gurus.map((guru, idx) => (
-          <div
-            key={idx}
-            className="flex items-center justify-between rounded-lg py-2"
-          >
-            {/* Left: Avatar + Info */}
-            <div className="flex w-[90%] items-center  justify-around">
-              <div className="">
-                <Image
-                  src={guru.image}
-                  alt={guru.name}
-                  className="w-10 h-10 rounded-full border-4 border-[#226B44]  object-cover"
-                />
+      {/* Suggested Gurus – show only for users */}
+      {accountType === "user" && (
+        <div className="bg-white rounded-lg shadow-md p-3 space-y-3">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+            <Star className="w-4 h-4 text-yellow-500" /> Suggested Gurus
+          </h2>
+          {gurus.map((guru, idx) => (
+            <div
+              key={idx}
+              className="flex items-center justify-between rounded-lg py-2"
+            >
+              {/* Left: Avatar + Info */}
+              <div className="flex w-[90%] items-center justify-around">
+                <div>
+                  <Image
+                    src={guru.image}
+                    alt={guru.name}
+                    className="w-10 h-10 rounded-full border-4 border-[#226B44] object-cover"
+                  />
+                </div>
+
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-[12px]">{guru.name}</p>
+                    <ShieldCheck size={14} className="text-[#226B44]" />
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                    <p>{guru.role}</p>
+                    <span className="text-[#2E8B57] font-medium">
+                      {guru.xp}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <p className="font-medium text-[12px]">{guru.name}</p>
-                  <ShieldCheck size={14} className="text-[#226B44]" />
-                </div>
-                <div className="flex items-center gap-2 text-[10px] text-gray-500">
-                  <p>{guru.role}</p>
-                  <span className="text-[#2E8B57] font-medium">{guru.xp}</span>
-                </div>
-              </div>
+              {/* Follow Button */}
+              <button className="px-3 py-1 flex items-center gap-1 bg-[#0A2540] text-white rounded-md text-xs">
+                <HiOutlineUserAdd size={14} />
+                Follow
+              </button>
             </div>
-
-            {/* Follow Button */}
-            <button className="px-3 py-1 flex items-center gap-1 bg-[#0A2540] text-white rounded-md text-xs">
-              <HiOutlineUserAdd size={14} />
-              Follow
-            </button>
-          </div>
-        ))}
-        <button className="text-xs border rounded-md border-[#226B44] py-2 font-medium text-[#226B44] w-full">
-          View all Gurus
-        </button>
-      </div>
+          ))}
+          <button className="text-xs border rounded-md border-[#226B44] py-2 font-medium text-[#226B44] w-full">
+            View all Gurus
+          </button>
+        </div>
+      )}
 
       {/* Join Circles */}
       <div className="bg-white rounded-lg shadow-md p-3 space-y-3">
@@ -109,11 +112,11 @@ const Otherside = () => {
             key={idx}
             className="flex items-center justify-between rounded-lg px-2 py-2"
           >
-            <div className="">
+            <div>
               <Image
                 src={circle.image}
                 alt={circle.name}
-                className="w-10 h-10 rounded-full border-4 border-[#226B44]  object-cover"
+                className="w-10 h-10 rounded-full border-4 border-[#226B44] object-cover"
               />
             </div>
 
@@ -121,8 +124,7 @@ const Otherside = () => {
               <p className="font-medium text-xs">{circle.name}</p>
               <p className="text-xs text-gray-500">
                 <TbLockAccess className="inline-block w-4 h-4 mr-1 text-[#226B44]" />
-                • {""}
-                {circle.members} Members
+                • {circle.members} Members
               </p>
             </div>
             <button className="px-3 py-1 bg-[#0A2540] text-white rounded-md text-xs">
@@ -180,7 +182,7 @@ const Otherside = () => {
               Real Estate
             </span>
             <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">
-              low Risk
+              Low Risk
             </span>
           </div>
 
