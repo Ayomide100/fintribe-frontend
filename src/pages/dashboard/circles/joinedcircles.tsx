@@ -1,11 +1,11 @@
-import Dashboardlayouts from "@/pages/layouts/Dashboardlayouts";
+// import Dashboardlayouts from "@/pages/layouts/Dashboardlayouts";
 import React from "react";
 
 const Joinedcircles = () => {
   return (
-    <Dashboardlayouts>
+    <div>
       <div>Joined Circles</div>
-    </Dashboardlayouts>
+    </div>
   );
 };
 
