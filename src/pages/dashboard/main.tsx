@@ -496,7 +496,7 @@ const Main = () => {
               <div className="w-full flex justify-start items-center gap-3">
                 <div className="w-[40px] h-[40px] rounded-full flex justify-center items-center">
                   <Image
-                    src={post.user?.avatar?.url || "/default-avatar.png"}
+                    src={post.user?.avatar?.url || ""}
                     alt="profile"
                     width={200}
                     height={300}
@@ -645,9 +645,7 @@ const Main = () => {
                         >
                           {/* Avatar */}
                           <Image
-                            src={
-                              comment.user?.avatar?.url || "/default-avatar.png"
-                            }
+                            src={comment.user?.avatar?.url || ""}
                             alt="comment user"
                             width={30}
                             height={30}
