@@ -140,7 +140,17 @@ const Circles = () => {
       // ✅ Extract circles properly
       setCircles(res.data.content.circles);
     } catch (error) {
-      console.error("Error fetching circles:", error);
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
     }
   };
 
