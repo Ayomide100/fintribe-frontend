@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Dashboardlayouts from "../layouts/Dashboardlayouts";
 import Head from "next/head";
 import Image from "next/image";
-import userprofilepic from "../../../assets/user.jpg";
+
 import noface from "../../../assets/blank-profile-picture.webp";
 
 import {
@@ -25,6 +25,7 @@ import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
 import { isAxiosError } from "axios";
 import Otherside from "./otherside";
+import { FaBookmark } from "react-icons/fa";
 
 interface MediaFile {
   url: string;
@@ -53,6 +54,8 @@ interface Post {
   likes?: any[];
   comments?: any[];
   shares?: number;
+  isSaved?: boolean;
+  saves?: any[];
 }
 
 const Main = () => {
@@ -204,8 +207,6 @@ const Main = () => {
           fallback;
 
         toast.error(errorMsg);
-      } else {
-        toast.error("Something went wrong");
       }
     }
   };
@@ -292,6 +293,58 @@ const Main = () => {
     }
   };
 
+  const HandleSavePost = async (postId: string) => {
+    try {
+      const res = await axios.post(
+        `/posts/${postId}/save`,
+        {},
+        {
+          headers: {
+            Authorization: ` ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      console.log(res.data);
+      fetchPosts();
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
+    }
+  };
+
+  const HandleRemovedSavePost = async (postId: string) => {
+    try {
+      const res = await axios.delete(`/posts/${postId}/save`, {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+      });
+      console.log(res.data);
+      fetchPosts();
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
+    }
+  };
+
   return (
     <Dashboardlayouts>
       <Head>
@@ -360,7 +413,7 @@ const Main = () => {
 
                 {/* Input */}
                 <div className="flex gap-3">
-                  <div className="w-[35px] h-[35px] rounded-full flex justify-center items-center">
+                  <div className="w-[35px] h-[35px] rounded-full flex flex-shrink-0 justify-center items-center">
                     <Image
                       src={noface}
                       alt="user"
@@ -629,8 +682,19 @@ const Main = () => {
                     <span>{post.shares || 0}</span>
                   </button>
                 </div>
-                <button className="flex items-center gap-1 text-sm hover:text-blue-600">
-                  <Bookmark size={18} />
+                <button
+                  onClick={() =>
+                    post.isSaved
+                      ? HandleRemovedSavePost(post._id)
+                      : HandleSavePost(post._id)
+                  }
+                  className="flex items-center gap-1 text-sm hover:text-green-600"
+                >
+                  {post.isSaved ? (
+                    <FaBookmark size={18} className="text-green-600" />
+                  ) : (
+                    <Bookmark size={18} className="text-gray-500" />
+                  )}
                 </button>
               </div>
               {/* Comments Section */}

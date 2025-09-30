@@ -1,5 +1,4 @@
 import React from "react";
-import { MdClose } from "react-icons/md";
 
 interface Props {
   onClose: () => void;
@@ -15,12 +14,6 @@ const Createlogoutmodal: React.FC<Props> = ({ onClose, onConfirm }) => {
           <h2 className="text-lg font-semibold text-gray-800">
             Confirm Logout
           </h2>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-full hover:bg-gray-200"
-          >
-            <MdClose size={20} />
-          </button>
         </div>
 
         {/* Body */}
