@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
@@ -6,7 +7,7 @@ import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
 import { isAxiosError } from "axios";
 
-const InvestorCard = ({ circle }: any) => {
+const InvestorCard = ({ circle, onJoined }: any) => {
   const HandleJoincircle = async (circleId: string) => {
     const loadingId = toast.loading("Joining...");
 
@@ -22,8 +23,11 @@ const InvestorCard = ({ circle }: any) => {
       );
 
       console.log(res.data);
-      getAllCircles();
-      toast.success("Joined Successfully....");
+
+      // ✅ remove circle from list immediately
+      onJoined(circleId);
+
+      toast.success("Joined Successfully!");
     } catch (error) {
       if (isAxiosError(error)) {
         const apiMessage = error.response?.data?.message;
@@ -105,6 +109,7 @@ const InvestorCard = ({ circle }: any) => {
 
 const Explorecircles = () => {
   const [circles, setCircles] = useState<any[]>([]);
+  const userId = localStorage.getItem("userId"); // 👈 get current user id
 
   const getAllCircles = async () => {
     try {
@@ -114,7 +119,14 @@ const Explorecircles = () => {
         },
       });
 
-      setCircles(res.data.content.circles);
+      const fetchedCircles = res.data.content.circles;
+
+      // ✅ filter out circles where user is already a member
+      const filtered = fetchedCircles.filter((circle: any) => {
+        return !circle.topMembers?.some((m: any) => m._id === userId);
+      });
+
+      setCircles(filtered);
     } catch (error) {
       if (isAxiosError(error)) {
         const apiMessage = error.response?.data?.message;
@@ -134,16 +146,22 @@ const Explorecircles = () => {
     getAllCircles();
   }, []);
 
+  // ✅ remove joined circle locally
+  const handleJoined = (circleId: string) => {
+    setCircles((prev) => prev.filter((c) => c._id !== circleId));
+  };
+
   return (
     <div className="w-full h-full flex flex-wrap gap-6 justify-center items-start p-4 bg-gray-50 overflow-y-scroll">
       {circles.map((circle) => (
-        <InvestorCard key={circle._id} circle={circle} />
+        <InvestorCard
+          key={circle._id}
+          circle={circle}
+          onJoined={handleJoined}
+        />
       ))}
     </div>
   );
 };
 
 export default Explorecircles;
-function getAllCircles() {
-  throw new Error("Function not implemented.");
-}
