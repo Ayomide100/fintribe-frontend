@@ -1,18 +1,97 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Star, ShieldCheck, TrendingUp } from "lucide-react";
 import { HiOutlineUserAdd } from "react-icons/hi";
 import suitguy from "../../../assets/suitguy.jpg";
-import firstone from "../../../assets/187817fe37210c2e0093099c360898510851d788.jpg";
-import secondone from "../../../assets/2e1363bd7bba50ad27e636dd5baf25554019cbc6.jpg";
-import fourthone from "../../../assets/fa3ade4848a2f80ff7721bbdbe3f2d9fe32d2b66.jpg";
 import Image from "next/image";
 import { TbLockAccess, TbFidgetSpinner } from "react-icons/tb";
+import { isAxiosError } from "axios";
+import axios from "@/config/axiosconfig";
+import toast from "react-hot-toast";
+import { useRouter } from "next/router";
 
 interface OthersideProps {
   accountType: "user" | "expert" | "partner";
 }
 
+type Circle = {
+  _id: string;
+  name: string;
+  icon?: { url: string };
+  type?: string;
+  totalMembers?: number;
+  lastMessage?: { text: string };
+};
+
 const Otherside: React.FC<OthersideProps> = ({ accountType }) => {
+  const [circles, setCircles] = useState<Circle[]>([]);
+
+  const router = useRouter();
+
+  const HandleJoincircle = async (circleId: string) => {
+    const loadingId = toast.loading("Joining...");
+
+    try {
+      const res = await axios.post(
+        `/circle/${circleId}/join`,
+        {},
+        {
+          headers: {
+            Authorization: `${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      toast.success("Joined Successfully!");
+
+      console.log(res.data);
+
+      // refresh after join
+      getAllCircles();
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
+    } finally {
+      toast.dismiss(loadingId);
+    }
+  };
+
+  const getAllCircles = async () => {
+    try {
+      const res = await axios.get("circle?page=1&limit=6", {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+      });
+
+      setCircles(res.data.content.circles);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
+    }
+  };
+
+  useEffect(() => {
+    getAllCircles();
+  }, []);
+
   const gurus = [
     {
       name: "Adelaide Thompson",
@@ -31,24 +110,6 @@ const Otherside: React.FC<OthersideProps> = ({ accountType }) => {
       role: "Real Estate Expert",
       xp: "2.4k",
       image: suitguy,
-    },
-  ];
-
-  const circles = [
-    {
-      name: "Lagos Property Investors",
-      members: "32.2k",
-      image: firstone,
-    },
-    {
-      name: "Lagos Property Investors",
-      members: "32.2k",
-      image: secondone,
-    },
-    {
-      name: "Lagos Property Investors",
-      members: "32.2k",
-      image: fourthone,
     },
   ];
 
@@ -107,32 +168,40 @@ const Otherside: React.FC<OthersideProps> = ({ accountType }) => {
         <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-700">
           <TbFidgetSpinner className="w-4 h-4 text-green-600" /> Join Circles
         </h2>
-        {circles.map((circle, idx) => (
+        {circles.map((circle) => (
           <div
-            key={idx}
+            key={circle._id}
             className="flex items-center justify-between rounded-lg px-2 py-2"
           >
             <div>
               <Image
-                src={circle.image}
+                src={circle.icon?.url || "/default-circle.png"}
                 alt={circle.name}
+                width={40}
+                height={40}
                 className="w-10 h-10 rounded-full border-4 border-[#226B44] object-cover"
               />
             </div>
 
             <div>
               <p className="font-medium text-xs">{circle.name}</p>
-              <p className="text-xs text-gray-500">
-                <TbLockAccess className="inline-block w-4 h-4 mr-1 text-[#226B44]" />
-                • {circle.members} Members
+              <p className="text-xs text-gray-500 flex items-center gap-1">
+                <TbLockAccess className="w-4 h-4 text-[#226B44]" />
+                {circle.totalMembers} Members
               </p>
             </div>
-            <button className="px-3 py-1 bg-[#0A2540] text-white rounded-md text-xs">
+            <button
+              onClick={() => HandleJoincircle(circle._id)}
+              className="px-3 py-1 bg-[#0A2540] text-white rounded-md text-xs"
+            >
               Join
             </button>
           </div>
         ))}
-        <button className="text-xs border border-[#226B44] py-2 rounded-md font-medium text-[#226B44] w-full">
+        <button
+          onClick={() => router.push("/dashboard/circles")}
+          className="text-xs border border-[#226B44] py-2 rounded-md font-medium text-[#226B44] w-full"
+        >
           Explore Circles
         </button>
       </div>

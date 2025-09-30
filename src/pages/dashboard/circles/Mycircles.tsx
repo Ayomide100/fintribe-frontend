@@ -123,7 +123,7 @@ const MyCircles = () => {
                     alt={selectedCircle.name}
                     width={32}
                     height={32}
-                    className="rounded-full"
+                    className="rounded-full object-contain w-2 h-2"
                   />
                 </div>
 

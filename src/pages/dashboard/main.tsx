@@ -4,6 +4,7 @@ import Dashboardlayouts from "../layouts/Dashboardlayouts";
 import Head from "next/head";
 import Image from "next/image";
 import userprofilepic from "../../../assets/user.jpg";
+import noface from "../../../assets/blank-profile-picture.webp";
 
 import {
   AiOutlineComment,
@@ -311,16 +312,16 @@ const Main = () => {
                 className="w-full bg-white cursor-pointer rounded-md shadow-md flex justify-start px-5 py-3 gap-2 items-center"
                 onClick={() => setIsExpanded(true)}
               >
-                <div className="md:w-[35px] md:h-[35px] w-[50px] h-[50px] rounded-full flex justify-center items-center">
+                <div className="md:w-[40px] md:h-[40px]  w-[50px] h-[50px] flex-shrink-0  rounded-full flex justify-center items-center">
                   <Image
-                    src={userprofilepic}
+                    src={noface}
                     alt="user"
-                    className="w-[90%] h-[90%] object-cover rounded-full "
+                    className="w-full h-full object-cover rounded-full "
                   />
                 </div>
-                <p className="text-sm font-normal text-gray-700">
+                <span className="text-sm font-normal text-gray-700">
                   Share an investment insight, market update, or question...
-                </p>
+                </span>
               </motion.div>
             ) : (
               // --- Expanded composer ---
@@ -361,7 +362,7 @@ const Main = () => {
                 <div className="flex gap-3">
                   <div className="w-[35px] h-[35px] rounded-full flex justify-center items-center">
                     <Image
-                      src={userprofilepic}
+                      src={noface}
                       alt="user"
                       className="w-full h-full object-cover rounded-full"
                     />
@@ -496,7 +497,7 @@ const Main = () => {
               <div className="w-full flex justify-start items-center gap-3">
                 <div className="w-[40px] h-[40px] rounded-full flex justify-center items-center">
                   <Image
-                    src={post.user?.avatar?.url || ""}
+                    src={post.user?.avatar?.url || noface}
                     alt="profile"
                     width={200}
                     height={300}
