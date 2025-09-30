@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
@@ -6,6 +5,7 @@ import { TbLockAccess } from "react-icons/tb";
 import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
 import { isAxiosError } from "axios";
+import noface from "../../../../assets/blank-profile-picture.webp";
 
 const InvestorCard = ({ circle, onJoined }: any) => {
   const HandleJoincircle = async (circleId: string) => {
@@ -81,7 +81,7 @@ const InvestorCard = ({ circle, onJoined }: any) => {
             className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#2E8B57]"
           >
             <Image
-              src={member.avatar?.url || ""}
+              src={member.avatar?.url || noface}
               alt={member.name}
               width={40}
               height={40}
@@ -109,7 +109,6 @@ const InvestorCard = ({ circle, onJoined }: any) => {
 
 const Explorecircles = () => {
   const [circles, setCircles] = useState<any[]>([]);
-  const userId = localStorage.getItem("userId"); // 👈 get current user id
 
   const getAllCircles = async () => {
     try {
@@ -121,10 +120,10 @@ const Explorecircles = () => {
 
       const fetchedCircles = res.data.content.circles;
 
-      // ✅ filter out circles where user is already a member
-      const filtered = fetchedCircles.filter((circle: any) => {
-        return !circle.topMembers?.some((m: any) => m._id === userId);
-      });
+      // ✅ filter using hasJoined flag
+      const filtered = fetchedCircles.filter(
+        (circle: any) => !circle.hasJoined
+      );
 
       setCircles(filtered);
     } catch (error) {

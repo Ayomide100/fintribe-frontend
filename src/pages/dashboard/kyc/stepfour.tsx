@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import Dashboardlayouts from "@/pages/layouts/Dashboardlayouts";
 import Head from "next/head";
 import React, { useEffect, useState } from "react";
@@ -12,6 +13,8 @@ import toast from "react-hot-toast";
 import { BiLoaderCircle } from "react-icons/bi";
 import { RootState } from "@/Global/Store";
 import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { setFile } from "@/Global/uploadSlice";
 
 type StepOneType = {
   phone?: string;
@@ -31,10 +34,15 @@ const StepFour = () => {
   const [avatar, setAvatar] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const dispatch = useDispatch();
 
   const file = useSelector((state: RootState) => state.upload.file);
 
   console.log(file);
+
+  console.log(avatar);
+
+  console.log("Stored kyc_data:", localStorage.getItem("kyc_data"));
 
   useEffect(() => {
     if (!file) {
@@ -44,9 +52,27 @@ const StepFour = () => {
 
   useEffect(() => {
     const storedData = JSON.parse(localStorage.getItem("kyc_data") || "{}");
+
     if (storedData.stepOne) setStepOne(storedData.stepOne);
     if (storedData.stepTwo) setStepTwo(storedData.stepTwo);
-    if (storedData.avatar) setAvatar(storedData.avatar);
+    if (storedData.avatarPreview) setAvatar(storedData.avatarPreview);
+
+    // ✅ Rehydrate Redux file correctly
+    if (!file && storedData.avatarPreview && storedData.avatarFileName) {
+      fetch(storedData.avatarPreview)
+        .then((res) => res.blob())
+        .then((blob) => {
+          // 👇 Create a real File object
+          const restoredFile = new File([blob], storedData.avatarFileName, {
+            type: blob.type || "image/jpeg",
+          });
+
+          dispatch(setFile(restoredFile));
+        })
+        .catch(() => {
+          toast.error("Failed to restore selfie file, please re-upload.");
+        });
+    }
   }, []);
 
   // Convert dd/mm/yyyy -> yyyy-mm-dd for editing
@@ -76,18 +102,29 @@ const StepFour = () => {
     try {
       setLoading(true);
 
-      // Build FormData
       const formData = new FormData();
       formData.append("phone", stepOne?.phone || "");
       formData.append("dob", stepOne?.dob || "");
       formData.append("address", stepOne?.address || "");
       formData.append("proofId", stepTwo?.proofId || "");
       formData.append("type", stepTwo?.type || "");
-      if (file) {
-        formData.append("avatar", file);
+
+      let avatarFile = file;
+
+      // 🔥 Ensure it's really a File
+      if (!(avatarFile instanceof File) && avatar) {
+        const res = await fetch(avatar);
+        const blob = await res.blob();
+        avatarFile = new File([blob], "selfie.jpg", { type: blob.type });
       }
 
-      // Send with multipart/form-data
+      if (avatarFile) {
+        formData.append("avatar", avatarFile); // ✅ only once
+      } else {
+        toast.error("Selfie file is missing, please re-upload.");
+        return;
+      }
+
       const res = await axios.put("/users/update-kyc", formData, {
         headers: {
           Authorization: `${localStorage.getItem("token")}`,
