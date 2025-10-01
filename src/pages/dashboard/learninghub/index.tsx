@@ -1,42 +1,43 @@
 import React from "react";
-import Dashboardlayouts from "../layouts/Dashboardlayouts";
+import Dashboardlayouts from "../../layouts/Dashboardlayouts";
 import Head from "next/head";
 import { FaRegClock } from "react-icons/fa";
 import { MdPlayLesson } from "react-icons/md";
 import { AiFillStar } from "react-icons/ai";
-import { FaBookOpen, FaUserGraduate } from "react-icons/fa";
 import { CiFlag1 } from "react-icons/ci";
 import Image, { StaticImageData } from "next/image";
-import firstimage from "../../../assets/02a5180085c6b324772ac97633b265512091f84f.jpg";
-import secondimage from "../../../assets/522925a40f76fec65d5ff32b89732d1fbec66be3.jpg";
+import firstimage from "../../../../assets/02a5180085c6b324772ac97633b265512091f84f.jpg";
+import secondimage from "../../../../assets/522925a40f76fec65d5ff32b89732d1fbec66be3.jpg";
 import { LuTimer } from "react-icons/lu";
 import { FaChartBar } from "react-icons/fa6";
+import { FolderPlus, NotebookPen } from "lucide-react";
+import { useRouter } from "next/router";
 
 const stats = [
   {
     label: "Courses Created",
     value: 12,
-    icon: <FaBookOpen className="text-[#2E8B57]" size={20} />,
+    icon: <FolderPlus className="text-[#2E8B57]" size={25} />,
   },
   {
     label: "Courses Enrolled",
     value: 3,
-    icon: <FaUserGraduate className="text-[#2E8B57]" size={20} />,
+    icon: <NotebookPen className="text-[#2E8B57]" size={25} />,
   },
   {
     label: "Completed",
     value: 1,
-    icon: <CiFlag1 className="text-[#2E8B57]" size={20} />,
+    icon: <CiFlag1 className="text-[#2E8B57]" size={25} />,
   },
   {
     label: "Time Invested",
     value: "84H",
-    icon: <LuTimer className="text-[#2E8B57]" size={20} />,
+    icon: <LuTimer className="text-[#2E8B57]" size={25} />,
   },
   {
     label: "Average Score",
     value: "84%",
-    icon: <FaChartBar className="text-[#2E8B57]" size={20} />,
+    icon: <FaChartBar className="text-[#2E8B57]" size={25} />,
   },
 ];
 
@@ -68,6 +69,12 @@ const courses = [
 ];
 
 const LearningHub = () => {
+  const router = useRouter();
+
+  const handleNavigate = (title: string) => {
+    router.push(`/learninghub/learnvideopage/${title}`); // you can also use course.id here if preferred
+  };
+
   return (
     <Dashboardlayouts>
       <Head>
@@ -85,11 +92,11 @@ const LearningHub = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="flex flex-wrap justify-between gap-4">
           {stats.map((stat, idx) => (
             <div
               key={idx}
-              className="bg-[#84C2A229] p-4 rounded-xl text-center shadow-sm flex flex-col items-center"
+              className="flex-1 min-w-[150px] max-w-[200px] bg-[#84C2A229] p-5 rounded-xl text-center shadow-sm flex flex-col items-start"
             >
               <div className="mb-2">{stat.icon}</div>
               <p className="text-xl font-semibold text-[#2E8B57]">
@@ -109,9 +116,17 @@ const LearningHub = () => {
           />
           <select className="px-4 py-2 border border-[#E0E0E0] outline-none rounded-lg font-normal">
             <option>All Resources</option>
+            <option>Beginner Guides</option>
+            <option>Industry Explainers</option>
+            <option>Premium Courses</option>
+            <option>Webinars</option>
           </select>
           <select className="px-4 py-2 border border-[#E0E0E0] outline-none rounded-lg font-normal">
             <option>Filter by</option>
+            <option>All Time</option>
+            <option>This Past Week</option>
+            <option>This Past Month</option>
+            <option>This Past Year</option>
           </select>
         </div>
 
@@ -120,14 +135,21 @@ const LearningHub = () => {
           {/* Desktop: grid | Mobile: horizontal scroll */}
           <div className="hidden md:grid grid-cols-2 gap-6">
             {courses.map((course) => (
-              <CourseCard key={course.id} {...course} />
+              <CourseCard
+                key={course.id}
+                {...course}
+                handleNavigate={() => handleNavigate(course.title)}
+              />
             ))}
           </div>
 
           <div className="md:hidden flex gap-4 overflow-x-auto snap-x pb-4">
             {courses.map((course) => (
               <div key={course.id} className="snap-start flex-shrink-0 w-80">
-                <CourseCard {...course} />
+                <CourseCard
+                  {...course}
+                  handleNavigate={() => handleNavigate(course.title)}
+                />
               </div>
             ))}
           </div>
@@ -147,6 +169,7 @@ interface CourseCardProps {
   investors: number;
   img: StaticImageData;
   action: string;
+  handleNavigate: () => void; // ✅ add this
 }
 
 const CourseCard = ({
@@ -159,6 +182,7 @@ const CourseCard = ({
   investors,
   img,
   action,
+  handleNavigate,
 }: CourseCardProps) => {
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col">
@@ -185,7 +209,10 @@ const CourseCard = ({
         </div>
 
         {/* Action */}
-        <button className="mt-4 bg-[#0A2540] text-white py-2 rounded-lg font-medium">
+        <button
+          onClick={handleNavigate}
+          className="mt-4 bg-[#0A2540] text-white py-2 rounded-lg font-medium"
+        >
           {action}
         </button>
       </div>
