@@ -91,7 +91,6 @@ const LearningHub = () => {
           </p>
         </div>
 
-        {/* Stats */}
         <div className="flex flex-wrap justify-between gap-4">
           {stats.map((stat, idx) => (
             <div
