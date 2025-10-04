@@ -71,8 +71,8 @@ const courses = [
 const LearningHub = () => {
   const router = useRouter();
 
-  const handleNavigate = (title: string) => {
-    router.push(`/learninghub/learnvideopage/${title}`); // you can also use course.id here if preferred
+  const handleNavigate = (id: string) => {
+    router.push(`/dashboard/learninghub/videopage/${id}`);
   };
 
   return (
@@ -91,11 +91,12 @@ const LearningHub = () => {
           </p>
         </div>
 
-        <div className="flex flex-wrap justify-between gap-4">
+        {/* Stats Section */}
+        <div className="flex flex-col md:flex-row justify-between gap-4">
           {stats.map((stat, idx) => (
             <div
               key={idx}
-              className="flex-1 min-w-[150px] max-w-[200px] bg-[#84C2A229] p-5 rounded-xl text-center shadow-sm flex flex-col items-start"
+              className="flex-1 min-w-[150px] bg-[#84C2A229] p-5 rounded-xl shadow-sm flex flex-col items-start"
             >
               <div className="mb-2">{stat.icon}</div>
               <p className="text-xl font-semibold text-[#2E8B57]">
@@ -107,26 +108,29 @@ const LearningHub = () => {
         </div>
 
         {/* Search + Filters */}
-        <div className="flex flex-col md:flex-row items-center gap-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <input
             type="text"
             placeholder="Search Learning resource..."
-            className="w-full outline-none md:flex-1 px-4 py-2 border border-[#E0E0E0] rounded-lg"
+            className="w-full md:flex-1 px-4 py-2 border border-[#E0E0E0] rounded-lg outline-none"
           />
-          <select className="px-4 py-2 border border-[#E0E0E0] outline-none rounded-lg font-normal">
-            <option>All Resources</option>
-            <option>Beginner Guides</option>
-            <option>Industry Explainers</option>
-            <option>Premium Courses</option>
-            <option>Webinars</option>
-          </select>
-          <select className="px-4 py-2 border border-[#E0E0E0] outline-none rounded-lg font-normal">
-            <option>Filter by</option>
-            <option>All Time</option>
-            <option>This Past Week</option>
-            <option>This Past Month</option>
-            <option>This Past Year</option>
-          </select>
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <select className="px-4 py-2 border border-[#E0E0E0] rounded-lg outline-none font-normal">
+              <option>All Resources</option>
+              <option>Beginner Guides</option>
+              <option>Industry Explainers</option>
+              <option>Premium Courses</option>
+              <option>Webinars</option>
+            </select>
+            <select className="px-4 py-2 border border-[#E0E0E0] rounded-lg outline-none font-normal">
+              <option>Filter by</option>
+              <option>All Time</option>
+              <option>This Past Week</option>
+              <option>This Past Month</option>
+              <option>This Past Year</option>
+            </select>
+          </div>
         </div>
 
         {/* Courses */}
@@ -147,7 +151,7 @@ const LearningHub = () => {
               <div key={course.id} className="snap-start flex-shrink-0 w-80">
                 <CourseCard
                   {...course}
-                  handleNavigate={() => handleNavigate(course.title)}
+                  handleNavigate={() => handleNavigate(String(course.id))}
                 />
               </div>
             ))}
