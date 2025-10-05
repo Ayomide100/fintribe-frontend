@@ -6,15 +6,12 @@ import Image from "next/image";
 
 import noface from "../../../assets/blank-profile-picture.webp";
 
-import {
-  AiOutlineComment,
-  AiOutlineLike,
-  AiOutlineShareAlt,
-} from "react-icons/ai";
+import { AiOutlineComment, AiOutlineShareAlt } from "react-icons/ai";
 import {
   BarChart,
   Bookmark,
   Camera,
+  Heart,
   MoreHorizontal,
   ShieldCheck,
   Trash,
@@ -652,7 +649,7 @@ const Main = () => {
                     }
                     className="flex items-center gap-1 text-sm hover:text-blue-600"
                   >
-                    <AiOutlineLike
+                    <Heart
                       size={18}
                       className={
                         post.likes?.some(
