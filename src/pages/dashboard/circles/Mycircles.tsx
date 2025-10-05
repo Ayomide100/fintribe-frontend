@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from "react";
-import {
-  EllipsisVertical,
-  ThumbsUp,
-  MessageCircle,
-  Share2,
-  Bookmark,
-  ShieldCheck,
-  Settings,
-} from "lucide-react";
+import { EllipsisVertical, Settings } from "lucide-react";
 import { TbFidgetSpinner, TbLockAccess } from "react-icons/tb";
 import axios from "@/config/axiosconfig";
 import { isAxiosError } from "axios";
 import toast from "react-hot-toast";
 import Image from "next/image";
 import { FiEdit } from "react-icons/fi";
+import CreateCirclePost from "@/Modals/createcirclepost";
 
 type Circle = {
   _id: string;
@@ -27,8 +20,24 @@ type Circle = {
 const MyCircles = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
+  type CirclePost = {
+    _id: string;
+    title?: string;
+    content: string;
+    // Add other fields as needed, e.g. images, createdAt, etc.
+  };
 
-  console.log(selectedCircle);
+  const [circlePosts, setCirclePosts] = useState<CirclePost[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+
+  const [newPost, setNewPost] = useState({
+    title: "",
+    content: "",
+    images: [] as File[],
+    isPinned: false,
+    isAnnouncement: false,
+  });
 
   const [myCircles, setMyCircles] = useState<Circle[]>([]);
   const [accountType, setAccountType] = useState<string | null>(null);
@@ -43,23 +52,14 @@ const MyCircles = () => {
   const getAllMyCircles = async () => {
     try {
       const res = await axios.get("/circle/creator?page=1&limit=6", {
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-        },
+        headers: { Authorization: `${localStorage.getItem("token")}` },
       });
-      console.log(res.data.content.circles);
       setMyCircles(res.data.content.circles);
     } catch (error) {
       if (isAxiosError(error)) {
-        const apiMessage = error.response?.data?.message;
-        const apiError = error.response?.data?.error;
-        const fallback = error.message || "An unexpected error occurred";
-
-        const errorMsg =
-          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-          fallback;
-
-        toast.error(errorMsg);
+        const msg =
+          error.response?.data?.message || "Failed to load your circles";
+        toast.error(msg);
       }
     }
   };
@@ -67,50 +67,88 @@ const MyCircles = () => {
   const getUser = async () => {
     try {
       const res = await axios("/users/profile", {
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-        },
+        headers: { Authorization: `${localStorage.getItem("token")}` },
       });
-      console.log(res.data.content.user.account_type);
-
       setAccountType(res.data.content.user.account_type);
     } catch (error) {
       if (isAxiosError(error)) {
-        const apiMessage = error.response?.data?.message;
-        const apiError = error.response?.data?.error;
-        const fallback = error.message || "An unexpected error occurred";
-
-        const errorMsg =
-          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-          fallback;
-
-        toast.error(errorMsg);
+        toast.error("Failed to load user");
       }
+    }
+  };
+
+  const getCirclePosts = async (circleId: string) => {
+    try {
+      setLoadingPosts(true);
+      const res = await axios.get(
+        `/circle/post?circleId=${circleId}&page=1&limit=5`,
+        {
+          headers: { Authorization: `${localStorage.getItem("token")}` },
+        }
+      );
+      setCirclePosts(res.data.content.posts || []);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message || "Failed to load circle posts";
+        toast.error(msg);
+      }
+    } finally {
+      setLoadingPosts(false);
     }
   };
 
   useEffect(() => {
     getAllMyCircles();
     getUser();
-  }, []);
+    if (selectedCircle?._id) {
+      getCirclePosts(selectedCircle._id);
+    }
+  }, [selectedCircle]);
 
-  const posts = [
-    {
-      id: 1,
-      author: "Adebimpe Thompson",
-      role: "Real Estate Expert",
-      timeAgo: "3h",
-      content:
-        "The Nigerian real estate market is showing strong fundamentals despite global uncertainties. Here's why I'm bullish on commercial properties in Lagos and Abuja for 2024.",
-      image: true,
-      likes: 12,
-      comments: 12,
-      shares: 12,
-    },
-  ];
+  const handleCreatePost = async (circleId: string) => {
+    if (!newPost.content.trim()) {
+      toast.error("Post content is required");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("content", newPost.content);
+    if (newPost.title) formData.append("title", newPost.title);
+    if (newPost.isPinned) formData.append("isPinned", "true");
+    if (newPost.isAnnouncement) formData.append("isAnnouncement", "true");
+    newPost.images.forEach((img) => formData.append("file", img));
+
+    try {
+      toast.loading("Creating post...");
+      await axios.post(`/circle/post?circleId=${circleId}`, formData, {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      toast.dismiss();
+      toast.success("Post created!");
+      setShowCreateForm(false);
+      setNewPost({
+        title: "",
+        content: "",
+        images: [],
+        isPinned: false,
+        isAnnouncement: false,
+      });
+      getCirclePosts(circleId);
+    } catch (error) {
+      toast.dismiss();
+      if (isAxiosError(error)) {
+        const msg = error.response?.data?.message || "Failed to create post";
+        toast.error(msg);
+      }
+    }
+  };
 
   return (
-    <div className="w-full min-h-screen bg-gray-50">
+    <div className="w-full min-h-screen bg-gray-50 relative">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -123,10 +161,9 @@ const MyCircles = () => {
                     alt={selectedCircle.name}
                     width={32}
                     height={32}
-                    className="rounded-full object-contain w-2 h-2"
+                    className="rounded-full object-contain"
                   />
                 </div>
-
                 <h1 className="text-lg font-semibold">{selectedCircle.name}</h1>
               </div>
             ) : (
@@ -171,32 +208,28 @@ const MyCircles = () => {
                     onClick={() => setSelectedCircle(circle)}
                   >
                     <div className="flex items-center gap-3">
-                      {/* Circle Icon */}
                       <div className="w-[50px] h-[50px] border-2 border-[#226B44] rounded-full flex justify-center items-center">
                         <Image
                           src={circle.icon?.url || "/default-circle.png"}
                           alt={circle.name}
                           width={40}
                           height={40}
-                          className=" rounded-full object-cover flex-shrink-0"
+                          className=" rounded-full object-cover"
                         />
                       </div>
-
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-sm truncate">
                             {circle.name}
                           </p>
-                          {/* Example: verified badge if you have that logic */}
                           {circle.type === "public" && (
                             <span className="w-2.5 h-2.5 bg-green-500 rounded-full flex-shrink-0"></span>
                           )}
                         </div>
                         <p className="text-xs text-gray-500 flex items-center gap-1">
-                          <TbLockAccess className="inline-block w-4 h-4 mr-1 text-[#226B44]" />
+                          <TbLockAccess className="inline-block w-4 h-4 text-[#226B44]" />
                           {circle.totalMembers} Members
                         </p>
-                        {/* Optional: show last message preview */}
                         {circle.lastMessage && (
                           <p className="text-xs text-gray-400 truncate mt-1">
                             {circle.lastMessage.text}
@@ -210,135 +243,54 @@ const MyCircles = () => {
             </div>
           </div>
 
-          {/* Feed */}
+          {/* Feed Section */}
           <div className="flex-1 space-y-4">
-            {posts.map((post) => (
-              <div
-                key={post.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200"
-              >
-                {/* Post Header */}
-                <div className="p-4 flex items-start justify-between">
-                  <div className="flex gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex-shrink-0"></div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-sm">{post.author}</h3>
-                        <span
-                          className="text
-                                        text-[#2E8B57] text-xs"
-                        >
-                          <ShieldCheck size={15} />
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500">{post.role}</p>
-                      <p className="text-xs text-gray-400">{post.timeAgo}</p>
-                    </div>
-                  </div>
-                  <button className="p-1 hover:bg-gray-100 rounded-full">
-                    <EllipsisVertical size={20} className="text-gray-400" />
-                  </button>
-                </div>
-
-                {/* Post Content */}
-                <div className="px-4 pb-4">
-                  <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                    {post.content}
-                  </p>
-                </div>
-
-                {/* Post Image */}
-                {post.image && (
-                  <div className="relative">
-                    <div className="w-full aspect-video bg-gradient-to-br from-green-900 via-green-800 to-teal-900 flex items-center justify-center relative overflow-hidden">
-                      {/* Animated chart arrows */}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <svg className="w-3/4 h-3/4" viewBox="0 0 200 200">
-                          <defs>
-                            <linearGradient
-                              id="arrowGradient"
-                              x1="0%"
-                              y1="0%"
-                              x2="100%"
-                              y2="100%"
-                            >
-                              <stop
-                                offset="0%"
-                                style={{
-                                  stopColor: "#10b981",
-                                  stopOpacity: 0.8,
-                                }}
-                              />
-                              <stop
-                                offset="100%"
-                                style={{
-                                  stopColor: "#34d399",
-                                  stopOpacity: 0.9,
-                                }}
-                              />
-                            </linearGradient>
-                          </defs>
-                          <path
-                            d="M20 180 L60 140 L100 160 L140 100 L180 20"
-                            stroke="url(#arrowGradient)"
-                            strokeWidth="4"
-                            fill="none"
-                            strokeLinecap="round"
-                          />
-                          <polygon
-                            points="180,20 170,30 180,35 190,30"
-                            fill="#34d399"
-                          />
-
-                          <path
-                            d="M40 170 L70 130 L110 150 L150 90 L185 35"
-                            stroke="url(#arrowGradient)"
-                            strokeWidth="3"
-                            fill="none"
-                            strokeLinecap="round"
-                            opacity="0.6"
-                          />
-                          <polygon
-                            points="185,35 175,43 185,48 195,43"
-                            fill="#34d399"
-                            opacity="0.6"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Post Actions */}
-                <div className="px-4 py-3 border-t border-gray-100">
-                  <div className="flex items-center justify-between text-sm mb-3">
-                    <div className="flex items-center gap-4 text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <ThumbsUp size={16} />
-                        {post.likes}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MessageCircle size={16} />
-                        {post.comments}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Share2 size={16} />
-                        {post.shares}
-                      </span>
-                    </div>
-                    <button>
-                      <Bookmark
-                        size={18}
-                        className="text-gray-400 hover:text-gray-600"
-                      />
-                    </button>
-                  </div>
-                </div>
+            {loadingPosts ? (
+              <p className="text-center text-gray-400 py-10">
+                Loading posts...
+              </p>
+            ) : circlePosts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-lg shadow-sm border border-gray-200">
+                <p className="text-gray-500 mb-4">
+                  No posts yet in{" "}
+                  <span className="font-semibold">{selectedCircle?.name}</span>
+                </p>
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="bg-[#226B44] text-white text-sm px-5 py-2 rounded-md hover:bg-[#1B5736] transition"
+                >
+                  Create Post
+                </button>
               </div>
-            ))}
+            ) : (
+              circlePosts.map((post) => (
+                <div
+                  key={post._id}
+                  className="bg-white rounded-lg shadow-sm border border-gray-200"
+                >
+                  <div className="p-4">
+                    <h3 className="font-semibold text-base">
+                      {post.title || "Untitled Post"}
+                    </h3>
+                    <p className="text-sm text-gray-700 mt-2">{post.content}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
+
+      {/* Modal - Create Post */}
+      {showCreateForm && (
+        <CreateCirclePost
+          selectedCircle={selectedCircle}
+          newPost={newPost}
+          setNewPost={setNewPost}
+          handleCreatePost={handleCreatePost}
+          setShowCreateForm={setShowCreateForm}
+        />
+      )}
     </div>
   );
 };
