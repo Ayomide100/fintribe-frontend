@@ -68,7 +68,7 @@ const JoinedCircles = () => {
 
   const getAllJoinedCircles = async () => {
     try {
-      const res = await axios.get("/circle/me", {
+      const res = await axios.get("circle/me?page=1&limit=6", {
         headers: {
           Authorization: `${localStorage.getItem("token")}`,
         },
