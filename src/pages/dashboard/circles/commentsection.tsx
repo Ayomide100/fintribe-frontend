@@ -55,7 +55,7 @@ const CommentsSection: React.FC<CommentSectionProps> = ({
     try {
       setLoading(true);
       const res = await axios.post(
-        `/circle/comment?circleId=${circleId}&postId=${postId}`,
+        `/circle/post/comment?circleId=${circleId}&postId=${postId}`,
         { content: input, parentId: replyTo || null },
         {
           headers: { Authorization: `${localStorage.getItem("token")}` },
@@ -76,29 +76,55 @@ const CommentsSection: React.FC<CommentSectionProps> = ({
   };
 
   // Handle liking a comment
-  const handleLikeComment = async (commentId: string) => {
+  // Handle liking a comment or reply
+  const handleLikeComment = async (commentId: string, replyId?: string) => {
     try {
-      await axios.post(
-        `/circle/comment/like?commentId=${commentId}`,
+      const url = `/circle/post/comment/like?circleId=${circleId}&postId=${postId}&commentId=${commentId}${
+        replyId ? `&replyId=${replyId}` : ""
+      }`;
+
+      const res = await axios.post(
+        url,
         {},
         {
           headers: { Authorization: `${localStorage.getItem("token")}` },
         }
       );
+      console.log(res.data);
+
+      // Update UI instantly (optimistic update)
       setComments((prev) => ({
         ...prev,
-        [postId]: prev[postId].map((c) =>
-          c._id === commentId
-            ? {
-                ...c,
-                hasLiked: !c.hasLiked,
-                likeCount: (c.likeCount || 0) + (c.hasLiked ? -1 : 1),
-              }
-            : c
-        ),
+        [postId]: prev[postId].map((c) => {
+          // If this is the comment being liked
+          if (c._id === commentId && !replyId) {
+            const updated = {
+              ...c,
+              hasLiked: !c.hasLiked,
+              likeCount: (c.likeCount || 0) + (c.hasLiked ? -1 : 1),
+            };
+            return updated;
+          }
+
+          // If this is a reply being liked
+          if (c._id === commentId && replyId) {
+            const updatedReplies = c.replies.map((r: any) =>
+              r._id === replyId
+                ? {
+                    ...r,
+                    hasLiked: !r.hasLiked,
+                    likeCount: (r.likeCount || 0) + (r.hasLiked ? -1 : 1),
+                  }
+                : r
+            );
+            return { ...c, replies: updatedReplies };
+          }
+
+          return c;
+        }),
       }));
     } catch {
-      toast.error("Failed to like comment");
+      toast.error("Failed to like");
     }
   };
 
@@ -125,7 +151,7 @@ const CommentsSection: React.FC<CommentSectionProps> = ({
               <div className="flex-1">
                 <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
                   <p className="font-semibold text-gray-900 text-sm">
-                    {comment.author?.username}
+                    {comment.content.author?.username}
                   </p>
                   <p className="text-gray-700 text-sm mt-1">
                     {comment.content}

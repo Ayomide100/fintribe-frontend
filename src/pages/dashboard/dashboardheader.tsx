@@ -95,7 +95,10 @@ const DashboardHeader: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
           <div className="absolute right-0 top-12 w-[170px] h-[150px] flex flex-col justify-center border-[#E0E0E0] border items-start bg-white shadow-md rounded-md z-50">
             <ul className="space-y-2">
               <li>
-                <button className="w-full px-11 py-2 hover:bg-[#2E8B57] text-sm hover:text-white cursor-pointer rounded-md flex items-center justify-start gap-2">
+                <button
+                  onClick={() => router.push("/dashboard/profile")}
+                  className="w-full px-11 py-2 hover:bg-[#2E8B57] text-sm hover:text-white cursor-pointer rounded-md flex items-center justify-start gap-2"
+                >
                   <User className="w-4 h-4" /> Profile
                 </button>
               </li>
