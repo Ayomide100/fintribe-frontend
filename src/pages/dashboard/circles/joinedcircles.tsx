@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import {
   EllipsisVertical,
@@ -13,6 +14,7 @@ import { isAxiosError } from "axios";
 import toast from "react-hot-toast";
 import Image from "next/image";
 import { FiEdit } from "react-icons/fi";
+import CommentsSection from "./commentsection";
 
 type Circle = {
   _id: string;
@@ -20,18 +22,23 @@ type Circle = {
   icon?: { url: string };
   type?: string;
   totalMembers?: number;
-  lastMessage?: { text: string };
 };
 
 type Post = {
   _id: string;
-  author: { username: string };
+  author: {
+    username: string;
+    email: string;
+    avatar?: { url: string };
+  };
+  title?: string;
   content: string;
+  attachments?: { url: string; fileType: string }[];
   createdAt: string;
-  likesCount: number;
-  commentsCount: number;
-  sharesCount: number;
-  image?: { url: string };
+  likeCount: number;
+  commentCount: number;
+  hasLiked: boolean;
+  previewComments?: any[];
 };
 
 const JoinedCircles = () => {
@@ -40,7 +47,9 @@ const JoinedCircles = () => {
   const [accountType, setAccountType] = useState<string | null>(null);
   const [joinedCircles, setJoinedCircles] = useState<Circle[]>([]);
   const [circlePosts, setCirclePosts] = useState<Post[]>([]);
+  const [comments, setComments] = useState<Record<string, any[]>>({});
   const [loadingPosts, setLoadingPosts] = useState(false);
+  const [activePostId, setActivePostId] = useState<string | null>(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -52,9 +61,7 @@ const JoinedCircles = () => {
   const getUser = async () => {
     try {
       const res = await axios("/users/profile", {
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-        },
+        headers: { Authorization: `${localStorage.getItem("token")}` },
       });
       setAccountType(res.data.content.user.account_type);
     } catch (error) {
@@ -71,32 +78,9 @@ const JoinedCircles = () => {
   const getAllJoinedCircles = async () => {
     try {
       const res = await axios.get("/circle/me?page=1&limit=6", {
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-        },
+        headers: { Authorization: `${localStorage.getItem("token")}` },
       });
       setJoinedCircles(res.data.content.circles);
-    } catch (error) {
-      if (isAxiosError(error)) {
-        const msg =
-          error.response?.data?.message ||
-          error.response?.data?.error ||
-          "Failed to fetch joined circles";
-        toast.error(msg);
-      }
-    }
-  };
-
-  // ✅ Fetch posts for selected circle
-  const fetchCirclePosts = async (circleId: string) => {
-    setLoadingPosts(true);
-    try {
-      const res = await axios.get(`/circle/post?circleId=${circleId}`, {
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-        },
-      });
-      setCirclePosts(res.data.content.posts || []);
     } catch (error) {
       if (isAxiosError(error)) {
         const apiMessage = error.response?.data?.message;
@@ -109,6 +93,18 @@ const JoinedCircles = () => {
 
         toast.error(errorMsg);
       }
+    }
+  };
+
+  const fetchCirclePosts = async (circleId: string) => {
+    setLoadingPosts(true);
+    try {
+      const res = await axios.get(`/circle/post?circleId=${circleId}`, {
+        headers: { Authorization: `${localStorage.getItem("token")}` },
+      });
+      setCirclePosts(res.data.content.posts || []);
+    } catch {
+      toast.error("Failed to fetch posts for this circle");
     } finally {
       setLoadingPosts(false);
     }
@@ -119,7 +115,6 @@ const JoinedCircles = () => {
     getUser();
   }, []);
 
-  // When a circle is selected, load its posts
   const handleSelectCircle = (circle: Circle) => {
     setSelectedCircle(circle);
     fetchCirclePosts(circle._id);
@@ -139,7 +134,7 @@ const JoinedCircles = () => {
                     alt={selectedCircle.name}
                     width={32}
                     height={32}
-                    className="rounded-full"
+                    className="rounded-full object-cover"
                   />
                 </div>
                 <h1 className="text-lg font-semibold">{selectedCircle.name}</h1>
@@ -150,7 +145,7 @@ const JoinedCircles = () => {
 
             <div className="flex gap-3">
               {accountType === "user" ? (
-                <div className="bg-white  px-2 py-2 rounded-md">
+                <div className="bg-white px-2 py-2 rounded-md">
                   <EllipsisVertical size={18} />
                 </div>
               ) : (
@@ -168,10 +163,10 @@ const JoinedCircles = () => {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className={`flex ${isMobile ? "flex-col" : "gap-6"}`}>
-          {/* Sidebar - Joined Circles */}
+          {/* Sidebar */}
           <div className={`${isMobile ? "w-full mb-6" : "w-80"} flex-shrink-0`}>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="p-4 border-b border-gray-200 flex items-center gap-3">
@@ -196,19 +191,13 @@ const JoinedCircles = () => {
                           alt={circle.name}
                           width={40}
                           height={40}
-                          className="rounded-full object-cover flex-shrink-0"
+                          className="rounded-full object-cover"
                         />
                       </div>
-
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-sm truncate">
-                            {circle.name}
-                          </p>
-                          {circle.type === "public" && (
-                            <span className="w-2.5 h-2.5 bg-green-500 rounded-full flex-shrink-0"></span>
-                          )}
-                        </div>
+                        <p className="font-medium text-sm truncate">
+                          {circle.name}
+                        </p>
                         <p className="text-xs text-gray-500 flex items-center gap-1">
                           <TbLockAccess className="inline-block w-4 h-4 mr-1 text-[#226B44]" />
                           {circle.totalMembers} Members
@@ -221,7 +210,7 @@ const JoinedCircles = () => {
             </div>
           </div>
 
-          {/* Feed - Posts */}
+          {/* Posts Feed */}
           <div className="flex-1 space-y-4">
             {loadingPosts ? (
               <p className="text-center text-gray-500 mt-10">
@@ -241,14 +230,16 @@ const JoinedCircles = () => {
                 >
                   <div className="p-4 flex items-start justify-between">
                     <div className="flex gap-3">
-                      <div className="w-12 h-12 bg-green-200 rounded-full flex-shrink-0 flex items-center justify-center">
-                        <span className="text-green-700 font-bold">
-                          {post.author?.username?.[0]?.toUpperCase() || "U"}
-                        </span>
-                      </div>
+                      <Image
+                        src={post.author?.avatar?.url || "/default-avatar.png"}
+                        alt={post.author.username}
+                        width={40}
+                        height={40}
+                        className="rounded-full border"
+                      />
                       <div>
                         <h3 className="font-semibold text-sm">
-                          {post.author?.username}
+                          {post.author.username}
                         </h3>
                         <p className="text-xs text-gray-400">
                           {new Date(post.createdAt).toLocaleString()}
@@ -258,43 +249,62 @@ const JoinedCircles = () => {
                     <EllipsisVertical size={18} className="text-gray-400" />
                   </div>
 
-                  <div className="px-4 pb-4">
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {post.content}
-                    </p>
+                  <div className="px-4 pb-3">
+                    {post.title && (
+                      <p className="font-medium text-gray-900 mb-1">
+                        {post.title}
+                      </p>
+                    )}
+                    <p className="text-sm text-gray-700">{post.content}</p>
                   </div>
 
-                  {post.image?.url && (
-                    <div className="relative">
-                      <Image
-                        src={post.image.url}
-                        alt="Post Image"
-                        width={600}
-                        height={400}
-                        className="w-full h-auto rounded-b-lg object-cover"
-                      />
-                    </div>
-                  )}
+                  {Array.isArray(post.attachments) &&
+                    post.attachments.length > 0 && (
+                      <div className="relative">
+                        <Image
+                          src={post.attachments[0].url}
+                          alt="post-attachment"
+                          width={600}
+                          height={400}
+                          className="w-full h-auto rounded-b-lg object-cover"
+                        />
+                      </div>
+                    )}
 
+                  {/* Stats */}
                   <div className="px-4 py-3 border-t border-gray-100">
-                    <div className="flex items-center justify-between text-sm mb-3 text-gray-500">
+                    <div className="flex items-center justify-between text-sm text-gray-500">
                       <div className="flex items-center gap-4">
                         <span className="flex items-center gap-1">
-                          <ThumbsUp size={16} />
-                          {post.likesCount}
+                          <ThumbsUp size={16} /> {post.likeCount}
                         </span>
+                        <button
+                          onClick={() =>
+                            setActivePostId(
+                              activePostId === post._id ? null : post._id
+                            )
+                          }
+                          className="flex items-center gap-1 hover:text-blue-500"
+                        >
+                          <MessageCircle size={16} /> {post.commentCount}
+                        </button>
                         <span className="flex items-center gap-1">
-                          <MessageCircle size={16} />
-                          {post.commentsCount}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Share2 size={16} />
-                          {post.sharesCount}
+                          <Share2 size={16} /> 0
                         </span>
                       </div>
                       <Bookmark size={18} className="text-gray-400" />
                     </div>
                   </div>
+
+                  {/* Comments Section */}
+                  {activePostId === post._id && selectedCircle && (
+                    <CommentsSection
+                      postId={post._id}
+                      circleId={selectedCircle._id}
+                      comments={comments}
+                      setComments={setComments}
+                    />
+                  )}
                 </div>
               ))
             )}
