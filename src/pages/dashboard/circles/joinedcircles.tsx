@@ -5,7 +5,6 @@ import {
   MessageCircle,
   Share2,
   Bookmark,
-  ShieldCheck,
   Settings,
 } from "lucide-react";
 import { TbFidgetSpinner, TbLockAccess } from "react-icons/tb";
@@ -24,15 +23,24 @@ type Circle = {
   lastMessage?: { text: string };
 };
 
+type Post = {
+  _id: string;
+  author: { username: string };
+  content: string;
+  createdAt: string;
+  likesCount: number;
+  commentsCount: number;
+  sharesCount: number;
+  image?: { url: string };
+};
+
 const JoinedCircles = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
-
   const [accountType, setAccountType] = useState<string | null>(null);
-
-  console.log(selectedCircle);
-
-  const [joinedCircles, setjoinedCircles] = useState<Circle[]>([]);
+  const [joinedCircles, setJoinedCircles] = useState<Circle[]>([]);
+  const [circlePosts, setCirclePosts] = useState<Post[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -48,33 +56,47 @@ const JoinedCircles = () => {
           Authorization: `${localStorage.getItem("token")}`,
         },
       });
-      console.log(res.data.content.user.account_type);
-
       setAccountType(res.data.content.user.account_type);
     } catch (error) {
       if (isAxiosError(error)) {
-        const apiMessage = error.response?.data?.message;
-        const apiError = error.response?.data?.error;
-        const fallback = error.message || "An unexpected error occurred";
-
-        const errorMsg =
-          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-          fallback;
-
-        toast.error(errorMsg);
+        const msg =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Failed to fetch user";
+        toast.error(msg);
       }
     }
   };
 
   const getAllJoinedCircles = async () => {
     try {
-      const res = await axios.get("circle/me?page=1&limit=6", {
+      const res = await axios.get("/circle/me?page=1&limit=6", {
         headers: {
           Authorization: `${localStorage.getItem("token")}`,
         },
       });
-      console.log(res.data.content.circles);
-      setjoinedCircles(res.data.content.circles);
+      setJoinedCircles(res.data.content.circles);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Failed to fetch joined circles";
+        toast.error(msg);
+      }
+    }
+  };
+
+  // ✅ Fetch posts for selected circle
+  const fetchCirclePosts = async (circleId: string) => {
+    setLoadingPosts(true);
+    try {
+      const res = await axios.get(`/circle/post?circleId=${circleId}`, {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+      });
+      setCirclePosts(res.data.content.posts || []);
     } catch (error) {
       if (isAxiosError(error)) {
         const apiMessage = error.response?.data?.message;
@@ -87,6 +109,8 @@ const JoinedCircles = () => {
 
         toast.error(errorMsg);
       }
+    } finally {
+      setLoadingPosts(false);
     }
   };
 
@@ -95,20 +119,11 @@ const JoinedCircles = () => {
     getUser();
   }, []);
 
-  const posts = [
-    {
-      id: 1,
-      author: "Adebimpe Thompson",
-      role: "Real Estate Expert",
-      timeAgo: "3h",
-      content:
-        "The Nigerian real estate market is showing strong fundamentals despite global uncertainties. Here's why I'm bullish on commercial properties in Lagos and Abuja for 2024.",
-      image: true,
-      likes: 12,
-      comments: 12,
-      shares: 12,
-    },
-  ];
+  // When a circle is selected, load its posts
+  const handleSelectCircle = (circle: Circle) => {
+    setSelectedCircle(circle);
+    fetchCirclePosts(circle._id);
+  };
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
@@ -127,11 +142,10 @@ const JoinedCircles = () => {
                     className="rounded-full"
                   />
                 </div>
-
                 <h1 className="text-lg font-semibold">{selectedCircle.name}</h1>
               </div>
             ) : (
-              <p className="text-gray-500 italic">Tap to view your circles</p>
+              <p className="text-gray-500 italic">Tap a circle to view posts</p>
             )}
 
             <div className="flex gap-3">
@@ -168,18 +182,21 @@ const JoinedCircles = () => {
                 {joinedCircles.map((circle) => (
                   <div
                     key={circle._id}
-                    className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => setSelectedCircle(circle)}
+                    className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
+                      selectedCircle?._id === circle._id
+                        ? "bg-green-50 border-l-4 border-green-500"
+                        : ""
+                    }`}
+                    onClick={() => handleSelectCircle(circle)}
                   >
                     <div className="flex items-center gap-3">
-                      {/* Circle Icon */}
                       <div className="w-[50px] h-[50px] border-2 border-[#226B44] rounded-full flex justify-center items-center">
                         <Image
                           src={circle.icon?.url || "/default-circle.png"}
                           alt={circle.name}
                           width={40}
                           height={40}
-                          className=" rounded-full object-cover flex-shrink-0"
+                          className="rounded-full object-cover flex-shrink-0"
                         />
                       </div>
 
@@ -188,7 +205,6 @@ const JoinedCircles = () => {
                           <p className="font-medium text-sm truncate">
                             {circle.name}
                           </p>
-                          {/* Example: verified badge if you have that logic */}
                           {circle.type === "public" && (
                             <span className="w-2.5 h-2.5 bg-green-500 rounded-full flex-shrink-0"></span>
                           )}
@@ -197,12 +213,6 @@ const JoinedCircles = () => {
                           <TbLockAccess className="inline-block w-4 h-4 mr-1 text-[#226B44]" />
                           {circle.totalMembers} Members
                         </p>
-                        {/* Optional: show last message preview */}
-                        {circle.lastMessage && (
-                          <p className="text-xs text-gray-400 truncate mt-1">
-                            {circle.lastMessage.text}
-                          </p>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -211,132 +221,83 @@ const JoinedCircles = () => {
             </div>
           </div>
 
-          {/* Feed */}
+          {/* Feed - Posts */}
           <div className="flex-1 space-y-4">
-            {posts.map((post) => (
-              <div
-                key={post.id}
-                className="bg-white rounded-lg shadow-sm border border-gray-200"
-              >
-                {/* Post Header */}
-                <div className="p-4 flex items-start justify-between">
-                  <div className="flex gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex-shrink-0"></div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-sm">{post.author}</h3>
-                        <span
-                          className="text
-                                        text-[#2E8B57] text-xs"
-                        >
-                          <ShieldCheck size={15} />
+            {loadingPosts ? (
+              <p className="text-center text-gray-500 mt-10">
+                Loading posts...
+              </p>
+            ) : circlePosts.length === 0 ? (
+              <p className="text-center text-gray-500 mt-10">
+                {selectedCircle
+                  ? "No posts yet in this circle."
+                  : "Select a circle to view posts."}
+              </p>
+            ) : (
+              circlePosts.map((post) => (
+                <div
+                  key={post._id}
+                  className="bg-white rounded-lg shadow-sm border border-gray-200"
+                >
+                  <div className="p-4 flex items-start justify-between">
+                    <div className="flex gap-3">
+                      <div className="w-12 h-12 bg-green-200 rounded-full flex-shrink-0 flex items-center justify-center">
+                        <span className="text-green-700 font-bold">
+                          {post.author?.username?.[0]?.toUpperCase() || "U"}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500">{post.role}</p>
-                      <p className="text-xs text-gray-400">{post.timeAgo}</p>
-                    </div>
-                  </div>
-                  <button className="p-1 hover:bg-gray-100 rounded-full">
-                    <EllipsisVertical size={20} className="text-gray-400" />
-                  </button>
-                </div>
-
-                {/* Post Content */}
-                <div className="px-4 pb-4">
-                  <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                    {post.content}
-                  </p>
-                </div>
-
-                {/* Post Image */}
-                {post.image && (
-                  <div className="relative">
-                    <div className="w-full aspect-video bg-gradient-to-br from-green-900 via-green-800 to-teal-900 flex items-center justify-center relative overflow-hidden">
-                      {/* Animated chart arrows */}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <svg className="w-3/4 h-3/4" viewBox="0 0 200 200">
-                          <defs>
-                            <linearGradient
-                              id="arrowGradient"
-                              x1="0%"
-                              y1="0%"
-                              x2="100%"
-                              y2="100%"
-                            >
-                              <stop
-                                offset="0%"
-                                style={{
-                                  stopColor: "#10b981",
-                                  stopOpacity: 0.8,
-                                }}
-                              />
-                              <stop
-                                offset="100%"
-                                style={{
-                                  stopColor: "#34d399",
-                                  stopOpacity: 0.9,
-                                }}
-                              />
-                            </linearGradient>
-                          </defs>
-                          <path
-                            d="M20 180 L60 140 L100 160 L140 100 L180 20"
-                            stroke="url(#arrowGradient)"
-                            strokeWidth="4"
-                            fill="none"
-                            strokeLinecap="round"
-                          />
-                          <polygon
-                            points="180,20 170,30 180,35 190,30"
-                            fill="#34d399"
-                          />
-
-                          <path
-                            d="M40 170 L70 130 L110 150 L150 90 L185 35"
-                            stroke="url(#arrowGradient)"
-                            strokeWidth="3"
-                            fill="none"
-                            strokeLinecap="round"
-                            opacity="0.6"
-                          />
-                          <polygon
-                            points="185,35 175,43 185,48 195,43"
-                            fill="#34d399"
-                            opacity="0.6"
-                          />
-                        </svg>
+                      <div>
+                        <h3 className="font-semibold text-sm">
+                          {post.author?.username}
+                        </h3>
+                        <p className="text-xs text-gray-400">
+                          {new Date(post.createdAt).toLocaleString()}
+                        </p>
                       </div>
                     </div>
+                    <EllipsisVertical size={18} className="text-gray-400" />
                   </div>
-                )}
 
-                {/* Post Actions */}
-                <div className="px-4 py-3 border-t border-gray-100">
-                  <div className="flex items-center justify-between text-sm mb-3">
-                    <div className="flex items-center gap-4 text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <ThumbsUp size={16} />
-                        {post.likes}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MessageCircle size={16} />
-                        {post.comments}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Share2 size={16} />
-                        {post.shares}
-                      </span>
-                    </div>
-                    <button>
-                      <Bookmark
-                        size={18}
-                        className="text-gray-400 hover:text-gray-600"
+                  <div className="px-4 pb-4">
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {post.content}
+                    </p>
+                  </div>
+
+                  {post.image?.url && (
+                    <div className="relative">
+                      <Image
+                        src={post.image.url}
+                        alt="Post Image"
+                        width={600}
+                        height={400}
+                        className="w-full h-auto rounded-b-lg object-cover"
                       />
-                    </button>
+                    </div>
+                  )}
+
+                  <div className="px-4 py-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between text-sm mb-3 text-gray-500">
+                      <div className="flex items-center gap-4">
+                        <span className="flex items-center gap-1">
+                          <ThumbsUp size={16} />
+                          {post.likesCount}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <MessageCircle size={16} />
+                          {post.commentsCount}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Share2 size={16} />
+                          {post.sharesCount}
+                        </span>
+                      </div>
+                      <Bookmark size={18} className="text-gray-400" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

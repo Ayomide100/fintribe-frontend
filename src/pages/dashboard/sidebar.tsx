@@ -215,7 +215,10 @@ const Sidebar: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
 
         {/* Profile & Settings */}
         <div className="w-[88%] md:h-[17%] h-[16%] bg-white shadow-md border border-[#E0E0E0] rounded-md flex flex-col">
-          <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-md">
+          <button
+            onClick={() => router.push("/dashboard/profile")}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-md"
+          >
             <User size={18} />
             <span>Profile</span>
           </button>
