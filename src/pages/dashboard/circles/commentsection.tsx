@@ -56,7 +56,7 @@ const CommentsSection: React.FC<CommentSectionProps> = ({
       setLoading(true);
       const res = await axios.post(
         `/circle/post/comment?circleId=${circleId}&postId=${postId}`,
-        { content: input, parentId: replyTo || null },
+        { content: input, parentCommentId: replyTo || null },
         {
           headers: { Authorization: `${localStorage.getItem("token")}` },
         }

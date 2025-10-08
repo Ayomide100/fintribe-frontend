@@ -5,7 +5,7 @@ import Image from "next/image";
 
 type CommentItemProps = {
   comment: any;
-  onReply: (parentId: string) => void;
+  onReply: (parentCommentId: string) => void;
 };
 
 const CommentItem: React.FC<CommentItemProps> = ({ comment, onReply }) => {
