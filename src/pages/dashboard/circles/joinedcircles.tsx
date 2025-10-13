@@ -22,6 +22,7 @@ type Circle = {
   icon?: { url: string };
   type?: string;
   totalMembers?: number;
+  unreadCount: number;
 };
 
 type Post = {
@@ -185,7 +186,7 @@ const JoinedCircles = () => {
                     onClick={() => handleSelectCircle(circle)}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-[50px] h-[50px] border-2 border-[#226B44] rounded-full flex justify-center items-center">
+                      <div className="w-[50px] h-[50px] border-2 border-[#226B44] rounded-full flex justify-center items-center relative">
                         <Image
                           src={circle.icon?.url || "/default-circle.png"}
                           alt={circle.name}
@@ -194,14 +195,23 @@ const JoinedCircles = () => {
                           className="rounded-full object-cover"
                         />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">
-                          {circle.name}
-                        </p>
-                        <p className="text-xs text-gray-500 flex items-center gap-1">
-                          <TbLockAccess className="inline-block w-4 h-4 mr-1 text-[#226B44]" />
-                          {circle.totalMembers} Members
-                        </p>
+
+                      <div className="flex-1 min-w-0 flex justify-around items-center">
+                        <div>
+                          <p className="font-medium text-sm truncate flex items-center gap-2">
+                            {circle.name}
+                          </p>
+                          <p className="text-xs text-gray-500 flex items-center gap-1">
+                            <TbLockAccess className="inline-block w-4 h-4 mr-1 text-[#226B44]" />
+                            {circle.totalMembers} Members
+                          </p>
+                        </div>
+                        {/* 🔔 Unread count badge */}
+                        {circle.unreadCount && circle.unreadCount > 0 && (
+                          <span className=" bg-red-500 text-white text-[10px] font-semibold rounded-full w-4 h-4 flex items-center justify-center">
+                            {circle.unreadCount > 9 ? "9+" : circle.unreadCount}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

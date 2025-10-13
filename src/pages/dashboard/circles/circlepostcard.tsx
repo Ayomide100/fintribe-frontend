@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
-import CommentsSection from "./commentsection";
+import CommentModal from "./commentModal";
 
 const CirclePostCard = ({
   post,
@@ -108,7 +108,7 @@ const CirclePostCard = ({
                     href={file.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 underline text-sm"
+                    className="text-green-600 underline text-sm"
                   >
                     View Attachment
                   </a>
@@ -166,7 +166,9 @@ const CirclePostCard = ({
 
       {/* Comments */}
       {showComments && (
-        <CommentsSection
+        <CommentModal
+          isOpen={showComments}
+          onClose={() => setShowComments(false)}
           postId={post._id}
           circleId={selectedCircle._id}
           comments={comments}

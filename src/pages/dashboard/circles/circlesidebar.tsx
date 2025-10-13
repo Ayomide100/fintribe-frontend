@@ -20,7 +20,7 @@ const CircleSidebar = ({
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       <div className="p-4 border-b border-gray-200 flex items-center gap-3">
         <TbFidgetSpinner className="text-green-600" size={24} />
-        <h2 className="font-semibold text-base">Joined Circles</h2>
+        <h2 className="font-semibold text-base">My Circles</h2>
       </div>
       <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
         {myCircles.map((circle) => (
@@ -47,6 +47,12 @@ const CircleSidebar = ({
                   <TbLockAccess className="inline-block w-4 h-4 text-[#226B44]" />
                   {circle.totalMembers} Members
                 </p>
+                {/* 🔔 Unread count badge */}
+                {circle.unreadCount && circle.unreadCount > 0 && (
+                  <span className=" bg-red-500 text-white text-[10px] font-semibold rounded-full w-4 h-4 flex items-center justify-center">
+                    {circle.unreadCount > 9 ? "9+" : circle.unreadCount}
+                  </span>
+                )}
               </div>
             </div>
           </div>
