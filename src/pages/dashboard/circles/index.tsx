@@ -230,7 +230,7 @@ const Circles = () => {
       <Head>
         <title>FinTribe || Circles</title>
       </Head>
-      <div className="w-full h-full px-4 sm:px-6 py-6 space-y-6">
+      <div className="w-full h-full px-4 sm:px-6 py-6 space-y-6 overflow-y-scroll">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
           <div>
