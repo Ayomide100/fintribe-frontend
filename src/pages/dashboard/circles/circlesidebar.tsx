@@ -8,6 +8,7 @@ type Props = {
   myCircles: any[];
   selectedCircle: any;
   setSelectedCircle: (circle: any) => void;
+  title?: string; // 👈 Added this
 };
 
 const CircleSidebar = ({
@@ -15,12 +16,14 @@ const CircleSidebar = ({
   myCircles,
   selectedCircle,
   setSelectedCircle,
+  title = "My Circles", // 👈 Default value
 }: Props) => (
   <div className={`${isMobile ? "w-full" : "w-80"} flex-shrink-0`}>
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       <div className="p-4 border-b border-gray-200 flex items-center gap-3">
         <TbFidgetSpinner className="text-green-600" size={24} />
-        <h2 className="font-semibold text-base">My Circles</h2>
+        <h2 className="font-semibold text-base">{title}</h2>{" "}
+        {/* 👈 Dynamic title */}
       </div>
       <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
         {myCircles.map((circle) => (
@@ -41,18 +44,22 @@ const CircleSidebar = ({
                   className="rounded-full object-cover"
                 />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{circle.name}</p>
-                <p className="text-xs text-gray-500 flex items-center gap-1">
-                  <TbLockAccess className="inline-block w-4 h-4 text-[#226B44]" />
-                  {circle.totalMembers} Members
-                </p>
-                {/* 🔔 Unread count badge */}
-                {circle.unreadCount && circle.unreadCount > 0 && (
-                  <span className=" bg-red-500 text-white text-[10px] font-semibold rounded-full w-4 h-4 flex items-center justify-center">
-                    {circle.unreadCount > 9 ? "9+" : circle.unreadCount}
-                  </span>
-                )}
+              <div className="flex-1 min-w-0  flex justify-between items-center">
+                <div>
+                  <p className="font-medium text-sm truncate">{circle.name}</p>
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <TbLockAccess className="inline-block w-4 h-4 text-[#226B44]" />
+                    {circle.totalMembers} Members
+                  </p>
+                </div>
+                <div>
+                  {/* 🔔 Unread count badge */}
+                  {circle.unreadCount && circle.unreadCount > 0 && (
+                    <span className="bg-red-500 text-white text-[10px] font-semibold rounded-full w-4 h-4 flex items-center justify-center">
+                      {circle.unreadCount > 9 ? "9+" : circle.unreadCount}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
