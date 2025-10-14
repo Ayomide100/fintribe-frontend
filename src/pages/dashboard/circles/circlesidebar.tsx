@@ -54,7 +54,7 @@ const CircleSidebar = ({
                 </div>
                 <div>
                   {/* 🔔 Unread count badge */}
-                  {circle.unreadCount && circle.unreadCount > 0 && (
+                  {circle.unreadCount > 0 && (
                     <span className="bg-red-500 text-white text-[10px] font-semibold rounded-full w-4 h-4 flex items-center justify-center">
                       {circle.unreadCount > 9 ? "9+" : circle.unreadCount}
                     </span>
