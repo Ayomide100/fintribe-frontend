@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// CircleFeed.tsx
 import React, { useEffect, useState } from "react";
 import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
@@ -9,6 +8,7 @@ import CirclePostCard from "./circlepostcard";
 const CircleFeed = ({ selectedCircle, getTimeAgo }: any) => {
   const [circlePosts, setCirclePosts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   const getCirclePosts = async (circleId: string) => {
     try {
@@ -31,7 +31,11 @@ const CircleFeed = ({ selectedCircle, getTimeAgo }: any) => {
 
   useEffect(() => {
     if (selectedCircle?._id) getCirclePosts(selectedCircle._id);
-  }, [selectedCircle]);
+  }, [selectedCircle, reloadTrigger]);
+
+  const handleReload = () => {
+    setReloadTrigger((prev) => prev + 1);
+  };
 
   return (
     <div className="flex-1 space-y-6">
@@ -68,7 +72,7 @@ const CircleFeed = ({ selectedCircle, getTimeAgo }: any) => {
             post={post}
             selectedCircle={selectedCircle}
             getTimeAgo={getTimeAgo}
-            refreshPosts={getCirclePosts}
+            refreshPosts={handleReload}
           />
         ))
       )}

@@ -17,8 +17,8 @@ const CirclePostCard = ({
   post,
   selectedCircle,
   getTimeAgo,
-  refreshPosts,
-}: any) => {
+}: // refreshPosts,
+any) => {
   const [comments, setComments] = useState<Record<string, any[]>>({});
   const [showComments, setShowComments] = useState(false);
 
@@ -31,7 +31,7 @@ const CirclePostCard = ({
           headers: { Authorization: `${localStorage.getItem("token")}` },
         }
       );
-      refreshPosts(selectedCircle._id);
+      // refreshPosts(selectedCircle._id);
     } catch {
       toast.error("Failed to like post");
     }

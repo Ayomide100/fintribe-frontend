@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import axios from "@/config/axiosconfig";
 import { Send, Heart, MessageCircle } from "lucide-react";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 interface CommentSectionProps {
   postId: string;
@@ -18,20 +19,18 @@ const CommentsSection: React.FC<CommentSectionProps> = ({
   comments,
   setComments,
 }) => {
-  const [input, setInput] = useState(""); // top-level comment input
-  const [replyInput, setReplyInput] = useState(""); // reply input for selected comment
+  const [input, setInput] = useState("");
+  const [replyInput, setReplyInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [replyTo, setReplyTo] = useState<string | null>(null); // comment id we are replying to
+  const [replyTo, setReplyTo] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
 
-  // Fetch comments for the post
+  // Fetch all comments for post
   const fetchComments = async () => {
     try {
       const res = await axios.get(
         `/circle/post/single?circleId=${circleId}&postId=${postId}&page=1&limit=50`,
-        {
-          headers: { Authorization: `${localStorage.getItem("token")}` },
-        }
+        { headers: { Authorization: `${localStorage.getItem("token")}` } }
       );
 
       const postData = res.data?.content?.post;
@@ -51,36 +50,26 @@ const CommentsSection: React.FC<CommentSectionProps> = ({
     if (!comments[postId]) fetchComments();
   }, []);
 
-  // Post either a top-level comment or a reply (uses parentCommentId)
-  // Post either a top-level comment or a reply (uses parentCommentId)
+  // Post a new comment or reply
   const handlePost = async (parentCommentId?: string) => {
     const content = parentCommentId ? replyInput : input;
-    if (!content || !content.trim()) return;
+    if (!content.trim()) return;
 
     try {
       setLoading(true);
-
-      const payload: any = {
-        content,
-        parentCommentId: parentCommentId || null, // ✅ correct field name
-      };
+      const payload = { content, parentCommentId: parentCommentId || null };
 
       const res = await axios.post(
         `/circle/post/comment?circleId=${circleId}&postId=${postId}`,
         payload,
-        {
-          headers: { Authorization: `${localStorage.getItem("token")}` },
-        }
+        { headers: { Authorization: `${localStorage.getItem("token")}` } }
       );
 
-      // ✅ fix: backend returns "content", not "comment"
       const newComment = res.data?.content;
 
       setComments((prev) => {
         const current = prev[postId] || [];
-
         if (parentCommentId) {
-          // Add reply to the parent comment's replies array
           return {
             ...prev,
             [postId]: current.map((c: any) =>
@@ -90,15 +79,10 @@ const CommentsSection: React.FC<CommentSectionProps> = ({
             ),
           };
         } else {
-          // Add top-level comment
-          return {
-            ...prev,
-            [postId]: [newComment, ...current],
-          };
+          return { ...prev, [postId]: [newComment, ...current] };
         }
       });
 
-      // Reset inputs
       if (parentCommentId) {
         setReplyInput("");
         setReplyTo(null);
@@ -119,29 +103,24 @@ const CommentsSection: React.FC<CommentSectionProps> = ({
     const date = new Date(dateString);
     const now = new Date();
     const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
     const days = Math.floor(seconds / (3600 * 24));
 
-    // ✅ If more than 10 days, show formatted date instead
-    if (days > 10) {
+    if (days > 10)
       return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
       });
-    }
 
-    if (seconds < 60) return `${seconds} sec${seconds !== 1 ? "s" : ""} ago`;
+    if (seconds < 60) return `${seconds}s ago`;
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes} min${minutes !== 1 ? "s" : ""} ago`;
+    if (minutes < 60) return `${minutes}m ago`;
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
-    if (days < 7) return `${days} day${days !== 1 ? "s" : ""} ago`;
-    const weeks = Math.floor(days / 7);
-    return `${weeks} week${weeks !== 1 ? "s" : ""} ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
   };
 
-  // Like comment or reply (optimistic update)
+  // Like/Unlike logic with correct likeCount handling
   const handleLikeComment = async (commentId: string, replyId?: string) => {
     try {
       const url = `/circle/post/comment/like?circleId=${circleId}&postId=${postId}&commentId=${commentId}${
@@ -156,33 +135,33 @@ const CommentsSection: React.FC<CommentSectionProps> = ({
 
       setComments((prev) => ({
         ...prev,
-        [postId]: (prev[postId] || []).map((c: any) => {
-          // like top-level comment
-          if (c._id === commentId && !replyId) {
-            return {
-              ...c,
-              hasLiked: !c.hasLiked,
-              likeCount: (c.likeCount || 0) + (c.hasLiked ? -1 : 1),
-            };
+        [postId]: (prev[postId] || []).map((comment: any) => {
+          // ✅ Handle top-level comment
+          if (comment._id === commentId && !replyId) {
+            const hasLiked = !comment.hasLiked;
+            const likeCount = hasLiked
+              ? (comment.likeCount || 0) + 1
+              : (comment.likeCount || 0) - 1;
+            return { ...comment, hasLiked, likeCount };
           }
 
-          // like a reply
-          if (c._id === commentId && replyId) {
+          // ✅ Handle replies
+          if (comment._id === commentId && replyId) {
             return {
-              ...c,
-              replies: (c.replies || []).map((r: any) =>
-                r._id === replyId
-                  ? {
-                      ...r,
-                      hasLiked: !r.hasLiked,
-                      likeCount: (r.likeCount || 0) + (r.hasLiked ? -1 : 1),
-                    }
-                  : r
-              ),
+              ...comment,
+              replies: (comment.replies || []).map((reply: any) => {
+                if (reply._id === replyId) {
+                  const hasLiked = !reply.hasLiked;
+                  const likeCount = hasLiked
+                    ? (reply.likeCount || 0) + 1
+                    : (reply.likeCount || 0) - 1;
+                  return { ...reply, hasLiked, likeCount };
+                }
+                return reply;
+              }),
             };
           }
-
-          return c;
+          return comment;
         }),
       }));
     } catch (err) {
@@ -207,10 +186,21 @@ const CommentsSection: React.FC<CommentSectionProps> = ({
 
         {displayedComments.map((comment: any) => (
           <div key={comment._id} className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-              <span className="text-gray-600 font-semibold uppercase">
-                {comment.author?.username?.[0] || "U"}
-              </span>
+            {/* Avatar */}
+            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+              {comment.author?.avatar?.url ? (
+                <Image
+                  src={comment.author.avatar.url}
+                  alt={comment.author?.username || "User"}
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-gray-600 font-semibold uppercase">
+                  {comment.author?.username?.[0] || "U"}
+                </span>
+              )}
             </div>
 
             <div className="flex-1">
@@ -230,11 +220,15 @@ const CommentsSection: React.FC<CommentSectionProps> = ({
               <div className="flex items-center gap-4 mt-2 ml-2">
                 <button
                   onClick={() => handleLikeComment(comment._id)}
-                  className={`flex items-center gap-1 text-xs ${
+                  className={`flex items-center gap-1 text-xs transition ${
                     comment.hasLiked ? "text-red-500" : "text-gray-500"
                   }`}
                 >
-                  <Heart size={14} /> {comment.likeCount || 0}
+                  <Heart
+                    size={14}
+                    className={comment.hasLiked ? "fill-red-500" : ""}
+                  />
+                  {comment.likeCount || 0}
                 </button>
 
                 <button
@@ -249,44 +243,67 @@ const CommentsSection: React.FC<CommentSectionProps> = ({
                 </button>
               </div>
 
-              {/* Replies list */}
+              {/* Replies */}
               {comment.replies && comment.replies.length > 0 && (
                 <div className="ml-8 mt-3 space-y-2">
                   {comment.replies.map((reply: any) => (
                     <div
                       key={reply._id}
-                      className="bg-gray-100 p-2 rounded-lg border border-gray-200"
+                      className="flex items-start gap-2 bg-gray-100 p-2 rounded-lg border border-gray-200"
                     >
-                      <div className="flex items-center justify-between">
-                        <p className="font-semibold text-xs text-gray-800">
-                          {reply.author?.username}
-                        </p>
-                        <p className="text-[11px] text-gray-400">
-                          {timeAgo(reply.createdAt)}
-                        </p>
+                      <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
+                        {reply.author?.avatar?.url ? (
+                          <Image
+                            src={reply.author.avatar.url}
+                            alt={reply.author?.username || "User"}
+                            width={32}
+                            height={32}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-xs font-semibold text-gray-600">
+                            {reply.author.username?.[0]?.toUpperCase() || "U"}
+                          </span>
+                        )}
                       </div>
-                      <p className="text-xs text-gray-600 mt-1">
-                        {reply.content}
-                      </p>
 
-                      <div className="flex items-center gap-3 mt-2">
-                        <button
-                          onClick={() =>
-                            handleLikeComment(comment._id, reply._id)
-                          }
-                          className={`flex items-center gap-1 text-[11px] ${
-                            reply.hasLiked ? "text-red-500" : "text-gray-500"
-                          }`}
-                        >
-                          <Heart size={12} /> {reply.likeCount || 0}
-                        </button>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="font-semibold text-xs text-gray-800">
+                            {reply.author?.username}
+                          </p>
+                          <p className="text-[11px] text-gray-400">
+                            {timeAgo(reply.createdAt)}
+                          </p>
+                        </div>
+
+                        <p className="text-xs text-gray-600 mt-1">
+                          {reply.content}
+                        </p>
+
+                        <div className="flex items-center gap-3 mt-2">
+                          <button
+                            onClick={() =>
+                              handleLikeComment(comment._id, reply._id)
+                            }
+                            className={`flex items-center gap-1 text-[11px] transition ${
+                              reply.hasLiked ? "text-red-500" : "text-gray-500"
+                            }`}
+                          >
+                            <Heart
+                              size={12}
+                              className={reply.hasLiked ? "fill-red-500" : ""}
+                            />
+                            {reply.likeCount || 0}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* Reply input shown inline under targeted comment */}
+              {/* Reply Input */}
               {replyTo === comment._id && (
                 <div className="ml-8 mt-3 flex items-center gap-2">
                   <input
@@ -310,7 +327,6 @@ const CommentsSection: React.FC<CommentSectionProps> = ({
         ))}
       </div>
 
-      {/* View all button */}
       {comments[postId] && comments[postId].length > 2 && !showAll && (
         <button
           onClick={() => setShowAll(true)}
@@ -320,7 +336,6 @@ const CommentsSection: React.FC<CommentSectionProps> = ({
         </button>
       )}
 
-      {/* Main top-level comment input (visible only when not replying) */}
       {!replyTo && (
         <div className="mt-5 flex items-center gap-3">
           <input
