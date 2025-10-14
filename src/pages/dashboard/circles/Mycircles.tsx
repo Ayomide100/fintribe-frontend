@@ -187,16 +187,48 @@ const MyCircles = () => {
 
       {/* Body */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row gap-6">
+        {/* Sidebar */}
         <CircleSidebar
           isMobile={isMobile}
           myCircles={myCircles}
           selectedCircle={selectedCircle}
           setSelectedCircle={setSelectedCircle}
+          title="My Circles"
         />
 
-        {selectedCircle && (
-          <CircleFeed selectedCircle={selectedCircle} getTimeAgo={getTimeAgo} />
-        )}
+        {/* Feed or Placeholder */}
+        <div className="flex-1">
+          {selectedCircle ? (
+            <CircleFeed
+              selectedCircle={selectedCircle}
+              getTimeAgo={getTimeAgo}
+            />
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-center bg-white rounded-lg border border-gray-200 shadow-sm py-16">
+              <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mb-4">
+                <svg
+                  className="w-8 h-8 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-gray-700 font-semibold text-lg">
+                No Circle Selected
+              </h2>
+              <p className="text-gray-500 text-sm mt-1">
+                Tap on a circle from the left sidebar to view posts and updates.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Modal */}
