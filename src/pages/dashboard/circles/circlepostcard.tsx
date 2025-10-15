@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// CirclePostCard.tsx
 import React, { useState } from "react";
 import Image from "next/image";
 import {
@@ -13,26 +12,37 @@ import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
 import CommentModal from "./commentModal";
 
-const CirclePostCard = ({
-  post,
-  selectedCircle,
-  getTimeAgo,
-}: // refreshPosts,
-any) => {
+const CirclePostCard = ({ post, selectedCircle, getTimeAgo }: any) => {
   const [comments, setComments] = useState<Record<string, any[]>>({});
   const [showComments, setShowComments] = useState(false);
 
+  const [liked, setLiked] = useState(post?.liked || false);
+  const [likeCount, setLikeCount] = useState(post?.likeCount || 0);
+
   const handleLikePost = async (postId: string) => {
     try {
-      await axios.post(
+      // Optimistic update (immediate feedback)
+      setLiked((prev: any) => !prev);
+      setLikeCount((prev: number) => (liked ? prev - 1 : prev + 1));
+
+      const res = await axios.post(
         `/circle/post/like?postId=${postId}`,
         {},
         {
           headers: { Authorization: `${localStorage.getItem("token")}` },
         }
       );
-      // refreshPosts(selectedCircle._id);
-    } catch {
+
+      // Sync with backend (optional)
+      if (res?.data?.content) {
+        setLiked(res.data.content.liked);
+        setLikeCount(res.data.content.likeCount);
+      }
+    } catch (error) {
+      // Log and revert on error
+      console.error(error);
+      setLiked((prev: any) => !prev);
+      setLikeCount((prev: number) => (liked ? prev + 1 : prev - 1));
       toast.error("Failed to like post");
     }
   };
@@ -123,16 +133,29 @@ any) => {
       <div className="border-t border-gray-100 px-5 py-3">
         <div className="flex items-center justify-between">
           <div className="flex gap-6">
+            {/* ❤️ Like Button */}
             <button
               onClick={() => handleLikePost(post._id)}
-              className="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors group"
+              className="flex items-center gap-2 text-gray-600 transition-colors group"
             >
               <Heart
-                size={20}
-                className="group-hover:scale-110 transition-transform"
+                size={22}
+                className={`transition-transform duration-200 group-hover:scale-110 ${
+                  liked
+                    ? "fill-red-500 text-red-500 scale-110"
+                    : "text-gray-600"
+                }`}
               />
-              <span className="text-sm font-medium">{post.likeCount || 0}</span>
+              <span
+                className={`text-sm font-medium transition-colors ${
+                  liked ? "text-red-500" : "text-gray-600"
+                }`}
+              >
+                {likeCount}
+              </span>
             </button>
+
+            {/* 💬 Comments */}
             <button
               onClick={() => setShowComments(!showComments)}
               className="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors group"
@@ -145,6 +168,8 @@ any) => {
                 {post.commentCount || 0}
               </span>
             </button>
+
+            {/* 🔗 Share */}
             <button
               onClick={() => handleShare(post._id)}
               className="text-gray-600 hover:text-green-600 transition-colors group"
@@ -155,6 +180,8 @@ any) => {
               />
             </button>
           </div>
+
+          {/* 🔖 Bookmark */}
           <button className="text-gray-600 hover:text-yellow-600 transition-colors group">
             <Bookmark
               size={20}
@@ -164,7 +191,7 @@ any) => {
         </div>
       </div>
 
-      {/* Comments */}
+      {/* Comments Modal */}
       {showComments && (
         <CommentModal
           isOpen={showComments}
