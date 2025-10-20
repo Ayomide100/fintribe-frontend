@@ -1,17 +1,25 @@
-import React, { useRef, useState } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useEffect, useRef, useState } from "react";
 import Dashboardlayouts from "../layouts/Dashboardlayouts";
 import Head from "next/head";
 import Image, { StaticImageData } from "next/image";
 import noface from "../../../assets/blank-profile-picture.webp";
 import { Camera, Edit, Mail, Phone } from "lucide-react";
+import { isAxiosError } from "axios";
+import axios from "@/config/axiosconfig";
+import toast from "react-hot-toast";
+import EditProfileModal from "@/Modals/EditProfileModal";
 
 const Profile = () => {
   const [profileImage, setProfileImage] = useState<StaticImageData | string>(
     noface
   );
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"posts" | "liked" | "comments">(
     "posts"
   );
+  const [user, setUser] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,6 +30,39 @@ const Profile = () => {
       reader.readAsDataURL(file);
     }
   };
+
+  const getUser = async () => {
+    try {
+      const res = await axios("/users/profile", {
+        headers: { Authorization: `${localStorage.getItem("token")}` },
+      });
+
+      setUser(res.data.content.user);
+
+      // If user has an avatar, use it
+      if (res.data.content.user.avatar) {
+        setProfileImage(res.data.content.user.avatar);
+      }
+
+      console.log("User data:", res.data.content.user);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
+    }
+  };
+
+  useEffect(() => {
+    getUser();
+  }, []);
 
   // Example content arrays
   const posts = [
@@ -53,6 +94,7 @@ const Profile = () => {
       <Head>
         <title>Profile | Fintribe</title>
       </Head>
+
       <div className="w-full min-h-screen overflow-y-scroll bg-white pb-10">
         {/* Header */}
         <div className="w-full flex flex-col justify-center items-start px-5 pt-6 md:px-7 md:pt-10">
@@ -99,18 +141,27 @@ const Profile = () => {
 
                 {/* User Info */}
                 <div className="text-center md:text-left">
-                  <p className="font-medium text-lg md:text-xl">
-                    Adebimpe Thompson
+                  <p className="font-medium text-lg md:text-xl capitalize">
+                    {user?.fullname || "Loading..."}
                   </p>
                   <p className="text-sm text-[#2E8B57]">
-                    Member since January 2024
+                    Member since{" "}
+                    {user
+                      ? new Date(user.createdAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                        })
+                      : ""}
                   </p>
                 </div>
               </div>
 
               {/* Edit Button */}
               <div className="w-full md:w-auto flex justify-center md:justify-end">
-                <button className="border-[#2E8B57] border text-[#2E8B57] flex gap-2 justify-center items-center px-5 py-2 rounded-md hover:bg-[#2E8B57] hover:text-white transition-all text-sm md:text-base">
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="border-[#2E8B57] border text-[#2E8B57] flex gap-2 justify-center items-center px-5 py-2 rounded-md hover:bg-[#2E8B57] hover:text-white transition-all text-sm md:text-base"
+                >
                   <Edit size={18} /> Edit Profile
                 </button>
               </div>
@@ -124,18 +175,36 @@ const Profile = () => {
               <div className="flex flex-col md:flex-row justify-center md:justify-start items-center gap-3 md:gap-6">
                 <div className="flex items-center gap-2 text-sm text-[#6E6E6E]">
                   <Mail size={16} />
-                  <p>adebimpe.thompson@example.com</p>
+                  <p>{user?.email || "N/A"}</p>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-[#6E6E6E]">
                   <Phone size={16} />
-                  <p>+1 234 567 8901</p>
+                  <p>{user?.phone || "N/A"}</p>
                 </div>
               </div>
 
               <p className="text-[#6E6E6E] text-sm leading-relaxed">
-                Passionate investor focused on sustainable technologies and
-                emerging markets. Looking for opportunities in clean energy and
-                fintech sectors.
+                {user?.address || "No address provided."}
+              </p>
+
+              <p className="text-sm text-gray-500">
+                Account Type:{" "}
+                <span className="capitalize text-[#2E8B57]">
+                  {user?.account_type}
+                </span>
+              </p>
+
+              <p className="text-sm text-gray-500">
+                KYC Status:{" "}
+                <span
+                  className={`font-medium ${
+                    user?.kycStatus === "pending"
+                      ? "text-yellow-600"
+                      : "text-green-600"
+                  }`}
+                >
+                  {user?.kycStatus || "unknown"}
+                </span>
               </p>
             </div>
           </div>
@@ -207,6 +276,9 @@ const Profile = () => {
             )}
           </div>
         </div>
+        {isModalOpen && (
+          <EditProfileModal user={user} onClose={() => setIsModalOpen(false)} />
+        )}
       </div>
     </Dashboardlayouts>
   );
