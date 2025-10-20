@@ -15,6 +15,7 @@ interface Props {
 const CreateCircleModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [step, setStep] = useState<"form" | "preview">("form");
   const [loading, setLoading] = useState(false);
+  const [tagInput, setTagInput] = useState("");
   const [formdata, setFormdata] = useState({
     name: "",
     description: "",
@@ -22,6 +23,7 @@ const CreateCircleModal: React.FC<Props> = ({ isOpen, onClose }) => {
     accessType: "",
     accessFee: "",
     investorDesc: "",
+    tags: [] as string[],
     icon: null as File | null,
     iconPreview: "",
   });
@@ -39,6 +41,30 @@ const CreateCircleModal: React.FC<Props> = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleAddTag = () => {
+    if (tagInput.trim() && !formdata.tags.includes(tagInput.trim())) {
+      setFormdata({
+        ...formdata,
+        tags: [...formdata.tags, tagInput.trim()],
+      });
+      setTagInput("");
+    }
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setFormdata({
+      ...formdata,
+      tags: formdata.tags.filter((t) => t !== tag),
+    });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddTag();
+    }
+  };
+
   const handleCreateCircle = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -50,6 +76,7 @@ const CreateCircleModal: React.FC<Props> = ({ isOpen, onClose }) => {
       data.append("accessType", formdata.accessType);
       data.append("accessFee", formdata.accessFee);
       data.append("investorDesc", formdata.investorDesc);
+      data.append("tags", JSON.stringify(formdata.tags));
       if (formdata.icon) data.append("icon", formdata.icon);
 
       const res = await axios.post("/circle", data, {
@@ -79,10 +106,7 @@ const CreateCircleModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div
-        className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative 
-        max-h-[90vh] overflow-y-auto mt-10 mb-10 scrollbar-thin scrollbar-thumb-gray-300"
-      >
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative max-h-[90vh] overflow-y-auto mt-10 mb-10 scrollbar-thin scrollbar-thumb-gray-300">
         {/* Close Button */}
         <button
           onClick={() => onClose(false)}
@@ -133,13 +157,56 @@ const CreateCircleModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 />
               </div>
 
+              {/* Circle Tags */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Circle Tags <span className="text-red-600">*</span>
+                </label>
+                <div className="flex items-center gap-2 mt-1">
+                  <input
+                    type="text"
+                    placeholder="e.g. Real Estate"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-[#2E8B57] outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddTag}
+                    className="bg-[#0A2540] text-white px-4 py-2 rounded-md hover:bg-[#0d2f57] text-sm"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                {/* Tag Chips */}
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {formdata.tags.map((tag) => (
+                    <div
+                      key={tag}
+                      className="flex items-center gap-2 px-3 py-1 bg-gray-100 border border-gray-300 rounded-full text-sm"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTag(tag)}
+                        className="text-gray-500 hover:text-red-500"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Circle Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Circle Type <span className="text-red-600">*</span>
                 </label>
                 <div className="flex flex-col gap-3 mt-2">
-                  <label className="flex items-center gap-2 text-sm">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
                     <input
                       type="radio"
                       name="type"
@@ -150,10 +217,11 @@ const CreateCircleModal: React.FC<Props> = ({ isOpen, onClose }) => {
                       }
                       className="accent-[#2E8B57]"
                     />
-                    Public Circle <BiWorld className="text-[#2E8B57]" />
+                    <BiWorld className="text-[#2E8B57]" />
+                    Public Circle
                   </label>
 
-                  <label className="flex items-center gap-2 text-sm">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
                     <input
                       type="radio"
                       name="type"
@@ -164,7 +232,8 @@ const CreateCircleModal: React.FC<Props> = ({ isOpen, onClose }) => {
                       }
                       className="accent-[#2E8B57]"
                     />
-                    Private Circle <TbLockAccess className="text-[#2E8B57]" />
+                    <TbLockAccess className="text-[#2E8B57]" />
+                    Private Circle
                   </label>
                 </div>
               </div>
@@ -274,6 +343,7 @@ const CreateCircleModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </>
         ) : (
           <>
+            {/* PREVIEW SECTION */}
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
               Preview Circle
             </h2>
