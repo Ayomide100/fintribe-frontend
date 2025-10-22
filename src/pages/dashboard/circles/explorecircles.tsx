@@ -6,44 +6,66 @@ import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
 import { isAxiosError } from "axios";
 import noface from "../../../../assets/blank-profile-picture.webp";
+import { useRouter } from "next/router";
 
-const InvestorCard = ({ circle, onJoined }: any) => {
-  const HandleJoincircle = async (circleId: string) => {
-    const loadingId = toast.loading("Joining...");
+const InvestorCard = ({ circle }: any) => {
+  // const HandleJoincircle = async (circleId: string) => {
+  //   const loadingId = toast.loading("Joining...");
 
-    try {
-      const res = await axios.post(
-        `/circle/${circleId}/join`,
-        {},
-        {
-          headers: {
-            Authorization: `${localStorage.getItem("token")}`,
-          },
-        }
-      );
+  //   try {
+  //     const res = await axios.post(
+  //       `/circle/${circleId}/join`,
+  //       {},
+  //       {
+  //         headers: {
+  //           Authorization: `${localStorage.getItem("token")}`,
+  //         },
+  //       }
+  //     );
 
-      console.log(res.data);
+  //     console.log(res.data);
 
-      // ✅ remove circle from list immediately
-      onJoined(circleId);
+  //     // ✅ remove circle from list immediately
+  //     onJoined(circleId);
 
-      toast.success("Joined Successfully!");
-    } catch (error) {
-      if (isAxiosError(error)) {
-        const apiMessage = error.response?.data?.message;
-        const apiError = error.response?.data?.error;
-        const fallback = error.message || "An unexpected error occurred";
+  //     toast.success("Joined Successfully!");
+  //   } catch (error) {
+  //     if (isAxiosError(error)) {
+  //       const apiMessage = error.response?.data?.message;
+  //       const apiError = error.response?.data?.error;
+  //       const fallback = error.message || "An unexpected error occurred";
 
-        const errorMsg =
-          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-          fallback;
+  //       const errorMsg =
+  //         `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+  //         fallback;
 
-        toast.error(errorMsg);
-      }
-    } finally {
-      toast.dismiss(loadingId);
-    }
-  };
+  //       toast.error(errorMsg);
+  //     }
+  //   } finally {
+  //     toast.dismiss(loadingId);
+  //   }
+  // };
+
+  // const getCircleById = async (id: string) => {
+  //   try {
+  //     const res = await axios.get(`/circle/single?circleId=${id}`);
+  //     console.log(res.data.content);
+  //   } catch (error) {
+  //     if (isAxiosError(error)) {
+  //       const apiMessage = error.response?.data?.message;
+  //       const apiError = error.response?.data?.error;
+  //       const fallback = error.message || "An unexpected error occurred";
+
+  //       const errorMsg =
+  //         `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+  //         fallback;
+
+  //       toast.error(errorMsg);
+  //     }
+  //   }
+  // };
+
+  const router = useRouter();
 
   return (
     <div
@@ -71,6 +93,17 @@ const InvestorCard = ({ circle, onJoined }: any) => {
           <TbLockAccess className="text-[#2E8B57]" size={18} />
         </div>
         <p className="text-sm text-gray-600 mb-3">{circle.description}</p>
+
+        <div className="flex flex-wrap justify-center gap-2 mb-3">
+          {circle.tags?.map((tag: string, index: number) => (
+            <span
+              key={index}
+              className="px-4 py-1.5 border border-[#226B44] text-[#226B44] text-sm font-medium rounded-full bg-transparent hover:bg-[#226B4410] transition-colors"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Top Members */}
@@ -98,7 +131,7 @@ const InvestorCard = ({ circle, onJoined }: any) => {
 
       {/* Button */}
       <button
-        onClick={() => HandleJoincircle(circle._id)}
+        onClick={() => router.push(`/dashboard/circles/explore/${circle._id}`)}
         className="w-full bg-[#0A2540] text-white py-2 rounded-lg font-medium hover:bg-[#1a3b5c] transition text-sm"
       >
         Join Circle →
