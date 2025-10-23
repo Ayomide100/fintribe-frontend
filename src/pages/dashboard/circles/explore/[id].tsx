@@ -8,20 +8,20 @@ import Image from "next/image";
 import Dashboardlayouts from "@/pages/layouts/Dashboardlayouts";
 import { FaUsers } from "react-icons/fa";
 import { TbLockAccess } from "react-icons/tb";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Earth } from "lucide-react";
+import PrivatepayModal from "@/Modals/privatepayModal";
 
 const Explore = () => {
   const router = useRouter();
   const { id } = router.query;
   const [circle, setCircle] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [openModal, setOpenModal] = useState(false);
 
   const getCircleById = async (circleId: string) => {
     try {
       const res = await axios.get(`/circle/single?circleId=${circleId}`, {
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-        },
+        headers: { Authorization: `${localStorage.getItem("token")}` },
       });
       setCircle(res.data.content);
     } catch (error) {
@@ -42,13 +42,11 @@ const Explore = () => {
   const handleJoinCircle = async (circleId: string) => {
     const loadingId = toast.loading("Joining...");
     try {
-      const res = await axios.post(
+      await axios.post(
         `/circle/${circleId}/join`,
         {},
         {
-          headers: {
-            Authorization: `${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `${localStorage.getItem("token")}` },
         }
       );
       toast.success("Joined Successfully!");
@@ -75,10 +73,11 @@ const Explore = () => {
   if (loading) return <p className="text-center mt-10">Loading...</p>;
   if (!circle) return <p className="text-center mt-10">Circle not found.</p>;
 
+  const isPublic = circle.type === "public";
+
   return (
     <Dashboardlayouts>
       <div className="w-full py-2 px-6 mt-4 flex justify-start items-center">
-        {/* Back Button */}
         <button
           onClick={() => router.push("/dashboard/circles")}
           className="text-sm text-gray-600 hover:text-[#226B44] mb-4 flex justify-center items-center rounded-md py-2 px-7 bg-[#84C2A229]"
@@ -86,6 +85,7 @@ const Explore = () => {
           <ChevronLeft /> Explore Circles
         </button>
       </div>
+
       <div className="max-w-3xl mx-auto mt-10 bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -109,12 +109,14 @@ const Explore = () => {
             </div>
           </div>
 
-          <div className="text-right">
-            <h3 className="text-lg font-semibold text-[#0A2540]">
-              ₦{circle.accessFee?.amount || 0}
-            </h3>
-            <p className="text-xs text-gray-500">One-Time Access</p>
-          </div>
+          {!isPublic && (
+            <div className="text-right">
+              <h3 className="text-lg font-semibold text-[#0A2540]">
+                ₦{circle.accessFee?.amount || 0}
+              </h3>
+              <p className="text-xs text-gray-500">One-Time Access</p>
+            </div>
+          )}
         </div>
 
         {/* Stats Section */}
@@ -125,7 +127,11 @@ const Explore = () => {
             <p className="text-sm text-gray-600">Members</p>
           </div>
           <div className="border border-gray-200 rounded-lg py-3 flex flex-col items-center justify-center">
-            <TbLockAccess className="text-[#226B44] mb-1" />
+            {isPublic ? (
+              <Earth className="text-[#226B44] mb-1" />
+            ) : (
+              <TbLockAccess className="text-[#226B44] mb-1" />
+            )}
             <p className="text-lg font-semibold capitalize">
               {circle.type || "public"}
             </p>
@@ -145,11 +151,29 @@ const Explore = () => {
 
         {/* Join Button */}
         <button
-          onClick={() => handleJoinCircle(circle._id)}
+          onClick={() =>
+            isPublic ? handleJoinCircle(circle._id) : setOpenModal(true)
+          }
           className="w-full bg-[#0A2540] text-white py-3 rounded-lg font-medium hover:bg-[#1a3b5c] transition"
         >
-          Join & Pay ₦{circle.accessFee?.amount || 0}
+          {isPublic
+            ? "Join Circle"
+            : `Join & Pay ₦${circle.accessFee?.amount || 0}`}
         </button>
+
+        {/* Payment Modal */}
+        {openModal && (
+          <PrivatepayModal
+            onClose={() => setOpenModal(false)}
+            circleName={circle.name}
+            guru={circle.members?.[0]?.user?.fullname}
+            amount={circle.accessFee?.amount}
+            onConfirmPayment={() => {
+              handleJoinCircle(circle._id);
+              setOpenModal(false);
+            }}
+          />
+        )}
       </div>
     </Dashboardlayouts>
   );
