@@ -18,6 +18,7 @@ const Explore = () => {
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
 
+  // ✅ Fetch Circle
   const getCircleById = async (circleId: string) => {
     try {
       const res = await axios.get(`/circle/single?circleId=${circleId}`, {
@@ -39,6 +40,68 @@ const Explore = () => {
     }
   };
 
+  // ✅ Unified handleJoinPrivate Function
+  const handleJoinPrivate = async (circleId: string) => {
+    const loadingId = toast.loading("Initializing payment...");
+
+    try {
+      // Step 1️⃣ Initialize Payment
+      const initRes = await axios.post(
+        `/circle/${circleId}/initialize-payment`,
+        {},
+        {
+          headers: { Authorization: `${localStorage.getItem("token")}` },
+        }
+      );
+      const { authorizationUrl, reference } = initRes.data?.content || {};
+
+      console.log("This is the payment info:", initRes.data.content);
+      if (!authorizationUrl || !reference) {
+        toast.error("Unable to initialize payment");
+        return;
+      }
+
+      // Step 2: Redirect user to payment page
+      window.open(authorizationUrl, "_blank");
+
+      // Step 3️⃣ Proceed with internal payment (Wallet)
+      const processingLoading = toast.loading("Processing payment...", {
+        id: loadingId,
+      }); // 👈 reuse the same toast instead of creating a new one
+
+      await axios.post(
+        `/circle/${circleId}/join-private`,
+        {
+          paymentReference: reference,
+        },
+        {
+          headers: { Authorization: `${localStorage.getItem("token")}` },
+        }
+      );
+
+      toast.dismiss(processingLoading);
+      toast.success("Successfully joined private circle!");
+      router.push("/explore");
+    } catch (error) {
+      toast.dismiss(loadingId);
+
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+        toast.error(errorMsg);
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
+    } finally {
+      toast.dismiss(loadingId);
+    }
+  };
+
+  // ✅ Join Public Circle
   const handleJoinCircle = async (circleId: string) => {
     const loadingId = toast.loading("Joining...");
     try {
@@ -168,10 +231,7 @@ const Explore = () => {
             circleName={circle.name}
             guru={circle.members?.[0]?.user?.fullname}
             amount={circle.accessFee?.amount}
-            onConfirmPayment={() => {
-              handleJoinCircle(circle._id);
-              setOpenModal(false);
-            }}
+            onJoin={() => handleJoinPrivate(circle._id)}
           />
         )}
       </div>

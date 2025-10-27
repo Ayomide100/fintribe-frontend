@@ -6,7 +6,7 @@ interface PrivatepayModalProps {
   circleName?: string;
   guru?: string;
   amount?: number;
-  onConfirmPayment?: () => void;
+  onJoin?: () => void;
 }
 
 const PrivatepayModal: React.FC<PrivatepayModalProps> = ({
@@ -14,9 +14,16 @@ const PrivatepayModal: React.FC<PrivatepayModalProps> = ({
   circleName = "Private Circle",
   guru = "Unknown Guru",
   amount = 0,
-  onConfirmPayment,
+  onJoin,
 }) => {
   const [method, setMethod] = useState("wallet");
+
+  const handleJoinClick = () => {
+    if (onJoin) {
+      onJoin(); // trigger join function
+      onClose(); // close modal after joining
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
@@ -38,6 +45,7 @@ const PrivatepayModal: React.FC<PrivatepayModalProps> = ({
             Complete your payment to gain access
           </p>
         </div>
+
         <p className="text-sm text-gray-500 text-center mb-6">
           Review the details before joining{" "}
           <span className="font-medium">{circleName}</span>
@@ -107,7 +115,7 @@ const PrivatepayModal: React.FC<PrivatepayModalProps> = ({
 
         {/* Confirm Button */}
         <button
-          onClick={onConfirmPayment}
+          onClick={handleJoinClick}
           className="w-full bg-[#0A2540] hover:bg-[#0A2540] text-white py-3 rounded-lg font-medium transition-all"
         >
           Proceed to Pay ₦{amount}
