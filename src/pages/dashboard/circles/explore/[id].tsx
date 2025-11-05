@@ -10,6 +10,7 @@ import { FaUsers } from "react-icons/fa";
 import { TbLockAccess } from "react-icons/tb";
 import { ChevronLeft, Earth } from "lucide-react";
 import PrivatepayModal from "@/Modals/privatepayModal";
+import JoinPrivateModal from "@/Modals/joinprivate"; // ✅ import here
 
 const Explore = () => {
   const router = useRouter();
@@ -17,6 +18,7 @@ const Explore = () => {
   const [circle, setCircle] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false); // ✅ for join modal
 
   // ✅ Fetch Circle
   const getCircleById = async (circleId: string) => {
@@ -40,12 +42,10 @@ const Explore = () => {
     }
   };
 
-  // ✅ Unified handleJoinPrivate Function
+  // ✅ Payment Initialization
   const handleJoinPrivate = async (circleId: string) => {
     const loadingId = toast.loading("Initializing payment...");
-
     try {
-      // Step 1️⃣ Initialize Payment
       const initRes = await axios.post(
         `/circle/${circleId}/initialize-payment`,
         {},
@@ -53,46 +53,32 @@ const Explore = () => {
           headers: { Authorization: `${localStorage.getItem("token")}` },
         }
       );
-      const { authorizationUrl, reference } = initRes.data?.content || {};
 
-      console.log("This is the payment info:", initRes.data.content);
+      const { authorizationUrl, reference } = initRes.data?.content || {};
+      localStorage.setItem("paymentReference", reference);
+      localStorage.setItem("authorizationUrl", authorizationUrl);
+
       if (!authorizationUrl || !reference) {
         toast.error("Unable to initialize payment");
         return;
       }
 
-      // Step 2: Redirect user to payment page
+      // ✅ Redirect to payment
       window.open(authorizationUrl, "_blank");
-
-      // Step 3️⃣ Proceed with internal payment (Wallet)
-      const processingLoading = toast.loading("Processing payment...", {
-        id: loadingId,
-      }); // 👈 reuse the same toast instead of creating a new one
-
-      await axios.post(
-        `/circle/${circleId}/join-private`,
-        {
-          paymentReference: reference,
-        },
-        {
-          headers: { Authorization: `${localStorage.getItem("token")}` },
-        }
-      );
-
-      toast.dismiss(processingLoading);
-      toast.success("Successfully joined private circle!");
-      router.push("/explore");
-    } catch (error) {
+      toast.success("Payment page opened. Complete your payment to continue.");
+    } catch (error: any) {
       toast.dismiss(loadingId);
 
       if (isAxiosError(error)) {
-        const apiMessage = error.response?.data?.message;
-        const apiError = error.response?.data?.error;
-        const fallback = error.message || "An unexpected error occurred";
-        const errorMsg =
-          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-          fallback;
-        toast.error(errorMsg);
+        const msg = error.response?.data?.message || "";
+        if (msg.includes("Payment already completed")) {
+          // ✅ Trigger Join Modal
+          setShowJoinModal(true);
+        } else {
+          const fallback =
+            msg || error.message || "An unexpected error occurred";
+          toast.error(fallback);
+        }
       } else {
         toast.error("Something went wrong. Please try again.");
       }
@@ -212,16 +198,14 @@ const Explore = () => {
           </p>
         </div>
 
-        {/* Join Button */}
+        {/* Join / Pay Button */}
         <button
           onClick={() =>
             isPublic ? handleJoinCircle(circle._id) : setOpenModal(true)
           }
           className="w-full bg-[#0A2540] text-white py-3 rounded-lg font-medium hover:bg-[#1a3b5c] transition"
         >
-          {isPublic
-            ? "Join Circle"
-            : `Join & Pay ₦${circle.accessFee?.amount || 0}`}
+          {isPublic ? "Join Circle" : `Pay ₦${circle.accessFee?.amount || 0}`}
         </button>
 
         {/* Payment Modal */}
@@ -232,6 +216,14 @@ const Explore = () => {
             guru={circle.members?.[0]?.user?.fullname}
             amount={circle.accessFee?.amount}
             onJoin={() => handleJoinPrivate(circle._id)}
+          />
+        )}
+
+        {/* ✅ Join Private Modal (when payment is already done) */}
+        {showJoinModal && (
+          <JoinPrivateModal
+            circleId={circle._id}
+            onClose={() => setShowJoinModal(false)}
           />
         )}
       </div>
