@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { X } from "lucide-react";
 
 interface PrivatepayModalProps {
@@ -16,7 +16,7 @@ const PrivatepayModal: React.FC<PrivatepayModalProps> = ({
   amount = 0,
   onJoin,
 }) => {
-  const [method, setMethod] = useState("wallet");
+  // const [method, setMethod] = useState("wallet");
 
   const handleJoinClick = () => {
     if (onJoin) {
@@ -79,7 +79,7 @@ const PrivatepayModal: React.FC<PrivatepayModalProps> = ({
         </div>
 
         {/* Payment Method */}
-        <div className="mb-6">
+        {/* <div className="mb-6">
           <h4 className="text-sm font-semibold text-gray-800 mb-2">
             Payment Method
           </h4>
@@ -111,7 +111,7 @@ const PrivatepayModal: React.FC<PrivatepayModalProps> = ({
               </label>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Confirm Button */}
         <button
