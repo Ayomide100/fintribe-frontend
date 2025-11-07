@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Dashboardlayouts from "../layouts/Dashboardlayouts";
 import Head from "next/head";
 import Image, { StaticImageData } from "next/image";
 import noface from "../../../assets/blank-profile-picture.webp";
-import { Camera, Edit, Mail, Phone } from "lucide-react";
+import { Edit, Mail, Phone, User } from "lucide-react";
 import { isAxiosError } from "axios";
 import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
@@ -14,20 +14,17 @@ const Profile = () => {
   const [profileImage, setProfileImage] = useState<StaticImageData | string>(
     noface
   );
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"posts" | "liked" | "comments">(
     "posts"
   );
   const [user, setUser] = useState<any>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setProfileImage(reader.result as string);
-      reader.readAsDataURL(file);
+  // Inside Profile component
+  const handleProfileUpdate = (updatedUser: any) => {
+    setUser(updatedUser);
+    if (updatedUser.avatar && updatedUser.avatar.url) {
+      setProfileImage(updatedUser.avatar.url);
     }
   };
 
@@ -37,14 +34,13 @@ const Profile = () => {
         headers: { Authorization: `${localStorage.getItem("token")}` },
       });
 
-      setUser(res.data.content.user);
+      const fetchedUser = res.data.content.user;
+      setUser(fetchedUser);
 
-      // If user has an avatar, use it
-      if (res.data.content.user.avatar) {
-        setProfileImage(res.data.content.user.avatar);
+      // Use avatar if it exists
+      if (fetchedUser.avatar) {
+        setProfileImage(fetchedUser.avatar.url);
       }
-
-      console.log("User data:", res.data.content.user);
     } catch (error) {
       if (isAxiosError(error)) {
         const apiMessage = error.response?.data?.message;
@@ -64,7 +60,7 @@ const Profile = () => {
     getUser();
   }, []);
 
-  // Example content arrays
+  // Example tab content
   const posts = [
     { id: 1, title: "Sustainable Investing 101", date: "Oct 1, 2025" },
     { id: 2, title: "The Rise of Clean Tech Startups", date: "Sep 25, 2025" },
@@ -116,27 +112,12 @@ const Profile = () => {
                 <div className="relative w-[90px] h-[90px] md:w-[100px] md:h-[100px]">
                   <div className="w-full h-full rounded-full border-2 border-[#2E8B57] overflow-hidden relative">
                     <Image
-                      src={profileImage}
+                      src={user?.avatar?.url || profileImage || noface}
                       alt="profile"
                       fill
                       className="object-cover rounded-full"
                     />
                   </div>
-
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="absolute -bottom-1 -right-1 bg-white p-2 rounded-full border-2 border-white shadow-md hover:bg-[#256a45] transition-all"
-                  >
-                    <Camera size={16} color="#2E8B57" />
-                  </button>
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
                 </div>
 
                 {/* User Info */}
@@ -174,6 +155,10 @@ const Profile = () => {
             <div className="w-full flex flex-col gap-4 text-center md:text-left">
               <div className="flex flex-col md:flex-row justify-center md:justify-start items-center gap-3 md:gap-6">
                 <div className="flex items-center gap-2 text-sm text-[#6E6E6E]">
+                  <User size={16} />
+                  <p>{user?.username || "N/A"}</p>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-[#6E6E6E]">
                   <Mail size={16} />
                   <p>{user?.email || "N/A"}</p>
                 </div>
@@ -184,17 +169,17 @@ const Profile = () => {
               </div>
 
               <p className="text-[#6E6E6E] text-sm leading-relaxed">
-                {user?.address || "No address provided."}
+                {user?.bio || "No bio provided."}
               </p>
 
-              <p className="text-sm text-gray-500">
+              {/* <p className="text-sm text-gray-500">
                 Account Type:{" "}
                 <span className="capitalize text-[#2E8B57]">
                   {user?.account_type}
                 </span>
-              </p>
+              </p> */}
 
-              <p className="text-sm text-gray-500">
+              {/* <p className="text-sm text-gray-500">
                 KYC Status:{" "}
                 <span
                   className={`font-medium ${
@@ -205,14 +190,13 @@ const Profile = () => {
                 >
                   {user?.kycStatus || "unknown"}
                 </span>
-              </p>
+              </p> */}
             </div>
           </div>
         </div>
 
         {/* Tabs Section */}
         <div className="w-full flex flex-col mt-8 items-center">
-          {/* Tabs */}
           <div className="w-[94%] md:w-[96%] flex justify-around border-b border-[#E0E0E0] mb-4">
             {(["posts", "liked", "comments"] as const).map((tab) => (
               <button
@@ -229,8 +213,7 @@ const Profile = () => {
             ))}
           </div>
 
-          {/* Tab Content */}
-          <div className="w-[94%] md:w-[96%] bg-white h-[25rem] overflow-y-auto rounded-xl border border-[#E0E0E0] p-4 shadow-sm">
+          <div className="w-[94%] md:w-[96%] bg-white h-100 overflow-y-auto rounded-xl border border-[#E0E0E0] p-4 shadow-sm">
             {activeTab === "posts" && (
               <div className="flex flex-col gap-4">
                 {posts.map((p) => (
@@ -276,8 +259,13 @@ const Profile = () => {
             )}
           </div>
         </div>
+
         {isModalOpen && (
-          <EditProfileModal user={user} onClose={() => setIsModalOpen(false)} />
+          <EditProfileModal
+            user={user}
+            onClose={() => setIsModalOpen(false)}
+            onSave={handleProfileUpdate} // <-- Pass callback
+          />
         )}
       </div>
     </Dashboardlayouts>
