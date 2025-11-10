@@ -1,9 +1,45 @@
-import React from "react";
-import { Search, ChevronDown } from "lucide-react";
-import Dashboardlayouts from "../layouts/Dashboardlayouts";
+import React, { useEffect, useState } from "react";
+import {
+  Search,
+  ChevronDown,
+  Plus,
+  TrendingUp,
+  ChartColumnBig,
+} from "lucide-react";
+import Dashboardlayouts from "../../layouts/Dashboardlayouts";
 import Head from "next/head";
+import axios from "@/config/axiosconfig";
+import { isAxiosError } from "axios";
+import toast from "react-hot-toast";
+import { TbFidgetSpinner } from "react-icons/tb";
+import { useRouter } from "next/router";
 
 const Opportunities = () => {
+  const [accountType, setAccountType] = useState(null);
+
+  const summary = [
+    {
+      label: "Total opportunities created ",
+      count: 12,
+      icon: <TrendingUp size={25} />,
+    },
+    {
+      label: "Active Opportunities",
+      count: 13,
+      icon: <TrendingUp size={25} />,
+    },
+    {
+      label: "Closed opportunities",
+      count: 1,
+      icon: <TbFidgetSpinner size={25} />,
+    },
+    {
+      label: "Average ROI",
+      count: 4,
+      icon: <ChartColumnBig size={25} />,
+    },
+  ];
+
   const opportunities = [
     {
       title: "Lagos Real Estate",
@@ -51,6 +87,38 @@ const Opportunities = () => {
     },
   ];
 
+  const getUser = async () => {
+    try {
+      const res = await axios("/users/profile", {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+      });
+
+      setAccountType(res.data.content.user.account_type);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
+    }
+  };
+
+  useEffect(() => {
+    getUser();
+  }, []);
+
+  const isPartner = accountType === "partner";
+
+  const router = useRouter();
+
   return (
     <Dashboardlayouts>
       <Head>
@@ -59,12 +127,47 @@ const Opportunities = () => {
 
       <div className="w-full h-full px-5 py-8 overflow-y-auto flex flex-col gap-6">
         {/* Header */}
-        <div>
-          <h2 className="text-xl font-semibold">Investment Opportunities</h2>
-          <p className="text-sm text-gray-500">
-            Discover vetted opportunities from verified partners
-          </p>
+        <div className="flex items-center justify-between w-full">
+          <div>
+            <h2 className="text-xl font-semibold">Investment Opportunities</h2>
+            <p className="text-sm text-gray-500">
+              Discover vetted opportunities from verified partners
+            </p>
+          </div>
+
+          {isPartner && (
+            <button
+              onClick={() => router.push("/dashboard/opportunities/stepone")}
+              className="flex items-center gap-2 bg-[#001F3F] text-white text-sm px-4 py-2 rounded-md hover:bg-[#003366] transition"
+            >
+              Create Opportunity <Plus className="w-4 h-4" />
+            </button>
+          )}
         </div>
+        {isPartner && (
+          <div className="flex flex-col md:flex-row justify-between gap-4">
+            {summary.map((stat, idx) => (
+              <div
+                key={idx}
+                className="flex-1 min-w-[150px] bg-[#84C2A229] p-5 rounded-xl shadow-sm"
+              >
+                {/* Top row: Icon left, Count right */}
+                <div className="flex justify-between items-center">
+                  <div className="text-[#2E8B57] text-xl font-bold">
+                    {stat.count}
+                  </div>
+
+                  <p className="text-2xl font-medium text-[#2E8B57]">
+                    {stat.icon}
+                  </p>
+                </div>
+
+                {/* Bottom Label */}
+                <p className="text-sm text-gray-600 mt-2 pl-1">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Search + Filter Section */}
         <div className="flex flex-col justify-between md:flex-row items-center gap-3 md:gap-4 w-full">
@@ -89,8 +192,12 @@ const Opportunities = () => {
           </div>
         </div>
 
-        {/* Cards Section (2 top, 2 bottom) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full">
+        {/* Cards */}
+        <div
+          className={`${
+            isPartner ? "grid grid-cols-1" : "grid grid-cols-1 sm:grid-cols-2"
+          } gap-5 w-full`}
+        >
           {opportunities.map((item, i) => (
             <div
               key={i}
