@@ -15,6 +15,9 @@ import Dashboardlayouts from "@/pages/layouts/Dashboardlayouts";
 import Head from "next/head";
 import ProgressBar from "./progressbar";
 import MediaStep from "./steptwo";
+import axios from "@/config/axiosconfig";
+import { isAxiosError } from "axios";
+import toast from "react-hot-toast";
 
 ChartJS.register(
   CategoryScale,
@@ -27,29 +30,42 @@ ChartJS.register(
   Title
 );
 
-const InputRow: React.FC<{ label: string; children: React.ReactNode }> = ({
+interface InputFieldProps {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}
+
+const InputField: React.FC<InputFieldProps> = ({
   label,
+  required,
   children,
 }) => (
-  <div className="flex gap-6 items-center">
-    <label className="w-1/4 text-sm text-gray-700">{label}</label>
-    <div className="flex-1">{children}</div>
+  <div className="flex flex-col">
+    <label className="text-sm font-medium text-gray-700 mb-1">
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </label>
+    {children}
   </div>
 );
 
 export default function OpportunityForm() {
   const [form, setForm] = useState({
-    projectName: "",
-    fundingGoal: "",
-    minInvestment: "",
-    closingDate: "",
+    title: "",
     category: "",
-    duration: "",
-    expectedROI: "",
     location: "",
+    investmentType: "",
+    expectedROI: "",
+    minimumInvestment: "",
+    currency: "NGN",
+    closingDate: "",
+    sector: "",
   });
 
   const [step, setStep] = useState<number>(0);
+  const [loading, setLoading] = useState(false);
+
   const steps = [
     "Basic Information",
     "Media",
@@ -60,8 +76,32 @@ export default function OpportunityForm() {
   const onChange =
     (key: string) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-      setForm((s) => ({ ...s, [key]: e.target.value }));
+      setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
+  const UpdatebasicInfo = async () => {
+    const toastId = toast.loading("Submitting basic info...");
+    try {
+      const res = await axios.post("/opportunity/basic-info", form, {
+        headers: { Authorization: `${localStorage.getItem("token")}` },
+      });
+      console.log(res);
+      toast.success("Basic information submitted!");
+    } catch (error: unknown) {
+      if (isAxiosError(error)) {
+        const message =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          "An unexpected error occurred";
+        toast.error(message);
+      } else {
+        toast.error("Error occurred");
+      }
+    } finally {
+      toast.dismiss(toastId);
+    }
+  };
+
+  // ROI Chart Data
   const chartData = useMemo(() => {
     const months = Array.from({ length: 25 }, (_, i) => i);
     const minROI = months.map((m) => parseFloat(((m / 24) * 30).toFixed(2)));
@@ -71,7 +111,7 @@ export default function OpportunityForm() {
       labels: months.map((m) => (m % 3 === 0 ? `${m}` : "")),
       datasets: [
         {
-          label: "Max ROI (50%)",
+          label: "Max ROI (45%)",
           data: maxROI,
           borderWidth: 2,
           tension: 0.25,
@@ -79,7 +119,7 @@ export default function OpportunityForm() {
           pointRadius: 3,
         },
         {
-          label: "Min ROI (35%)",
+          label: "Min ROI (30%)",
           data: minROI,
           borderWidth: 2,
           tension: 0.25,
@@ -92,7 +132,7 @@ export default function OpportunityForm() {
           backgroundColor: "rgba(34,197,94,0.12)",
           borderWidth: 0,
           pointRadius: 0,
-          fill: true, // remove `type` property
+          fill: true,
         },
       ],
     };
@@ -123,109 +163,100 @@ export default function OpportunityForm() {
       case 0:
         return (
           <>
-            {/* Basic Information */}
+            {/* BASIC INFO */}
             <div className="bg-white border rounded-md p-6 shadow-sm">
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <InputRow label="Project Name *">
-                    <input
-                      value={form.projectName}
-                      onChange={onChange("projectName")}
-                      className="w-full rounded-md border px-3 py-2 text-sm"
-                      placeholder="e.g Green Solar Energy"
-                    />
-                  </InputRow>
-                  <div className="mt-4">
-                    <InputRow label="Funding Goal *">
-                      <input
-                        value={form.fundingGoal}
-                        onChange={onChange("fundingGoal")}
-                        className="w-full rounded-md border px-3 py-2 text-sm"
-                        placeholder="e.g ₦50,000,000"
-                      />
-                    </InputRow>
-                  </div>
-                  <div className="mt-4">
-                    <InputRow label="Minimum Investment *">
-                      <input
-                        value={form.minInvestment}
-                        onChange={onChange("minInvestment")}
-                        className="w-full rounded-md border px-3 py-2 text-sm"
-                        placeholder="e.g ₦50,000"
-                      />
-                    </InputRow>
-                  </div>
-                  <div className="mt-4">
-                    <InputRow label="Closing Date *">
-                      <input
-                        type="date"
-                        value={form.closingDate}
-                        onChange={onChange("closingDate")}
-                        className="w-full rounded-md border px-3 py-2 text-sm"
-                      />
-                    </InputRow>
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputField label="Title" required>
+                  <input
+                    value={form.title}
+                    onChange={onChange("title")}
+                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="e.g Green Energy Investment Opportunity"
+                  />
+                </InputField>
 
-                <div>
-                  <InputRow label="Category *">
-                    <select
-                      value={form.category}
-                      onChange={onChange("category")}
-                      className="w-full rounded-md border px-3 py-2 text-sm bg-white"
-                    >
-                      <option value="">Select a Category</option>
-                      <option>Energy</option>
-                      <option>Agriculture</option>
-                      <option>Real Estate</option>
-                    </select>
-                  </InputRow>
+                <InputField label="Category" required>
+                  <input
+                    value={form.category}
+                    onChange={onChange("category")}
+                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="e.g Renewable Energy"
+                  />
+                </InputField>
 
-                  <div className="mt-4">
-                    <InputRow label="Duration *">
-                      <select
-                        value={form.duration}
-                        onChange={onChange("duration")}
-                        className="w-full rounded-md border px-3 py-2 text-sm bg-white"
-                      >
-                        <option value="">Select Duration</option>
-                        <option>6 months</option>
-                        <option>12 months</option>
-                        <option>24 months</option>
-                      </select>
-                    </InputRow>
-                  </div>
+                <InputField label="Sector" required>
+                  <input
+                    value={form.sector}
+                    onChange={onChange("sector")}
+                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="e.g Energy"
+                  />
+                </InputField>
 
-                  <div className="mt-4">
-                    <InputRow label="Expected ROI *">
-                      <input
-                        value={form.expectedROI}
-                        onChange={onChange("expectedROI")}
-                        className="w-full rounded-md border px-3 py-2 text-sm"
-                        placeholder="e.g 15-18%"
-                      />
-                    </InputRow>
-                  </div>
+                <InputField label="Location" required>
+                  <select
+                    value={form.location}
+                    onChange={onChange("currency")}
+                    className="w-full rounded-md border px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="Lagos, Nigeria">Lagos, Nigeria</option>
+                    <option value="Abuja, Nigeria">Abuja, Nigeria</option>
+                    <option value="Accra, Ghana">Accra, Ghana</option>
+                  </select>
+                </InputField>
 
-                  <div className="mt-4">
-                    <InputRow label="Location *">
-                      <select
-                        value={form.location}
-                        onChange={onChange("location")}
-                        className="w-full rounded-md border px-3 py-2 text-sm bg-white"
-                      >
-                        <option value="">Select a Location</option>
-                        <option>Lagos, Nigeria</option>
-                        <option>Abuja, Nigeria</option>
-                        <option>Accra, Ghana</option>
-                      </select>
-                    </InputRow>
-                  </div>
-                </div>
+                <InputField label="Investment Type" required>
+                  <input
+                    value={form.investmentType}
+                    onChange={onChange("investmentType")}
+                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="e.g Equity or Debt"
+                  />
+                </InputField>
+
+                <InputField label="Expected ROI" required>
+                  <input
+                    value={form.expectedROI}
+                    onChange={onChange("expectedROI")}
+                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="e.g 20%"
+                  />
+                </InputField>
+
+                <InputField label="Minimum Investment" required>
+                  <input
+                    type="number"
+                    value={form.minimumInvestment}
+                    onChange={onChange("minimumInvestment")}
+                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="e.g 1000000"
+                  />
+                </InputField>
+
+                <InputField label="Currency" required>
+                  <select
+                    value={form.currency}
+                    onChange={onChange("currency")}
+                    className="w-full rounded-md border px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="NGN">NGN (₦)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                  </select>
+                </InputField>
+
+                <InputField label="Closing Date" required>
+                  <input
+                    type="date"
+                    value={form.closingDate}
+                    onChange={onChange("closingDate")}
+                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </InputField>
               </div>
             </div>
 
-            {/* ROI Chart */}
+            {/* ROI CHART */}
             <div className="bg-white border rounded-md p-6 shadow-sm mt-6">
               <h3 className="font-semibold mb-1">ROI & Risk Analysis</h3>
               <p className="text-xs text-gray-500 mb-4">
@@ -237,17 +268,16 @@ export default function OpportunityForm() {
             </div>
           </>
         );
+
       case 1:
         return <MediaStep step={step} setStep={setStep} />;
       case 2:
         return (
-          <div className="bg-white border p-6 rounded-md">Description Step</div>
+          <div className="bg-white border p-6 rounded-md">Description</div>
         );
       case 3:
         return (
-          <div className="bg-white border p-6 rounded-md">
-            Review & Publish Step
-          </div>
+          <div className="bg-white border p-6 rounded-md">Review & Publish</div>
         );
       default:
         return null;
@@ -262,9 +292,10 @@ export default function OpportunityForm() {
       <div className="px-5 mt-1 overflow-x-auto scrollbar-hide">
         <h2 className="text-lg font-semibold mb-2">Create Opportunities</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Share your investment opportunity with the finTribe community
+          Share your investment opportunity with the Fintribe community
         </p>
         <ProgressBar steps={steps} step={step} setStep={setStep} />
+
         {renderStep()}
 
         {/* Step Navigation */}
@@ -278,10 +309,24 @@ export default function OpportunityForm() {
           </button>
 
           <button
-            onClick={() => setStep((s) => Math.min(steps.length - 1, s + 1))}
-            className="px-6 py-2 rounded-md text-sm bg-[#0b2447] text-white"
+            onClick={async () => {
+              if (loading) return;
+
+              if (step === 0) {
+                setLoading(true);
+                await UpdatebasicInfo();
+                setLoading(false);
+              }
+
+              setStep((s) => Math.min(steps.length - 1, s + 1));
+            }}
+            className="px-6 py-2 rounded-md text-sm bg-[#0b2447] text-white disabled:opacity-50"
           >
-            {step === steps.length - 1 ? "Finish" : "Next"}
+            {loading
+              ? "Submitting..."
+              : step === steps.length - 1
+              ? "Finish"
+              : "Next"}
           </button>
         </div>
       </div>
