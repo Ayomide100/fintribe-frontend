@@ -1,47 +1,78 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "@/config/axiosconfig";
+import { isAxiosError } from "axios";
 import { Upload } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { isAxiosError } from "axios";
 
 interface MediaStepProps {
   step: number;
   setStep: React.Dispatch<React.SetStateAction<number>>;
+  onNext: (data: any) => void;
+  onBack: () => void;
 }
 
-const MediaStep: React.FC<MediaStepProps> = () => {
-  const [images, setImages] = useState<(string | null)[]>([
+const MediaStep: React.FC<MediaStepProps> = ({ onNext, onBack }) => {
+  const [images, setImages] = useState<(File | null)[]>([
+    null,
+    null,
+    null,
+    null,
+  ]);
+  const [previews, setPreviews] = useState<(string | null)[]>([
     null,
     null,
     null,
     null,
   ]);
 
-  const id = "691300329366e6719a88c8d9";
+  const id = localStorage.getItem("opportunityId");
 
-  const handleUpload = async (index: number, file: File | null) => {
+  // Store file locally and generate preview
+  const handleFileChange = (index: number, file: File | null) => {
     if (!file) return;
+    const newImages = [...images];
+    newImages[index] = file;
+    setImages(newImages);
+
+    const newPreviews = [...previews];
+    newPreviews[index] = URL.createObjectURL(file);
+    setPreviews(newPreviews);
+  };
+
+  const addMoreImageBox = () => {
+    setImages((prev) => [...prev, null]);
+    setPreviews((prev) => [...prev, null]);
+  };
+
+  const handleNext = async () => {
+    if (!id) {
+      toast.error("Missing opportunity ID");
+      return;
+    }
+
+    const formData = new FormData();
+    images.forEach((file) => {
+      if (file) formData.append("media", file);
+    });
+
+    if (formData.getAll("media").length === 0) {
+      toast.error("Please upload at least one image");
+      return;
+    }
 
     const toastId = toast.loading("Uploading...");
 
     try {
-      const formData = new FormData();
-      formData.append("media", file);
-
       await axios.put(`/opportunity/${id}/media`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `${localStorage.getItem("token")}`,
         },
       });
-
-      // Update preview
-      const newImages = [...images];
-      newImages[index] = URL.createObjectURL(file);
-      setImages(newImages);
-
-      toast.success("Upload successful");
+      toast.success("Images uploaded successfully");
+      onNext({ images: previews.filter(Boolean) });
     } catch (error: unknown) {
       if (isAxiosError(error)) {
         const message =
@@ -57,10 +88,6 @@ const MediaStep: React.FC<MediaStepProps> = () => {
     }
   };
 
-  const addMoreImageBox = () => {
-    setImages((prev) => [...prev, null]);
-  };
-
   return (
     <div className="bg-white border rounded-md p-6 shadow-sm">
       <p className="text-sm font-medium mb-2">Project Gallery</p>
@@ -68,9 +95,8 @@ const MediaStep: React.FC<MediaStepProps> = () => {
         Upload up to 4 high-quality images (JPG, PNG, max 5MB each)
       </p>
 
-      {/* Upload Grid */}
       <div className="grid grid-cols-2 gap-6 mb-4">
-        {images.map((img, index) => (
+        {previews.map((img, index) => (
           <label
             key={index}
             className="border-2 border-dashed rounded-md flex flex-col items-center justify-center py-10 text-gray-500 cursor-pointer"
@@ -100,20 +126,38 @@ const MediaStep: React.FC<MediaStepProps> = () => {
               accept="image/*"
               className="hidden"
               onChange={(e) =>
-                handleUpload(index, e.target.files ? e.target.files[0] : null)
+                handleFileChange(
+                  index,
+                  e.target.files ? e.target.files[0] : null
+                )
               }
             />
           </label>
         ))}
       </div>
 
-      {/* Add More Button */}
       <div className="flex justify-center mb-6">
         <button
           onClick={addMoreImageBox}
           className="flex items-center gap-2 px-4 py-2 rounded-md border border-green-600 text-green-600 text-sm"
         >
           <span className="text-lg">＋</span> Upload more images
+        </button>
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-between">
+        <button
+          onClick={onBack}
+          className="px-4 py-2 rounded-md border text-gray-700"
+        >
+          Back
+        </button>
+        <button
+          onClick={handleNext}
+          className="px-4 py-2 rounded-md bg-green-600 text-white"
+        >
+          Next
         </button>
       </div>
     </div>

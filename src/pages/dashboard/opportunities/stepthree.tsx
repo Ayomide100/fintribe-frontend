@@ -27,190 +27,6 @@ const suggestedRiskFactors = [
   "Supply chain issues",
 ];
 
-export default function ProjectDescriptionForm() {
-  const [fullDesc, setFullDesc] = useState("");
-
-  const [dueDiligence, setDueDiligence] = useState<string[]>([
-    "Power purchase agreements confirmed",
-  ]);
-  const [keyHiglights, setkeyHiglights] = useState<string[]>([
-    "Projected yield 15% annually",
-  ]);
-  const [riskFactors, setRiskFactors] = useState<string[]>([
-    "Market Risk: Weather dependency and seasonal variations",
-  ]);
-
-  // Input visibility + temp inputs
-  const [showDueInput, setShowDueInput] = useState(false);
-  const [showHighlightInput, setShowHighlightInput] = useState(false);
-  const [showRiskInput, setShowRiskInput] = useState(false);
-
-  const [dueInput, setDueInput] = useState("");
-  const [highlightInput, setHighlightInput] = useState("");
-  const [riskInput, setRiskInput] = useState("");
-
-  // Generic add handlers
-  const handleAdd = (
-    list: string[],
-    setList: React.Dispatch<React.SetStateAction<string[]>>,
-    value: string,
-    resetInput: React.Dispatch<React.SetStateAction<string>>,
-    hideInput: React.Dispatch<React.SetStateAction<boolean>>
-  ) => {
-    if (!value.trim()) return;
-    setList([...list, value.trim()]);
-    resetInput("");
-    hideInput(false);
-  };
-
-  const handleRemove = (
-    list: string[],
-    setList: React.Dispatch<React.SetStateAction<string[]>>,
-    index: number
-  ) => {
-    setList(list.filter((_, i) => i !== index));
-  };
-
-  // ✅ Consume API here
-  const handleDescription = async () => {
-    const toastId = toast.loading("Updating description...");
-
-    const id = "691300329366e6719a88c8d9"; // Replace with dynamic one later
-
-    try {
-      const res = await axios.put(
-        `/opportunity/${id}/description`,
-        {
-          description: fullDesc,
-          dueDiligence,
-          keyHiglights,
-          riskFactors,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      console.log(res.data);
-      toast.success("Description updated successfully ✅");
-    } catch (error: unknown) {
-      if (isAxiosError(error)) {
-        const message =
-          error.response?.data?.message ||
-          error.response?.data?.error ||
-          "An unexpected error occurred";
-        toast.error(message);
-      } else {
-        toast.error("Error occurred");
-      }
-    } finally {
-      toast.dismiss(toastId);
-    }
-  };
-
-  return (
-    <div className="max-w-6xl mx-auto bg-white p-8 rounded-md shadow">
-      {/* Description Section */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-2">Detailed Description</h2>
-        <p className="text-sm text-gray-500 mb-1">
-          Provide comprehensive information about your opportunity and key
-          selling points and risks.
-        </p>
-        <label className="block font-medium mb-1" htmlFor="description">
-          Full Project Description<span className="text-red-500">*</span>
-        </label>
-        <textarea
-          id="description"
-          value={fullDesc}
-          onChange={(e) => setFullDesc(e.target.value)}
-          className="w-full border rounded px-3 py-2 mt-1 mb-4"
-          rows={4}
-          placeholder="Provide a detailed description of your investment opportunity"
-        />
-      </div>
-
-      {/* === Reusable Sections === */}
-      <Section
-        title="Due Diligence"
-        color="green"
-        items={dueDiligence}
-        showInput={showDueInput}
-        setShowInput={setShowDueInput}
-        inputValue={dueInput}
-        setInputValue={setDueInput}
-        onAdd={() =>
-          handleAdd(
-            dueDiligence,
-            setDueDiligence,
-            dueInput,
-            setDueInput,
-            setShowDueInput
-          )
-        }
-        onRemove={(i) => handleRemove(dueDiligence, setDueDiligence, i)}
-        suggestions={suggestedDueDiligence}
-      />
-
-      <Section
-        title="Key keyHiglights"
-        color="blue"
-        items={keyHiglights}
-        showInput={showHighlightInput}
-        setShowInput={setShowHighlightInput}
-        inputValue={highlightInput}
-        setInputValue={setHighlightInput}
-        onAdd={() =>
-          handleAdd(
-            keyHiglights,
-            setkeyHiglights,
-            highlightInput,
-            setHighlightInput,
-            setShowHighlightInput
-          )
-        }
-        onRemove={(i) => handleRemove(keyHiglights, setkeyHiglights, i)}
-        suggestions={suggestedkeyHiglights}
-      />
-
-      <Section
-        title="Risk Factors"
-        color="orange"
-        items={riskFactors}
-        showInput={showRiskInput}
-        setShowInput={setShowRiskInput}
-        inputValue={riskInput}
-        setInputValue={setRiskInput}
-        onAdd={() =>
-          handleAdd(
-            riskFactors,
-            setRiskFactors,
-            riskInput,
-            setRiskInput,
-            setShowRiskInput
-          )
-        }
-        onRemove={(i) => handleRemove(riskFactors, setRiskFactors, i)}
-        suggestions={suggestedRiskFactors}
-      />
-
-      {/* ✅ Save Button */}
-      <div className="flex justify-end mt-6">
-        <button
-          onClick={handleDescription}
-          className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
-        >
-          Save Description
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* === Section Component === */
 interface SectionProps {
   title: string;
   color: string;
@@ -351,3 +167,206 @@ function Section({
     </div>
   );
 }
+
+export default function ProjectDescriptionForm({
+  onNext,
+  onBack,
+}: {
+  onNext: () => void;
+  onBack: () => void;
+}) {
+  const [fullDesc, setFullDesc] = useState("");
+
+  const [dueDiligence, setDueDiligence] = useState<string[]>([
+    "Power purchase agreements confirmed",
+  ]);
+  const [keyHiglights, setkeyHiglights] = useState<string[]>([
+    "Projected yield 15% annually",
+  ]);
+  const [riskFactors, setRiskFactors] = useState<string[]>([
+    "Market Risk: Weather dependency and seasonal variations",
+  ]);
+
+  // Input visibility + temp inputs
+  const [showDueInput, setShowDueInput] = useState(false);
+  const [showHighlightInput, setShowHighlightInput] = useState(false);
+  const [showRiskInput, setShowRiskInput] = useState(false);
+
+  const [dueInput, setDueInput] = useState("");
+  const [highlightInput, setHighlightInput] = useState("");
+  const [riskInput, setRiskInput] = useState("");
+
+  // Generic add handlers
+  const handleAdd = (
+    list: string[],
+    setList: React.Dispatch<React.SetStateAction<string[]>>,
+    value: string,
+    resetInput: React.Dispatch<React.SetStateAction<string>>,
+    hideInput: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    if (!value.trim()) return;
+    setList([...list, value.trim()]);
+    resetInput("");
+    hideInput(false);
+  };
+
+  const handleRemove = (
+    list: string[],
+    setList: React.Dispatch<React.SetStateAction<string[]>>,
+    index: number
+  ) => {
+    setList(list.filter((_, i) => i !== index));
+  };
+
+  const handleDescription = async (): Promise<boolean> => {
+    const toastId = toast.loading("Updating description...");
+
+    const id = localStorage.getItem("opportunityId");
+
+    try {
+      const res = await axios.put(
+        `/opportunity/${id}/description`,
+        {
+          description: fullDesc,
+          dueDiligence,
+          keyHiglights,
+          riskFactors,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      console.log(res.data);
+      toast.success("Description updated successfully ✅");
+      return true; // ✅ success
+    } catch (error: unknown) {
+      if (isAxiosError(error)) {
+        const message =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          "An unexpected error occurred";
+        toast.error(message);
+      } else {
+        toast.error("Error occurred");
+      }
+      return false; // ❌ fail
+    } finally {
+      toast.dismiss(toastId);
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto bg-white p-8 rounded-md shadow">
+      {/* Description Section */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold mb-2">Detailed Description</h2>
+        <p className="text-sm text-gray-500 mb-1">
+          Provide comprehensive information about your opportunity and key
+          selling points and risks.
+        </p>
+        <label className="block font-medium mb-1" htmlFor="description">
+          Full Project Description<span className="text-red-500">*</span>
+        </label>
+        <textarea
+          id="description"
+          value={fullDesc}
+          onChange={(e) => setFullDesc(e.target.value)}
+          className="w-full border rounded px-3 py-2 mt-1 mb-4"
+          rows={4}
+          placeholder="Provide a detailed description of your investment opportunity"
+        />
+      </div>
+
+      {/* === Reusable Sections === */}
+      <Section
+        title="Due Diligence"
+        color="green"
+        items={dueDiligence}
+        showInput={showDueInput}
+        setShowInput={setShowDueInput}
+        inputValue={dueInput}
+        setInputValue={setDueInput}
+        onAdd={() =>
+          handleAdd(
+            dueDiligence,
+            setDueDiligence,
+            dueInput,
+            setDueInput,
+            setShowDueInput
+          )
+        }
+        onRemove={(i) => handleRemove(dueDiligence, setDueDiligence, i)}
+        suggestions={suggestedDueDiligence}
+      />
+
+      <Section
+        title="Key keyHiglights"
+        color="blue"
+        items={keyHiglights}
+        showInput={showHighlightInput}
+        setShowInput={setShowHighlightInput}
+        inputValue={highlightInput}
+        setInputValue={setHighlightInput}
+        onAdd={() =>
+          handleAdd(
+            keyHiglights,
+            setkeyHiglights,
+            highlightInput,
+            setHighlightInput,
+            setShowHighlightInput
+          )
+        }
+        onRemove={(i) => handleRemove(keyHiglights, setkeyHiglights, i)}
+        suggestions={suggestedkeyHiglights}
+      />
+
+      <Section
+        title="Risk Factors"
+        color="orange"
+        items={riskFactors}
+        showInput={showRiskInput}
+        setShowInput={setShowRiskInput}
+        inputValue={riskInput}
+        setInputValue={setRiskInput}
+        onAdd={() =>
+          handleAdd(
+            riskFactors,
+            setRiskFactors,
+            riskInput,
+            setRiskInput,
+            setShowRiskInput
+          )
+        }
+        onRemove={(i) => handleRemove(riskFactors, setRiskFactors, i)}
+        suggestions={suggestedRiskFactors}
+      />
+
+      <div className="flex justify-between">
+        <button
+          onClick={onBack}
+          className="px-4 py-2 rounded-md border text-gray-700"
+        >
+          Back
+        </button>
+
+        <button
+          onClick={async () => {
+            const success = await handleDescription();
+            if (success) {
+              onNext();
+            }
+          }}
+          className="px-4 py-2 rounded-md bg-green-600 text-white"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* === Section Component === */
