@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Compass } from "lucide-react";
 import Image from "next/image";
 import { TbLockAccess } from "react-icons/tb";
@@ -7,41 +7,44 @@ import { motion, useAnimation } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 
 // images
-import firstone from "../../../assets/187817fe37210c2e0093099c360898510851d788.jpg";
-import secondone from "../../../assets/2e1363bd7bba50ad27e636dd5baf25554019cbc6.jpg";
-import thirdone from "../../../assets/b05c727f512f42114b5172a761b9bec8cb0ddab0.jpg";
-import fourthone from "../../../assets/fa3ade4848a2f80ff7721bbdbe3f2d9fe32d2b66.jpg";
+// import firstone from "../../../assets/187817fe37210c2e0093099c360898510851d788.jpg";
+// import secondone from "../../../assets/2e1363bd7bba50ad27e636dd5baf25554019cbc6.jpg";
+// import thirdone from "../../../assets/b05c727f512f42114b5172a761b9bec8cb0ddab0.jpg";
+// import fourthone from "../../../assets/fa3ade4848a2f80ff7721bbdbe3f2d9fe32d2b66.jpg";
 
-import firstavatar from "../../../assets/415d4678cf8060fd7cd2737b18c9f1d6805aea67.jpg";
-import secondavatar from "../../../assets/96befc06bcc1cfd2e6a85064de0253f03354026a.jpg";
-import thirdavatar from "../../../assets/a2c6e6d0de7c64b0e95e9bf35274ad5bae26def3.jpg";
+// import firstavatar from "../../../assets/415d4678cf8060fd7cd2737b18c9f1d6805aea67.jpg";
+// import secondavatar from "../../../assets/96befc06bcc1cfd2e6a85064de0253f03354026a.jpg";
+// import thirdavatar from "../../../assets/a2c6e6d0de7c64b0e95e9bf35274ad5bae26def3.jpg";
+import axios from "@/config/axiosconfig";
+import { isAxiosError } from "axios";
+import toast from "react-hot-toast";
 
-const circles = [
-  {
-    title: "Young NG Investors circle",
-    members: "300",
-    desc: "A community of beginner-to-intermediate investors sharing daily stock tips and strategies.",
-    tags: ["Real Estate", "Bonds", "Stocks"],
-    images: [firstone, secondone, thirdone, fourthone],
-    avatar: firstavatar,
-  },
-  {
-    title: "Young NG Investors circle",
-    members: "300",
-    desc: "A community of beginner-to-intermediate investors sharing daily stock tips and strategies.",
-    tags: ["Real Estate", "Bonds", "Stocks"],
-    images: [firstone, secondone, thirdone, fourthone],
-    avatar: secondavatar,
-  },
-  {
-    title: "Young NG Investors circle",
-    members: "300",
-    desc: "A community of beginner-to-intermediate investors sharing daily stock tips and strategies.",
-    tags: ["Real Estate", "Bonds", "Stocks"],
-    images: [firstone, secondone, thirdone, fourthone],
-    avatar: thirdavatar,
-  },
-];
+// const circles = [
+//   {
+//     title: "Young NG Investors circle",
+//     members: "300",
+//     desc: "A community of beginner-to-intermediate investors sharing daily stock tips and strategies.",
+//     tags: ["Real Estate", "Bonds", "Stocks"],
+//     images: [firstone, secondone, thirdone, fourthone],
+//     avatar: firstavatar,
+//   },
+//   {
+//     title: "Young NG Investors circle",
+//     members: "300",
+//     desc: "A community of beginner-to-intermediate investors sharing daily stock tips and strategies.",
+//     tags: ["Real Estate", "Bonds", "Stocks"],
+//     images: [firstone, secondone, thirdone, fourthone],
+//     avatar: secondavatar,
+//   },
+//   {
+//     title: "Young NG Investors circle",
+//     members: "300",
+//     desc: "A community of beginner-to-intermediate investors sharing daily stock tips and strategies.",
+//     tags: ["Real Estate", "Bonds", "Stocks"],
+//     images: [firstone, secondone, thirdone, fourthone],
+//     avatar: thirdavatar,
+//   },
+// ];
 
 const cardVariants = {
   hidden: { opacity: 0, y: 50 },
@@ -52,15 +55,12 @@ const InvestorCard = ({ circle }: any) => {
   const controls = useAnimation();
   const [ref, inView] = useInView({
     threshold: 0.2,
-    triggerOnce: false, // so it fades out when scrolling past
+    triggerOnce: false,
   });
 
   useEffect(() => {
-    if (inView) {
-      controls.start("visible");
-    } else {
-      controls.start("hidden");
-    }
+    if (inView) controls.start("visible");
+    else controls.start("hidden");
   }, [inView, controls]);
 
   return (
@@ -72,48 +72,59 @@ const InvestorCard = ({ circle }: any) => {
       className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col justify-between hover:shadow-md transition 
       min-w-[80%] sm:min-w-[280px] md:w-[340px] md:h-[360px]"
     >
-      <div className="w-full h-[40%]  rounded-full flex justify-center items-center">
-        <div className="w-12 h-12 rounded-full bg-[#0A2540] flex items-center justify-center text-xs font-medium text-white border-2 border-[#226B44]">
+      {/* Circle Icon */}
+      <div className="w-full h-[40%] flex justify-center items-center">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#2E8B57]">
           <Image
-            src={circle.avatar}
-            alt="avatar"
-            className="w-full h-full rounded-full"
+            src={circle.icon?.url || "/fallback.png"} // fallback if missing
+            alt={circle.name}
+            width={80}
+            height={80}
+            className="object-cover w-full h-full"
           />
         </div>
       </div>
-      <div className="w-full flex justify-center items-center flex-col ">
-        <h3 className="font-semibold text-gray-900 mb-1">{circle.title}</h3>
-        <div className="flex items-center text-sm text-gray-600 mb-2">
-          Members • {circle.members} •{" "}
-          <TbLockAccess className="text-[#2E8B57]" size={25} />
-        </div>
-        <p className="text-sm text-gray-600 mb-3 text-center">{circle.desc}</p>
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          {circle.tags.map((tag: string, i: number) => (
-            <span
-              key={i}
-              className="px-3 py-1 border border-[#2E8B57] text-[#2E8B57] rounded-full text-xs font-medium"
-            >
-              {tag}
-            </span>
-          ))}
+      {/* Text Info */}
+      <div className="w-full flex justify-center items-center flex-col">
+        <h3 className="font-semibold text-gray-900 mb-1 text-center">
+          {circle.name}
+        </h3>
+
+        <div className="flex items-center text-sm text-gray-600 mb-2 gap-1">
+          <span>{circle.totalMembers} members</span>
+          {circle.type === "private" && (
+            <TbLockAccess className="text-[#2E8B57]" size={18} />
+          )}
         </div>
 
-        {/* Avatars */}
+        <p className="text-sm text-gray-600 mb-3 text-center line-clamp-2">
+          {circle.description}
+        </p>
+
+        {/* Top Members */}
         <div className="flex justify-center items-center -space-x-3 mb-4">
-          {circle.images.map((img: string, i: number) => (
-            <Image
+          {circle.topMembers?.map((member: any, i: number) => (
+            <div
               key={i}
-              src={img}
-              alt="member"
-              className="w-10 h-10 rounded-full border-2 border-[#2E8B57]"
-            />
+              className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#2E8B57]"
+            >
+              <Image
+                src={member.avatar?.url || "/avatar-fallback.png"}
+                alt={member.name}
+                width={40}
+                height={40}
+                className="object-cover w-full h-full"
+              />
+            </div>
           ))}
-          <div className="w-10 h-10 rounded-full bg-[#0A2540] flex items-center justify-center text-xs font-medium text-white border-2 border-white">
-            +295
-          </div>
+
+          {/* Remaining Members (if you want) */}
+          {circle.remainingCount > 0 && (
+            <div className="w-10 h-10 rounded-full bg-[#0A2540] flex items-center justify-center text-xs font-medium text-white border-2 border-white">
+              +{circle.remainingCount}
+            </div>
+          )}
         </div>
       </div>
 
@@ -126,6 +137,28 @@ const InvestorCard = ({ circle }: any) => {
 };
 
 const Investors = () => {
+  const [circles, setcirles] = useState([]);
+
+  useEffect(() => {
+    const getallCircles = async () => {
+      try {
+        const response = await axios.get("/circle/all?pages=1&limit=5");
+        console.log(response.data.content.circles || []);
+        setcirles(response.data.content.circles || []);
+      } catch (error) {
+        if (isAxiosError(error)) {
+          const msg =
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to fetch experts";
+          toast.error(msg);
+        }
+      }
+    };
+
+    getallCircles();
+  }, []);
+
   return (
     <div className="w-full bg-white py-12">
       {/* Header */}
@@ -163,7 +196,7 @@ const Investors = () => {
       </div>
 
       {/* Mobile View All Button */}
-      <div className="flex md:hidden w-full h-[1rem] mt-7 justify-center items-center">
+      <div className="flex md:hidden w-full h-4 mt-7 justify-center items-center">
         <button className="border border-[#2E8B57] font-medium text-[#2E8B57] py-2 px-28 rounded-2xl flex items-center gap-2">
           View all <Compass className="w-4 h-4" />
         </button>

@@ -1,0 +1,1 @@
+https://fintribe-backend-6jlh.onrender.com/api/v1

@@ -28,16 +28,20 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ steps, step, setStep }) => {
       </div>
 
       {/* Step Tabs */}
-      <div className="flex justify-around flex-wrap  px-3 mt-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3  md:flex md:flex-wrap md:justify-around gap-2 px-3 mt-3">
         {steps.map((label, i) => (
           <button
             key={label}
             onClick={() => setStep(i)}
-            className={`px-14 py-1 text-sm rounded-md border transition-all duration-200 ${
-              i === step
-                ? "bg-[#2E8B57] text-white border-[#2E8B57]"
-                : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
-            }`}
+            className={`text-xs sm:text-sm h-10 rounded-md border transition-all duration-200
+        py-2 sm:py-1
+        w-full md:w-60
+        ${
+          i === step
+            ? "bg-[#2E8B57] text-white border-[#2E8B57]"
+            : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+        }
+      `}
           >
             {label}
           </button>
