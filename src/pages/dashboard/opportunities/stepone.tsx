@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo, useState } from "react";
 import {
   Chart as ChartJS,
@@ -11,15 +12,9 @@ import {
   Title,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import Dashboardlayouts from "@/pages/layouts/Dashboardlayouts";
-import Head from "next/head";
-import ProgressBar from "./progressbar";
-import MediaStep from "./steptwo";
 import axios from "@/config/axiosconfig";
 import { isAxiosError } from "axios";
 import toast from "react-hot-toast";
-import ProjectDescriptionForm from "./stepthree";
-import FinalStep from "./laststep";
 
 ChartJS.register(
   CategoryScale,
@@ -52,7 +47,12 @@ const InputField: React.FC<InputFieldProps> = ({
   </div>
 );
 
-export default function OpportunityForm() {
+interface OpportunityFormProps {
+  onNext: (data: any, id?: string) => void;
+  existingId?: string | null;
+}
+
+const OpportunityForm: React.FC<OpportunityFormProps> = ({ onNext }) => {
   const [form, setForm] = useState({
     title: "",
     category: "",
@@ -62,24 +62,16 @@ export default function OpportunityForm() {
     minimumInvestment: "",
     currency: "NGN",
     closingDate: "",
-    // sector: "",
   });
 
-  const [step, setStep] = useState<number>(0);
   const [loading, setLoading] = useState(false);
-
-  const steps = [
-    "Basic Information",
-    "Media",
-    "Description",
-    "Review and Publish",
-  ];
 
   const onChange =
     (key: string) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setForm((prev) => ({ ...prev, [key]: e.target.value }));
-  const UpdatebasicInfo = async () => {
+
+  const handleSubmit = async () => {
     const toastId = toast.loading("Submitting basic info...");
     try {
       const res = await axios.post(
@@ -93,9 +85,12 @@ export default function OpportunityForm() {
         }
       );
 
-      console.log(res.data);
       toast.success("Basic information submitted!");
-      return true;
+      const id = res.data?.content?._id;
+
+      if (id) localStorage.setItem("opportunityId", id);
+
+      onNext(form, id);
     } catch (error: unknown) {
       if (isAxiosError(error)) {
         const message =
@@ -106,13 +101,13 @@ export default function OpportunityForm() {
       } else {
         toast.error("Error occurred");
       }
-      return false;
     } finally {
       toast.dismiss(toastId);
+      setLoading(false);
     }
   };
 
-  // ROI Chart Data
+  // ROI Chart
   const chartData = useMemo(() => {
     const months = Array.from({ length: 25 }, (_, i) => i);
     const minROI = months.map((m) => parseFloat(((m / 24) * 30).toFixed(2)));
@@ -169,176 +164,115 @@ export default function OpportunityForm() {
     []
   );
 
-  const renderStep = () => {
-    switch (step) {
-      case 0:
-        return (
-          <>
-            {/* BASIC INFO */}
-            <div className="bg-white border rounded-md p-6 shadow-sm">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField label="Title" required>
-                  <input
-                    value={form.title}
-                    onChange={onChange("title")}
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="e.g Green Energy Investment Opportunity"
-                  />
-                </InputField>
-
-                <InputField label="Category" required>
-                  <input
-                    value={form.category}
-                    onChange={onChange("category")}
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="e.g Renewable Energy"
-                  />
-                </InputField>
-
-                {/* <InputField label="Sector" required>
-                  <input
-                    value={form.sector}
-                    onChange={onChange("sector")}
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="e.g Energy"
-                  />
-                </InputField> */}
-
-                <InputField label="Location" required>
-                  <input
-                    value={form.location}
-                    onChange={onChange("location")}
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="Lagos, Nigeria"
-                  />
-                </InputField>
-
-                <InputField label="Investment Type" required>
-                  <input
-                    value={form.investmentType}
-                    onChange={onChange("investmentType")}
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="e.g Equity or Debt"
-                  />
-                </InputField>
-
-                <InputField label="Expected ROI" required>
-                  <input
-                    value={form.expectedROI}
-                    onChange={onChange("expectedROI")}
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="e.g 20%"
-                  />
-                </InputField>
-
-                <InputField label="Minimum Investment" required>
-                  <input
-                    type="number"
-                    value={form.minimumInvestment}
-                    onChange={onChange("minimumInvestment")}
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="e.g 1000000"
-                  />
-                </InputField>
-
-                <InputField label="Currency" required>
-                  <select
-                    value={form.currency}
-                    onChange={onChange("currency")}
-                    className="w-full rounded-md border px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  >
-                    <option value="NGN">NGN (₦)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                  </select>
-                </InputField>
-
-                <InputField label="Closing Date" required>
-                  <input
-                    type="date"
-                    value={form.closingDate}
-                    onChange={onChange("closingDate")}
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  />
-                </InputField>
-              </div>
-            </div>
-
-            {/* ROI CHART */}
-            <div className="bg-white border rounded-md p-6 shadow-sm mt-6">
-              <h3 className="font-semibold mb-1">ROI & Risk Analysis</h3>
-              <p className="text-xs text-gray-500 mb-4">
-                Projected ROI Timeline
-              </p>
-              <div style={{ height: 320 }}>
-                <Line data={chartData} options={chartOptions} />
-              </div>
-            </div>
-          </>
-        );
-
-      case 1:
-        return <MediaStep step={step} setStep={setStep} />;
-      case 2:
-        return <ProjectDescriptionForm />;
-      case 3:
-        return <FinalStep />;
-      default:
-        return null;
-    }
-  };
-
   return (
-    <Dashboardlayouts>
-      <Head>
-        <title>Fintribe | Create Opportunity</title>
-      </Head>
-      <div className="px-5 mt-1 max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-        <h2 className="text-lg font-semibold mb-2">Create Opportunities</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Share your investment opportunity with the Fintribe community
-        </p>
-        <div className="">
-          <ProgressBar steps={steps} step={step} setStep={setStep} />
-        </div>
+    <div className="px-5 mt-1">
+      <h2 className="text-lg font-semibold mb-2">Create Opportunity</h2>
+      <p className="text-sm text-gray-500 mb-4">
+        Share your investment opportunity with the Fintribe community
+      </p>
 
-        {renderStep()}
+      {/* BASIC INFO */}
+      <div className="bg-white border rounded-md p-6 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <InputField label="Title" required>
+            <input
+              value={form.title}
+              onChange={onChange("title")}
+              className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="e.g Green Energy Investment Opportunity"
+            />
+          </InputField>
 
-        {/* Step Navigation */}
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={() => setStep((s) => Math.max(0, s - 1))}
-            disabled={step === 0}
-            className="px-6 py-2 border rounded-md text-sm bg-white disabled:opacity-40"
-          >
-            Previous
-          </button>
+          <InputField label="Category" required>
+            <input
+              value={form.category}
+              onChange={onChange("category")}
+              className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="e.g Renewable Energy"
+            />
+          </InputField>
 
-          <button
-            onClick={async () => {
-              if (loading) return;
+          <InputField label="Location" required>
+            <input
+              value={form.location}
+              onChange={onChange("location")}
+              className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Lagos, Nigeria"
+            />
+          </InputField>
 
-              if (step === 0) {
-                setLoading(true);
-                const success = await UpdatebasicInfo();
-                setLoading(false);
+          <InputField label="Investment Type" required>
+            <input
+              value={form.investmentType}
+              onChange={onChange("investmentType")}
+              className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="e.g Equity or Debt"
+            />
+          </InputField>
 
-                // ✅ only move to next step if successful
-                if (!success) return;
-              }
+          <InputField label="Expected ROI" required>
+            <input
+              value={form.expectedROI}
+              onChange={onChange("expectedROI")}
+              className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="e.g 20%"
+            />
+          </InputField>
 
-              setStep((s) => Math.min(steps.length - 1, s + 1));
-            }}
-            className="px-6 py-2 rounded-md text-sm bg-[#0b2447] text-white disabled:opacity-50"
-          >
-            {loading
-              ? "Submitting..."
-              : step === steps.length - 1
-              ? "Finish"
-              : "Next"}
-          </button>
+          <InputField label="Minimum Investment" required>
+            <input
+              type="number"
+              value={form.minimumInvestment}
+              onChange={onChange("minimumInvestment")}
+              className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="e.g 1000000"
+            />
+          </InputField>
+
+          <InputField label="Currency" required>
+            <select
+              value={form.currency}
+              onChange={onChange("currency")}
+              className="w-full rounded-md border px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="NGN">NGN (₦)</option>
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+            </select>
+          </InputField>
+
+          <InputField label="Closing Date" required>
+            <input
+              type="date"
+              value={form.closingDate}
+              onChange={onChange("closingDate")}
+              className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </InputField>
         </div>
       </div>
-    </Dashboardlayouts>
+
+      {/* ROI CHART */}
+      <div className="bg-white border rounded-md p-6 shadow-sm mt-6">
+        <h3 className="font-semibold mb-1">ROI & Risk Analysis</h3>
+        <p className="text-xs text-gray-500 mb-4">Projected ROI Timeline</p>
+        <div style={{ height: 320 }}>
+          <Line data={chartData} options={chartOptions} />
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex justify-end mt-6">
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="px-6 py-2 rounded-md text-sm bg-[#0b2447] text-white disabled:opacity-50"
+        >
+          {loading ? "Submitting..." : "Next"}
+        </button>
+      </div>
+    </div>
   );
-}
+};
+
+export default OpportunityForm;

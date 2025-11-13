@@ -149,7 +149,7 @@ const Opportunities = () => {
               {isPartner && (
                 <button
                   onClick={() =>
-                    router.push("/dashboard/opportunities/stepone")
+                    router.push("/dashboard/opportunities/connect")
                   }
                   className="flex items-center gap-2 bg-[#001F3F] text-white text-sm px-4 py-2 rounded-md hover:bg-[#003366] transition"
                 >
