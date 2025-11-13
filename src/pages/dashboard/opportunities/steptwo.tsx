@@ -1,6 +1,9 @@
+import axios from "@/config/axiosconfig";
 import { Upload } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import toast from "react-hot-toast";
+import { isAxiosError } from "axios";
 
 interface MediaStepProps {
   step: number;
@@ -15,16 +18,48 @@ const MediaStep: React.FC<MediaStepProps> = () => {
     null,
   ]);
 
-  function handleUpload(index: number, file: File | null) {
-    if (!file) return; // ✅ Guard clause for null
-    const newImages = [...images];
-    newImages[index] = URL.createObjectURL(file); // ✅ file is guaranteed non-null here
-    setImages(newImages);
-  }
+  const id = "691300329366e6719a88c8d9";
 
-  function addMoreImageBox() {
+  const handleUpload = async (index: number, file: File | null) => {
+    if (!file) return;
+
+    const toastId = toast.loading("Uploading...");
+
+    try {
+      const formData = new FormData();
+      formData.append("media", file);
+
+      await axios.put(`/opportunity/${id}/media`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+      });
+
+      // Update preview
+      const newImages = [...images];
+      newImages[index] = URL.createObjectURL(file);
+      setImages(newImages);
+
+      toast.success("Upload successful");
+    } catch (error: unknown) {
+      if (isAxiosError(error)) {
+        const message =
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          "An unexpected error occurred";
+        toast.error(message);
+      } else {
+        toast.error("Error occurred");
+      }
+    } finally {
+      toast.dismiss(toastId);
+    }
+  };
+
+  const addMoreImageBox = () => {
     setImages((prev) => [...prev, null]);
-  }
+  };
 
   return (
     <div className="bg-white border rounded-md p-6 shadow-sm">
@@ -44,6 +79,8 @@ const MediaStep: React.FC<MediaStepProps> = () => {
               <Image
                 src={img}
                 alt="uploaded preview"
+                width={200}
+                height={200}
                 className="w-full h-full object-cover rounded-md"
               />
             ) : (
@@ -57,22 +94,20 @@ const MediaStep: React.FC<MediaStepProps> = () => {
                 </span>
               </>
             )}
+
             <input
               type="file"
               accept="image/*"
               className="hidden"
               onChange={(e) =>
-                handleUpload(
-                  index,
-                  e.target.files && e.target.files[0] ? e.target.files[0] : null
-                )
+                handleUpload(index, e.target.files ? e.target.files[0] : null)
               }
             />
           </label>
         ))}
       </div>
 
-      {/* Add more button */}
+      {/* Add More Button */}
       <div className="flex justify-center mb-6">
         <button
           onClick={addMoreImageBox}
@@ -81,28 +116,8 @@ const MediaStep: React.FC<MediaStepProps> = () => {
           <span className="text-lg">＋</span> Upload more images
         </button>
       </div>
-
-      {/* Guidelines */}
-      <div className="bg-gray-50 border rounded-md p-4 text-sm">
-        <p className="font-medium mb-2">Media Guidelines</p>
-        <ul className="text-xs space-y-1 text-gray-600">
-          <li>• Use high-resolution images that clearly show your project</li>
-          <li>• Include photos of locations, facilities, or key assets</li>
-          <li>• Videos should be professional and under 3 minutes</li>
-          <li>• Avoid watermarks or copyrighted content</li>
-        </ul>
-      </div>
-
-      {/* Navigation Buttons */}
-      {/* <div className="flex justify-between mt-8">
-        <button className="px-6 py-2 border rounded-md text-sm">
-          Previous
-        </button>
-        <button className="px-6 py-2 rounded-md text-sm bg-[#0b2447] text-white">
-          Next
-        </button>
-      </div> */}
     </div>
   );
 };
+
 export default MediaStep;

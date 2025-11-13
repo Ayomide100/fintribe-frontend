@@ -18,6 +18,8 @@ import MediaStep from "./steptwo";
 import axios from "@/config/axiosconfig";
 import { isAxiosError } from "axios";
 import toast from "react-hot-toast";
+import ProjectDescriptionForm from "./stepthree";
+import FinalStep from "./laststep";
 
 ChartJS.register(
   CategoryScale,
@@ -56,11 +58,11 @@ export default function OpportunityForm() {
     category: "",
     location: "",
     investmentType: "",
-    expectedROI: "",
+    expectedROI: 0,
     minimumInvestment: "",
     currency: "NGN",
     closingDate: "",
-    sector: "",
+    // sector: "",
   });
 
   const [step, setStep] = useState<number>(0);
@@ -77,15 +79,23 @@ export default function OpportunityForm() {
     (key: string) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setForm((prev) => ({ ...prev, [key]: e.target.value }));
-
   const UpdatebasicInfo = async () => {
     const toastId = toast.loading("Submitting basic info...");
     try {
-      const res = await axios.post("/opportunity/basic-info", form, {
-        headers: { Authorization: `${localStorage.getItem("token")}` },
-      });
-      console.log(res);
+      const res = await axios.post(
+        "/opportunity/basic-info",
+        JSON.stringify(form),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      console.log(res.data);
       toast.success("Basic information submitted!");
+      return true;
     } catch (error: unknown) {
       if (isAxiosError(error)) {
         const message =
@@ -96,6 +106,7 @@ export default function OpportunityForm() {
       } else {
         toast.error("Error occurred");
       }
+      return false;
     } finally {
       toast.dismiss(toastId);
     }
@@ -184,25 +195,22 @@ export default function OpportunityForm() {
                   />
                 </InputField>
 
-                <InputField label="Sector" required>
+                {/* <InputField label="Sector" required>
                   <input
                     value={form.sector}
                     onChange={onChange("sector")}
                     className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     placeholder="e.g Energy"
                   />
-                </InputField>
+                </InputField> */}
 
                 <InputField label="Location" required>
-                  <select
+                  <input
                     value={form.location}
-                    onChange={onChange("currency")}
-                    className="w-full rounded-md border px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  >
-                    <option value="Lagos, Nigeria">Lagos, Nigeria</option>
-                    <option value="Abuja, Nigeria">Abuja, Nigeria</option>
-                    <option value="Accra, Ghana">Accra, Ghana</option>
-                  </select>
+                    onChange={onChange("location")}
+                    className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="Lagos, Nigeria"
+                  />
                 </InputField>
 
                 <InputField label="Investment Type" required>
@@ -272,13 +280,9 @@ export default function OpportunityForm() {
       case 1:
         return <MediaStep step={step} setStep={setStep} />;
       case 2:
-        return (
-          <div className="bg-white border p-6 rounded-md">Description</div>
-        );
+        return <ProjectDescriptionForm />;
       case 3:
-        return (
-          <div className="bg-white border p-6 rounded-md">Review & Publish</div>
-        );
+        return <FinalStep />;
       default:
         return null;
     }
@@ -289,12 +293,14 @@ export default function OpportunityForm() {
       <Head>
         <title>Fintribe | Create Opportunity</title>
       </Head>
-      <div className="px-5 mt-1 overflow-x-auto scrollbar-hide">
+      <div className="px-5 mt-1 max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         <h2 className="text-lg font-semibold mb-2">Create Opportunities</h2>
         <p className="text-sm text-gray-500 mb-4">
           Share your investment opportunity with the Fintribe community
         </p>
-        <ProgressBar steps={steps} step={step} setStep={setStep} />
+        <div className="">
+          <ProgressBar steps={steps} step={step} setStep={setStep} />
+        </div>
 
         {renderStep()}
 
@@ -314,8 +320,11 @@ export default function OpportunityForm() {
 
               if (step === 0) {
                 setLoading(true);
-                await UpdatebasicInfo();
+                const success = await UpdatebasicInfo();
                 setLoading(false);
+
+                // ✅ only move to next step if successful
+                if (!success) return;
               }
 
               setStep((s) => Math.min(steps.length - 1, s + 1));

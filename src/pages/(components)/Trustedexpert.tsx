@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   MessageSquare,
   UserPlus,
@@ -9,65 +9,71 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
+import axios from "@/config/axiosconfig";
+import { isAxiosError } from "axios";
+import toast from "react-hot-toast";
 
-const expertData = [
-  {
-    name: "Adebimpe Thompson",
-    title: "Senior Investment Analyst",
-    isVerified: true,
-    followers: "12,500",
-    posts: "187",
-    successRate: "80%",
-    rating: 4.8,
-    totalInvested: " (234 investors)",
-    experience:
-      "10+ years experience in Nigerian financial markets. Former Goldman Sachs analyst with a track record of identifying high-growth opportunities.",
-    badges: ["Real estate", "Bonds", "Stocks"],
-  },
-  {
-    name: "Adebimpe Thompson",
-    title: "Senior Investment Analyst",
-    isVerified: true,
-    followers: "12,500",
-    posts: "187",
-    successRate: "80%",
-    rating: 4.8,
-    totalInvested: " (234 investors)",
-    experience:
-      "10+ years experience in Nigerian financial markets. Former Goldman Sachs analyst with a track record of identifying high-growth opportunities.",
-    badges: ["Real estate", "Bonds", "Stocks"],
-  },
-  {
-    name: "Adebimpe Thompson",
-    title: "Senior Investment Analyst",
-    isVerified: true,
-    followers: "12,500",
-    posts: "187",
-    successRate: "80%",
-    rating: 4.8,
-    totalInvested: " (234 investors)",
-    experience:
-      "10+ years experience in Nigerian financial markets. Former Goldman Sachs analyst with a track record of identifying high-growth opportunities.",
-    badges: ["Real estate", "Bonds", "Stocks"],
-  },
-  {
-    name: "Adebimpe Thompson",
-    title: "Senior Investment Analyst",
-    isVerified: true,
-    followers: "12,500",
-    posts: "187",
-    successRate: "80%",
-    rating: 4.8,
-    totalInvested: " (234 investors)",
-    experience:
-      "10+ years experience in Nigerian financial markets. Former Goldman Sachs analyst with a track record of identifying high-growth opportunities.",
-    badges: ["Real estate", "Bonds", "Stocks"],
-  },
-];
+// const expertData = [
+//   {
+//     name: "Adebimpe Thompson",
+//     title: "Senior Investment Analyst",
+//     isVerified: true,
+//     followers: "12,500",
+//     posts: "187",
+//     successRate: "80%",
+//     rating: 4.8,
+//     totalInvested: " (234 investors)",
+//     experience:
+//       "10+ years experience in Nigerian financial markets. Former Goldman Sachs analyst with a track record of identifying high-growth opportunities.",
+//     badges: ["Real estate", "Bonds", "Stocks"],
+//   },
+//   {
+//     name: "Adebimpe Thompson",
+//     title: "Senior Investment Analyst",
+//     isVerified: true,
+//     followers: "12,500",
+//     posts: "187",
+//     successRate: "80%",
+//     rating: 4.8,
+//     totalInvested: " (234 investors)",
+//     experience:
+//       "10+ years experience in Nigerian financial markets. Former Goldman Sachs analyst with a track record of identifying high-growth opportunities.",
+//     badges: ["Real estate", "Bonds", "Stocks"],
+//   },
+//   {
+//     name: "Adebimpe Thompson",
+//     title: "Senior Investment Analyst",
+//     isVerified: true,
+//     followers: "12,500",
+//     posts: "187",
+//     successRate: "80%",
+//     rating: 4.8,
+//     totalInvested: " (234 investors)",
+//     experience:
+//       "10+ years experience in Nigerian financial markets. Former Goldman Sachs analyst with a track record of identifying high-growth opportunities.",
+//     badges: ["Real estate", "Bonds", "Stocks"],
+//   },
+//   {
+//     name: "Adebimpe Thompson",
+//     title: "Senior Investment Analyst",
+//     isVerified: true,
+//     followers: "12,500",
+//     posts: "187",
+//     successRate: "80%",
+//     rating: 4.8,
+//     totalInvested: " (234 investors)",
+//     experience:
+//       "10+ years experience in Nigerian financial markets. Former Goldman Sachs analyst with a track record of identifying high-growth opportunities.",
+//     badges: ["Real estate", "Bonds", "Stocks"],
+//   },
+// ];
 
 const ExpertCard = ({ expert }: any) => {
+  const investorCount = expert.rating?.investorCount?.[0]?.investorMembers || 0; // ✅ safe access
+  const experience = expert.profileData?.experience || "No experience provided"; // ✅ safe access
+
   return (
-    <div className="w-full h-[320px] bg-white rounded-lg border border-gray-200 flex flex-col justify-between p-4 hover:shadow-md transition">
+    <div className="w-full h-80 bg-white rounded-lg border border-gray-200 flex flex-col justify-between p-4 hover:shadow-md transition">
       {/* Top Section */}
       <div className="flex flex-col">
         {/* Header */}
@@ -75,20 +81,21 @@ const ExpertCard = ({ expert }: any) => {
           <div className="flex items-center gap-3">
             {/* Avatar */}
             <div className="relative w-12 h-12 flex items-center justify-center border-[#226B44] border-2 bg-gray-300 rounded-full text-gray-700 font-bold">
-              AT
+              {expert.initials}
             </div>
 
             {/* Name + Title */}
             <div className="flex-col py-2 flex justify-start">
               <div className="flex justify-center items-center gap-1">
                 <h3 className="font-semibold text-sm text-gray-900">
-                  {expert.name}
+                  {expert.fullName}
                 </h3>
                 <ShieldCheck className="text-[#226B44] w-4 h-4" />
               </div>
               <p className="text-xs text-gray-600 mt-1">{expert.title}</p>
             </div>
           </div>
+
           {/* Followers + Posts */}
           <div className="text-right text-xs">
             <p className="font-semibold text-gray-900">{expert.followers}</p>
@@ -100,7 +107,7 @@ const ExpertCard = ({ expert }: any) => {
 
         {/* Badges */}
         <div className="flex gap-2 flex-wrap mb-2">
-          {expert.badges.map((badge: string, i: number) => (
+          {expert.investmentTags?.map((badge: string, i: number) => (
             <span
               key={i}
               className="bg-[#0A2540] text-white text-[10px] px-2 py-0.5 rounded-full"
@@ -110,21 +117,19 @@ const ExpertCard = ({ expert }: any) => {
           ))}
         </div>
 
+        {/* Rating / Investors Section */}
         <div className="mb-3">
-          <p className="text-2xl font-bold text-emerald-500">
-            {expert.successRate}
-          </p>
-          <p className="text-xs text-gray-500">Success rate</p>
-          <div className="flex items-center gap-1 mt-1 text-xs justify-end">
+          <div className="flex items-center gap-1 text-xs justify-end">
             <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-            <span>{expert.rating}</span>
-            <span className="text-gray-500">{expert.totalInvested}</span>
+            <span className="text-gray-700 font-medium">
+              {investorCount} investors
+            </span>
           </div>
         </div>
 
-        {/* Description */}
+        {/* Experience */}
         <p className="text-xs text-gray-600 leading-relaxed flex-1">
-          {expert.experience}
+          {experience}
         </p>
       </div>
 
@@ -145,10 +150,30 @@ const ExpertCard = ({ expert }: any) => {
 };
 
 const Trustedexpert = () => {
+  const [expertData, setExpertData] = useState<any[]>([]);
   const { ref, inView } = useInView({
-    triggerOnce: false, // replay animation when scrolling back
-    threshold: 0.15, // percentage of component visible
+    triggerOnce: false,
+    threshold: 0.15,
   });
+
+  useEffect(() => {
+    const getExpertData = async () => {
+      try {
+        const response = await axios.get("/users/experts?pages=1&limit=5");
+        setExpertData(response.data.content.experts || []);
+      } catch (error) {
+        if (isAxiosError(error)) {
+          const msg =
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to fetch experts";
+          toast.error(msg);
+        }
+      }
+    };
+
+    getExpertData();
+  }, []);
 
   return (
     <motion.div
@@ -186,14 +211,14 @@ const Trustedexpert = () => {
               initial={{ opacity: 0, y: 50 }}
               animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
               transition={{ duration: 0.6, delay: i * 0.2 }}
-              className="w-full sm:w-[60%] lg:w-[47%] flex-shrink-0"
+              className="w-full sm:w-[60%] lg:w-[47%] shrink-0"
             >
               <ExpertCard expert={expert} />
             </motion.div>
           ))}
         </div>
       </div>
-      <div className="flex md:hidden w-full h-[1rem] mt-5 justify-center items-center">
+      <div className="flex md:hidden w-full h-4 mt-5 justify-center items-center">
         <button className="border border-[#2E8B57] font-medium text-[#2E8B57] py-2 px-28 rounded-2xl flex items-center gap-2">
           View all <Compass className="w-4 h-4" />
         </button>
