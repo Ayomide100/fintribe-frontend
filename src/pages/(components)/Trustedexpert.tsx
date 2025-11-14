@@ -211,7 +211,7 @@ const Trustedexpert = () => {
               initial={{ opacity: 0, y: 50 }}
               animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
               transition={{ duration: 0.6, delay: i * 0.2 }}
-              className="w-full sm:w-[60%] lg:w-[47%] shrink-0"
+              className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 shrink-0"
             >
               <ExpertCard expert={expert} />
             </motion.div>

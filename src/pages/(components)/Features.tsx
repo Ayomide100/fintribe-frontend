@@ -1,87 +1,90 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Compass, School, Star } from "lucide-react";
 import { motion } from "framer-motion";
+import axios from "@/config/axiosconfig";
+import { isAxiosError } from "axios";
+import toast from "react-hot-toast";
 
-const investmentData = [
-  {
-    title: "Lagos Real Estate",
-    subtitle: "Sterling Properties",
-    category: "Real Estate",
-    categoryColor: "bg-cyan-100 text-cyan-600",
-    rating: 4.6,
-    investors: 234,
-    roi: "18-22%",
-    duration: "24 months",
-    minInvestment: "₦250,000",
-    riskLevel: "Low Risk",
-    riskColor: "bg-green-100 text-green-600",
-  },
-  {
-    title: "AgroFund",
-    subtitle: "AgriGrowth Ltd",
-    category: "Agriculture",
-    categoryColor: "bg-emerald-100 text-emerald-600",
-    rating: 4.8,
-    investors: 734,
-    roi: "35-50%",
-    duration: "12 months",
-    minInvestment: "₦150,000",
-    riskLevel: "Medium Risk",
-    riskColor: "bg-yellow-100 text-yellow-600",
-  },
-  {
-    title: "Lagos Real Estate",
-    category: "Agriculture",
-    subtitle: "AgriGrowth Ltd",
-    categoryColor: "bg-emerald-100 text-emerald-600",
-    rating: 4.8,
-    investors: 234,
-    roi: "35-50%",
-    duration: "24 months",
-    minInvestment: "₦250,000",
-    riskLevel: "High Risk",
-    riskColor: "bg-red-100 text-red-600",
-  },
-  {
-    title: "Lagos Real Estate",
-    category: "Technology",
-    subtitle: "Tech Innovators",
-    categoryColor: "bg-blue-100 text-blue-600",
-    rating: 4.8,
-    investors: 234,
-    roi: "25-30%",
-    duration: "24 months",
-    minInvestment: "₦250,000",
-    riskLevel: "Medium Risk",
-    riskColor: "bg-orange-100 text-orange-600",
-  },
-  {
-    title: "Lagos Real Estate",
-    category: "Agriculture",
-    subtitle: "AgriGrowth Ltd",
-    categoryColor: "bg-emerald-100 text-emerald-600",
-    rating: 4.8,
-    investors: 234,
-    roi: "35-50%",
-    duration: "24 months",
-    minInvestment: "₦250,000",
-    riskLevel: "High Risk",
-    riskColor: "bg-red-100 text-red-600",
-  },
-  {
-    title: "Lagos Real Estate",
-    subtitle: "Sterling Properties",
-    category: "Real Estate",
-    categoryColor: "bg-cyan-100 text-cyan-600",
-    rating: 4.6,
-    investors: 234,
-    roi: "18-22%",
-    duration: "24 months",
-    minInvestment: "₦250,000",
-    riskLevel: "Low Risk",
-    riskColor: "bg-green-100 text-green-600",
-  },
-];
+// const investmentData = [
+//   {
+//     title: "Lagos Real Estate",
+//     subtitle: "Sterling Properties",
+//     category: "Real Estate",
+//     categoryColor: "bg-cyan-100 text-cyan-600",
+//     rating: 4.6,
+//     investors: 234,
+//     roi: "18-22%",
+//     duration: "24 months",
+//     minInvestment: "₦250,000",
+//     riskLevel: "Low Risk",
+//     riskColor: "bg-green-100 text-green-600",
+//   },
+//   {
+//     title: "AgroFund",
+//     subtitle: "AgriGrowth Ltd",
+//     category: "Agriculture",
+//     categoryColor: "bg-emerald-100 text-emerald-600",
+//     rating: 4.8,
+//     investors: 734,
+//     roi: "35-50%",
+//     duration: "12 months",
+//     minInvestment: "₦150,000",
+//     riskLevel: "Medium Risk",
+//     riskColor: "bg-yellow-100 text-yellow-600",
+//   },
+//   {
+//     title: "Lagos Real Estate",
+//     category: "Agriculture",
+//     subtitle: "AgriGrowth Ltd",
+//     categoryColor: "bg-emerald-100 text-emerald-600",
+//     rating: 4.8,
+//     investors: 234,
+//     roi: "35-50%",
+//     duration: "24 months",
+//     minInvestment: "₦250,000",
+//     riskLevel: "High Risk",
+//     riskColor: "bg-red-100 text-red-600",
+//   },
+//   {
+//     title: "Lagos Real Estate",
+//     category: "Technology",
+//     subtitle: "Tech Innovators",
+//     categoryColor: "bg-blue-100 text-blue-600",
+//     rating: 4.8,
+//     investors: 234,
+//     roi: "25-30%",
+//     duration: "24 months",
+//     minInvestment: "₦250,000",
+//     riskLevel: "Medium Risk",
+//     riskColor: "bg-orange-100 text-orange-600",
+//   },
+//   {
+//     title: "Lagos Real Estate",
+//     category: "Agriculture",
+//     subtitle: "AgriGrowth Ltd",
+//     categoryColor: "bg-emerald-100 text-emerald-600",
+//     rating: 4.8,
+//     investors: 234,
+//     roi: "35-50%",
+//     duration: "24 months",
+//     minInvestment: "₦250,000",
+//     riskLevel: "High Risk",
+//     riskColor: "bg-red-100 text-red-600",
+//   },
+//   {
+//     title: "Lagos Real Estate",
+//     subtitle: "Sterling Properties",
+//     category: "Real Estate",
+//     categoryColor: "bg-cyan-100 text-cyan-600",
+//     rating: 4.6,
+//     investors: 234,
+//     roi: "18-22%",
+//     duration: "24 months",
+//     minInvestment: "₦250,000",
+//     riskLevel: "Low Risk",
+//     riskColor: "bg-green-100 text-green-600",
+//   },
+// ];
 
 interface Investment {
   title: string;
@@ -169,6 +172,27 @@ const InvestmentCard = ({ investment }: { investment: Investment }) => {
 };
 
 const Features = () => {
+  const [investmentData, setInvestmentData] = useState<Investment[]>([]);
+
+  const getAllOpp = async () => {
+    try {
+      const res = await axios.get("/opportunity/all?page=1&limit=5");
+      setInvestmentData(res.data.content as Investment[]);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch experts";
+        toast.error(msg);
+      }
+    }
+  };
+
+  useEffect(() => {
+    getAllOpp();
+  }, []);
+
   return (
     <div className="w-full bg-white py-12">
       {/* Header */}
@@ -199,14 +223,14 @@ const Features = () => {
       {/* Cards Section */}
       {/* Mobile: horizontal scroll */}
       <div className="flex md:hidden overflow-x-auto gap-4 px-4 scrollbar-hide">
-        {investmentData.map((investment, i) => (
+        {investmentData.map((investment: Investment, i: number) => (
           <InvestmentCard key={i} investment={investment} />
         ))}
       </div>
 
       {/* Desktop: grid */}
       <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 px-4 md:px-6">
-        {investmentData.map((investment, i) => (
+        {investmentData.map((investment: Investment, i: number) => (
           <InvestmentCard key={i} investment={investment} />
         ))}
       </div>

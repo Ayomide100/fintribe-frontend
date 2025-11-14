@@ -113,8 +113,32 @@ const Opportunities = () => {
     }
   };
 
+  const getAllOpptunity = async () => {
+    try {
+      const res = await axios.get("/opportunity/me?page=1&limit=5", {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+      });
+      console.log(res.data.content);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
+    }
+  };
+
   useEffect(() => {
     getUser();
+    getAllOpptunity();
   }, []);
 
   const isPartner = accountType === "partner";
