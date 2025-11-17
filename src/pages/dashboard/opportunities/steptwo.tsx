@@ -65,7 +65,7 @@ const MediaStep: React.FC<MediaStepProps> = ({ onNext, onBack }) => {
     const toastId = toast.loading("Uploading...");
 
     try {
-      await axios.put(`/opportunity/${id}/media`, formData, {
+      await axios.patch(`/opportunity/${id}/media`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `${localStorage.getItem("token")}`,

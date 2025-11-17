@@ -46,7 +46,7 @@ interface Post {
   media?: MediaFile[];
   createdAt: string;
   user: User;
-  role?: string;
+  role?: string | { name?: string };
   time?: string;
   likes?: any[];
   comments?: any[];
@@ -551,7 +551,7 @@ const Main = () => {
                     alt="profile"
                     width={200}
                     height={300}
-                    className="w-full h-full object-cover rounded-full border-2 border-[#226B44]"
+                    className=" object-cover rounded-full border-2 border-[#226B44]"
                   />
                 </div>
                 <div>
@@ -570,7 +570,10 @@ const Main = () => {
                     </span>
                   </h3>
                   <p className="text-xs text-gray-500">
-                    {post.role} · {timeAgoShort(post.createdAt)}
+                    {typeof post.role === "string"
+                      ? post.role
+                      : post.role?.name}{" "}
+                    · {timeAgoShort(post.createdAt)}
                   </p>
                 </div>
               </div>

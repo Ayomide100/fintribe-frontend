@@ -204,7 +204,7 @@ const Trustedexpert = () => {
         </div>
 
         {/* Scrollable on Mobile */}
-        <div className="flex gap-4 overflow-x-auto md:flex-wrap md:justify-center md:overflow-x-hidden pb-4">
+        <div className="flex gap-4 overflow-x-auto md:flex-wrap md:justify-start md:overflow-x-hidden pb-4">
           {expertData.map((expert, i) => (
             <motion.div
               key={i}

@@ -176,14 +176,14 @@ const Features = () => {
 
   const getAllOpp = async () => {
     try {
-      const res = await axios.get("/opportunity/all?page=1&limit=5");
-      setInvestmentData(res.data.content as Investment[]);
+      const res = await axios.get("/opportunity/?page=1&limit=5");
+      setInvestmentData(res.data.content.opportunities);
     } catch (error) {
       if (isAxiosError(error)) {
         const msg =
           error.response?.data?.message ||
           error.message ||
-          "Failed to fetch experts";
+          "Failed to fetch opportunities";
         toast.error(msg);
       }
     }

@@ -138,11 +138,14 @@ const InvestorCard = ({ circle }: any) => {
 
 const Investors = () => {
   const [circles, setcirles] = useState([]);
+  const [showAll, setShowAll] = useState(false);
+
+  const displayedCircles = showAll ? circles : circles.slice(0, 3);
 
   useEffect(() => {
     const getallCircles = async () => {
       try {
-        const response = await axios.get("/circle/all?pages=1&limit=5");
+        const response = await axios.get("/circle/all?pages=1&limit=6");
         console.log(response.data.content.circles || []);
         setcirles(response.data.content.circles || []);
       } catch (error) {
@@ -175,30 +178,36 @@ const Investors = () => {
           </p>
         </div>
         <div className="hidden md:flex">
-          <button className="border border-[#2E8B57] font-medium text-[#2E8B57] py-2 px-4 rounded flex items-center gap-2">
-            View all <Compass className="w-4 h-4" />
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="border border-[#2E8B57] font-medium text-[#2E8B57] py-2 px-4 rounded flex items-center gap-2"
+          >
+            {showAll ? "Show Less" : "View All"} <Compass className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       {/* Mobile: horizontal scroll */}
       <div className="flex md:hidden gap-4 overflow-x-auto px-4 scrollbar-hide">
-        {circles.map((circle, i) => (
+        {displayedCircles.map((circle, i) => (
           <InvestorCard key={i} circle={circle} />
         ))}
       </div>
 
       {/* Desktop: flexbox instead of grid */}
       <div className="hidden md:flex flex-wrap gap-6 justify-center px-6">
-        {circles.concat(circles).map((circle, i) => (
+        {displayedCircles.map((circle, i) => (
           <InvestorCard key={i} circle={circle} />
         ))}
       </div>
 
       {/* Mobile View All Button */}
       <div className="flex md:hidden w-full h-4 mt-7 justify-center items-center">
-        <button className="border border-[#2E8B57] font-medium text-[#2E8B57] py-2 px-28 rounded-2xl flex items-center gap-2">
-          View all <Compass className="w-4 h-4" />
+        <button
+          onClick={() => setShowAll(!showAll)}
+          className="border border-[#2E8B57] font-medium text-[#2E8B57] py-2 px-28 rounded-2xl flex items-center gap-2"
+        >
+          {showAll ? "Show Less" : "View All"} <Compass className="w-4 h-4" />
         </button>
       </div>
     </div>
