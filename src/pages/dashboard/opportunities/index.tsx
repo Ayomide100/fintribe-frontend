@@ -15,8 +15,22 @@ import { TbFidgetSpinner } from "react-icons/tb";
 import { useRouter } from "next/router";
 
 const Opportunities = () => {
-  const [accountType, setAccountType] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ Added loading state
+  type Opportunity = {
+    title?: string;
+    company?: string;
+    roi?: string;
+    duration?: string;
+    category?: string;
+    risk?: string;
+    minInvestment?: string;
+    rating?: string;
+    tagColor?: string;
+  };
+
+  const [accountType, setAccountType] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
 
   const summary = [
     {
@@ -41,52 +55,52 @@ const Opportunities = () => {
     },
   ];
 
-  const opportunities = [
-    {
-      title: "Lagos Real Estate",
-      company: "Sterling Properties",
-      roi: "18–22%",
-      duration: "24 months",
-      category: "Real Estate",
-      risk: "Low Risk",
-      minInvestment: "₦250,000",
-      rating: "4.6 (234 investors)",
-      tagColor: "bg-emerald-100 text-emerald-700",
-    },
-    {
-      title: "Lagos Real Estate",
-      company: "Sterling Properties",
-      roi: "35–50%",
-      duration: "24 months",
-      category: "Agriculture",
-      risk: "High Risk",
-      minInvestment: "₦250,000",
-      rating: "4.6 (234 investors)",
-      tagColor: "bg-red-100 text-red-700",
-    },
-    {
-      title: "Lagos Real Estate",
-      company: "Sterling Properties",
-      roi: "25–30%",
-      duration: "24 months",
-      category: "Technology",
-      risk: "Medium Risk",
-      minInvestment: "₦250,000",
-      rating: "4.6 (234 investors)",
-      tagColor: "bg-yellow-100 text-yellow-700",
-    },
-    {
-      title: "Lagos Real Estate",
-      company: "Sterling Properties",
-      roi: "18–22%",
-      duration: "24 months",
-      category: "Real Estate",
-      risk: "Low Risk",
-      minInvestment: "₦250,000",
-      rating: "4.6 (234 investors)",
-      tagColor: "bg-emerald-100 text-emerald-700",
-    },
-  ];
+  // const opportunities = [
+  //   {
+  //     title: "Lagos Real Estate",
+  //     company: "Sterling Properties",
+  //     roi: "18–22%",
+  //     duration: "24 months",
+  //     category: "Real Estate",
+  //     risk: "Low Risk",
+  //     minInvestment: "₦250,000",
+  //     rating: "4.6 (234 investors)",
+  //     tagColor: "bg-emerald-100 text-emerald-700",
+  //   },
+  //   {
+  //     title: "Lagos Real Estate",
+  //     company: "Sterling Properties",
+  //     roi: "35–50%",
+  //     duration: "24 months",
+  //     category: "Agriculture",
+  //     risk: "High Risk",
+  //     minInvestment: "₦250,000",
+  //     rating: "4.6 (234 investors)",
+  //     tagColor: "bg-red-100 text-red-700",
+  //   },
+  //   {
+  //     title: "Lagos Real Estate",
+  //     company: "Sterling Properties",
+  //     roi: "25–30%",
+  //     duration: "24 months",
+  //     category: "Technology",
+  //     risk: "Medium Risk",
+  //     minInvestment: "₦250,000",
+  //     rating: "4.6 (234 investors)",
+  //     tagColor: "bg-yellow-100 text-yellow-700",
+  //   },
+  //   {
+  //     title: "Lagos Real Estate",
+  //     company: "Sterling Properties",
+  //     roi: "18–22%",
+  //     duration: "24 months",
+  //     category: "Real Estate",
+  //     risk: "Low Risk",
+  //     minInvestment: "₦250,000",
+  //     rating: "4.6 (234 investors)",
+  //     tagColor: "bg-emerald-100 text-emerald-700",
+  //   },
+  // ];
 
   const getUser = async () => {
     try {
@@ -120,6 +134,7 @@ const Opportunities = () => {
           Authorization: `${localStorage.getItem("token")}`,
         },
       });
+      setOpportunities(res.data.content.opportunities);
       console.log(res.data.content);
     } catch (error) {
       if (isAxiosError(error)) {
