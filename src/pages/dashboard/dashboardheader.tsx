@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import logo from "../../../assets/fintribelogo.png";
 import { ChevronDown, LogOut, Search, Settings, User } from "lucide-react";
 import { IoMdNotificationsOutline } from "react-icons/io";
-import userprofilepic from "../../../assets/notfiyimg.png";
+import noface from "../../../assets/blank-profile-picture.webp";
 import { MdMenu } from "react-icons/md";
 import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
@@ -11,6 +12,9 @@ import { clearGuru } from "@/Global/GuruSlice";
 import { clearUser } from "@/Global/UserSlice";
 import { clearPartner } from "@/Global/PartnerSlice";
 import Createlogoutmodal from "@/Modals/createlogoutmodal";
+import axios from "@/config/axiosconfig";
+import { isAxiosError } from "axios";
+import toast from "react-hot-toast";
 
 interface Props {
   setSidebarOpen: (open: boolean) => void;
@@ -19,6 +23,10 @@ interface Props {
 
 const DashboardHeader: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
   const [dropdown, setDropdown] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  console.log(user);
+
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const HandleDropdown = () => setDropdown(!dropdown);
   const [OpenModal, setOpenModal] = useState(false);
@@ -34,6 +42,38 @@ const DashboardHeader: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
     localStorage.clear();
     router.push("/auth/login");
   };
+
+  const getUser = async () => {
+    try {
+      const res = await axios("/users/profile", {
+        headers: { Authorization: `${localStorage.getItem("token")}` },
+      });
+
+      const fetchedUser = res.data.content.user;
+      setUser(fetchedUser);
+
+      // Use avatar if it exists
+      if (fetchedUser.avatar) {
+        setProfileImage(fetchedUser.avatar.url);
+      }
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
+    }
+  };
+
+  useEffect(() => {
+    getUser();
+  }, []);
 
   return (
     <div className="w-full h-full flex shadow-md justify-between items-center md:px-6 px-3 relative">
@@ -84,9 +124,15 @@ const DashboardHeader: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
           onClick={HandleDropdown}
           className="w-[70%] h-full hover:bg-[#84C2A27A] cursor-pointer rounded-md gap-2 flex justify-center items-center"
         >
-          <div className="w-[40px] h-[40px] rounded-full overflow-hidden">
-            <Image src={userprofilepic} alt="notification" />
+          <div className="w-10 h-10 rounded-full overflow-hidden">
+            <Image
+              src={profileImage ? profileImage : noface}
+              alt="profile"
+              width={40}
+              height={40}
+            />
           </div>
+
           <ChevronDown />
         </div>
 

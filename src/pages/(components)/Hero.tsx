@@ -15,7 +15,7 @@ const Hero = () => {
 
   return (
     <div
-      className="w-full md:h-[47rem] h-[45rem] flex flex-col pt-[10vh]"
+      className="w-full md:h-188 h-180 flex flex-col pt-[10vh]"
       style={{
         background:
           "linear-gradient(to left, #CFE7DB, #E8EFF7, #FFFFFF, #FEFFFE, #FCFEFD)",
@@ -145,7 +145,7 @@ const Hero = () => {
             </span>
           </div>
         </div>
-        <div className="w-[100%]   flex justify-center flex-col items-center h-[40%] md:h-[35%]">
+        <div className="w-full   flex justify-center flex-col items-center h-[40%] md:h-[35%]">
           <div className="w-full h-[40%]  gap-2 flex justify-center items-center">
             <PiChartLineUp className="text-[#FFCC00]" size={24} />
             <p className=" font-bold text-lg ">₦50B+</p>

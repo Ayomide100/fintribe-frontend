@@ -28,10 +28,11 @@ interface FinalStepProps {
   onBack: () => void;
 }
 
-const FinalStep: React.FC<FinalStepProps> = ({ formData, onBack }) => {
+const FinalStep: React.FC<FinalStepProps> = ({ onBack }) => {
   const id = localStorage.getItem("opportunityId");
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [status, setStatus] = useState("");
 
   // ✅ Fetch Opportunity for Review
   const getSingleOpportunity = async () => {
@@ -43,6 +44,9 @@ const FinalStep: React.FC<FinalStepProps> = ({ formData, onBack }) => {
         },
       });
       setOpportunity(response.data.content);
+
+      setStatus(response.data.content.status);
+      console.log("this is teh status of the opporunity:", status);
     } catch (error: unknown) {
       if (isAxiosError(error)) {
         const message =
@@ -67,7 +71,7 @@ const FinalStep: React.FC<FinalStepProps> = ({ formData, onBack }) => {
     try {
       const res = await axios.put(
         `/opportunity/${id}/publish`,
-        formData, // <-- pass all form data here
+        { status }, // <-- pass all form data here
         {
           headers: {
             "Content-Type": "application/json",

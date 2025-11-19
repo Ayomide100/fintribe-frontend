@@ -155,7 +155,7 @@ const MediaStep: React.FC<MediaStepProps> = ({ onNext, onBack }) => {
         </button>
         <button
           onClick={handleNext}
-          className="px-4 py-2 rounded-md bg-green-600 text-white"
+          className="px-4 py-2 rounded-md bg-[#0b2447] text-white"
         >
           Next
         </button>

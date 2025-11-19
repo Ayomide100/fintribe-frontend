@@ -148,7 +148,7 @@ const LearningHub = () => {
 
           <div className="md:hidden flex gap-4 overflow-x-auto snap-x pb-4">
             {courses.map((course) => (
-              <div key={course.id} className="snap-start flex-shrink-0 w-80">
+              <div key={course.id} className="snap-start shrink-0 w-80">
                 <CourseCard
                   {...course}
                   handleNavigate={() => handleNavigate(String(course.id))}

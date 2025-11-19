@@ -57,7 +57,7 @@ const LastStep = () => {
             <div className="w-full max-w-lg space-y-6 mb-8">
               {submissionSteps.map((step) => (
                 <div key={step.id} className="flex items-start space-x-4">
-                  <div className="flex-shrink-0 mt-1">
+                  <div className="shrink-0 mt-1">
                     <div className="w-8 h-8  rounded-full flex items-center justify-center text-white">
                       {step.id === "review" ? (
                         <Clock3 className=" text-[#2E8B57]" size={27} />

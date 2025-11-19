@@ -109,7 +109,7 @@ const InvestmentCard = ({ investment }: { investment: Investment }) => {
       transition={{ duration: 0.6, ease: "easeOut" }}
       viewport={{ once: false, amount: 0.3 }}
       className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition duration-200 
-      w-full sm:w-[60%] md:w-auto flex-shrink-0"
+      w-full sm:w-[60%] md:w-auto shrink-0"
     >
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
@@ -235,7 +235,7 @@ const Features = () => {
         ))}
       </div>
 
-      <div className="flex md:hidden w-full h-[2rem] mt-7 justify-center items-center">
+      <div className="flex md:hidden w-full h-8 mt-7 justify-center items-center">
         <button className="border border-[#2E8B57] font-medium text-[#2E8B57] py-2 px-28 rounded-2xl flex items-center gap-2">
           View all <Compass className="w-4 h-4" />
         </button>
