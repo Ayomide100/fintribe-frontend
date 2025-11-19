@@ -15,6 +15,7 @@ import { Line } from "react-chartjs-2";
 import axios from "@/config/axiosconfig";
 import { isAxiosError } from "axios";
 import toast from "react-hot-toast";
+import { useRouter } from "next/router";
 
 ChartJS.register(
   CategoryScale,
@@ -63,6 +64,8 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({ onNext }) => {
     currency: "NGN",
     closingDate: "",
   });
+
+  const router = useRouter();
 
   const [loading, setLoading] = useState(false);
 
@@ -262,7 +265,13 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({ onNext }) => {
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-end mt-6">
+      <div className="flex justify-between mt-6 ">
+        <button
+          onClick={() => router.back()}
+          className="px-4 py-2 rounded-md border text-gray-700"
+        >
+          Back
+        </button>
         <button
           onClick={handleSubmit}
           disabled={loading}

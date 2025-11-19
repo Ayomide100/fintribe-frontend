@@ -360,7 +360,7 @@ export default function ProjectDescriptionForm({
               onNext();
             }
           }}
-          className="px-4 py-2 rounded-md bg-green-600 text-white"
+          className="px-4 py-2 rounded-md bg-[#0b2447] text-white"
         >
           Next
         </button>

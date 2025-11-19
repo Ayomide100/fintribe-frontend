@@ -137,7 +137,7 @@ const VerifyPassword = () => {
     >
       {/* Left Section - Form */}
       <div className="w-full md:w-[55%] flex justify-center items-center p-6">
-        <div className="w-full max-w-[34rem]">
+        <div className="w-full max-w-136">
           {/* Logo */}
           <div
             onClick={() => nav.push("/")}
@@ -242,7 +242,7 @@ const VerifyPassword = () => {
         <Image
           src={herosect}
           alt="Investment illustration"
-          className="w-full h-[100%] object-cover rounded-2xl shadow-lg"
+          className="w-full h-full object-cover rounded-2xl shadow-lg"
         />
       </div>
     </div>

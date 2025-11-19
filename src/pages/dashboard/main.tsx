@@ -6,23 +6,13 @@ import Image from "next/image";
 
 import noface from "../../../assets/blank-profile-picture.webp";
 
-import { AiOutlineComment, AiOutlineShareAlt } from "react-icons/ai";
-import {
-  BarChart,
-  Bookmark,
-  Camera,
-  Heart,
-  MoreHorizontal,
-  ShieldCheck,
-  Trash,
-  Video,
-} from "lucide-react";
+import { BarChart, Camera, MoreHorizontal, Video } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
 import { isAxiosError } from "axios";
 import Otherside from "./otherside";
-import { FaBookmark } from "react-icons/fa";
+import Posts from "@/post";
 
 interface MediaFile {
   url: string;
@@ -62,32 +52,34 @@ const Main = () => {
   const [media, setMedia] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [text, setText] = useState("");
-  const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(
-    null
-  );
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  function timeAgoShort(dateString: string) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  const getUser = async () => {
+    try {
+      const res = await axios("/users/profile", {
+        headers: { Authorization: `${localStorage.getItem("token")}` },
+      });
 
-    if (seconds < 60) return `${seconds}s`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}d`;
-    const weeks = Math.floor(days / 7);
-    if (weeks < 4) return `${weeks}w`;
-    const months = Math.floor(days / 30);
-    if (months < 12) return `${months}mo`;
-    const years = Math.floor(days / 365);
-    return `${years}y`;
-  }
+      const fetchedUser = res.data.content.user;
 
-  const userId = localStorage.getItem("_id");
+      // Use avatar if it exists
+      if (fetchedUser.avatar) {
+        setProfileImage(fetchedUser.avatar.url);
+      }
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
+    }
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -168,179 +160,8 @@ const Main = () => {
   };
   useEffect(() => {
     fetchPosts();
+    getUser();
   }, []);
-
-  function capitalizeWords(name: string) {
-    return name
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(" ");
-  }
-
-  const handleComment = async (_id: string) => {
-    try {
-      const res = await axios.post(
-        `/posts/${_id}/comments`,
-        { text },
-        {
-          headers: {
-            Authorization: ` ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      console.log("this is the comment:", res.data);
-
-      setText("");
-      fetchPosts();
-      setActiveCommentPostId(null);
-    } catch (error) {
-      if (isAxiosError(error)) {
-        const apiMessage = error.response?.data?.message;
-        const apiError = error.response?.data?.error;
-        const fallback = error.message || "An unexpected error occurred";
-
-        const errorMsg =
-          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-          fallback;
-
-        toast.error(errorMsg);
-      }
-    }
-  };
-
-  const HandleLikesonPost = async (_id: string) => {
-    try {
-      const res = await axios.post(
-        `/posts/${_id}/like`,
-        {},
-        {
-          headers: {
-            Authorization: `${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      console.log(res.data);
-      fetchPosts();
-    } catch (error) {
-      if (isAxiosError(error)) {
-        const apiMessage = error.response?.data?.message;
-        const apiError = error.response?.data?.error;
-        const fallback = error.message || "An unexpected error occurred";
-
-        const errorMsg =
-          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-          fallback;
-
-        toast.error(errorMsg);
-      } else {
-        toast.error("Something went wrong");
-      }
-    }
-  };
-
-  const HandleUnlikePost = async (_PostId: string) => {
-    try {
-      const res = await axios.delete(`/posts/${_PostId}/like`, {
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-        },
-      });
-      console.log(res.data);
-      fetchPosts();
-    } catch (error) {
-      if (isAxiosError(error)) {
-        const apiMessage = error.response?.data?.message;
-        const apiError = error.response?.data?.error;
-        const fallback = error.message || "An unexpected error occurred";
-
-        const errorMsg =
-          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-          fallback;
-
-        toast.error(errorMsg);
-      } else {
-        toast.error("Something went wrong");
-      }
-    }
-  };
-
-  const HandleDeleteComment = async (postId: string, commentId: string) => {
-    try {
-      const res = await axios.delete(`/posts/${postId}/comments/${commentId}`, {
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-        },
-      });
-      console.log("Comment deleted:", res.data);
-      fetchPosts();
-    } catch (error) {
-      if (isAxiosError(error)) {
-        const apiMessage = error.response?.data?.message;
-        const apiError = error.response?.data?.error;
-        const fallback = error.message || "An unexpected error occurred";
-
-        const errorMsg =
-          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-          fallback;
-
-        toast.error(errorMsg);
-      } else {
-        toast.error("Something went wrong");
-      }
-    }
-  };
-
-  const HandleSavePost = async (postId: string) => {
-    try {
-      const res = await axios.post(
-        `/posts/${postId}/save`,
-        {},
-        {
-          headers: {
-            Authorization: ` ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      console.log(res.data);
-      fetchPosts();
-    } catch (error) {
-      if (isAxiosError(error)) {
-        const apiMessage = error.response?.data?.message;
-        const apiError = error.response?.data?.error;
-        const fallback = error.message || "An unexpected error occurred";
-
-        const errorMsg =
-          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-          fallback;
-
-        toast.error(errorMsg);
-      }
-    }
-  };
-
-  const HandleRemovedSavePost = async (postId: string) => {
-    try {
-      const res = await axios.delete(`/posts/${postId}/save`, {
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-        },
-      });
-      console.log(res.data);
-      fetchPosts();
-    } catch (error) {
-      if (isAxiosError(error)) {
-        const apiMessage = error.response?.data?.message;
-        const apiError = error.response?.data?.error;
-        const fallback = error.message || "An unexpected error occurred";
-
-        const errorMsg =
-          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-          fallback;
-
-        toast.error(errorMsg);
-      }
-    }
-  };
 
   return (
     <Dashboardlayouts>
@@ -362,11 +183,13 @@ const Main = () => {
                 className="w-full bg-white cursor-pointer rounded-md shadow-md flex justify-start px-5 py-3 gap-2 items-center"
                 onClick={() => setIsExpanded(true)}
               >
-                <div className="md:w-[40px] md:h-[40px]  w-[50px] h-[50px] flex-shrink-0  rounded-full flex justify-center items-center">
+                <div className="md:w-10 md:h-10  w-[50px] h-[50px] shrink-0  rounded-full flex justify-center items-center">
                   <Image
-                    src={noface}
+                    src={profileImage ? profileImage : noface}
                     alt="user"
-                    className="w-full h-full object-cover rounded-full "
+                    width={40}
+                    height={40}
+                    className=" object-cover rounded-full "
                   />
                 </div>
                 <span className="text-sm font-normal text-gray-700">
@@ -410,7 +233,7 @@ const Main = () => {
 
                 {/* Input */}
                 <div className="flex gap-3">
-                  <div className="w-[35px] h-[35px] rounded-full flex flex-shrink-0 justify-center items-center">
+                  <div className="w-[35px] h-[35px] rounded-full flex shrink-0 justify-center items-center">
                     <Image
                       src={noface}
                       alt="user"
@@ -535,234 +358,9 @@ const Main = () => {
             )}
           </AnimatePresence>
         </div>
-
-        {/* Feed Posts */}
-        {Array.isArray(posts) &&
-          posts.map((post) => (
-            <div
-              key={post._id}
-              className="w-full bg-white rounded-md shadow-md flex flex-col justify-start px-5 py-4"
-            >
-              {/* Post Header */}
-              <div className="w-full flex justify-start items-center gap-3">
-                <div className="w-[40px] h-[40px] rounded-full flex justify-center items-center">
-                  <Image
-                    src={post.user?.avatar?.url || noface}
-                    alt="profile"
-                    width={200}
-                    height={300}
-                    className=" object-cover rounded-full border-2 border-[#226B44]"
-                  />
-                </div>
-                <div>
-                  <h3
-                    className="content
-                text-sm font-semibold content-gray-800 flex items-center gap-1"
-                  >
-                    {post.user?.fullname
-                      ? capitalizeWords(post.user.fullname)
-                      : ""}
-                    <span
-                      className="text
-                  text-[#2E8B57] text-xs"
-                    >
-                      <ShieldCheck size={15} />
-                    </span>
-                  </h3>
-                  <p className="text-xs text-gray-500">
-                    {typeof post.role === "string"
-                      ? post.role
-                      : post.role?.name}{" "}
-                    · {timeAgoShort(post.createdAt)}
-                  </p>
-                </div>
-              </div>
-
-              {/* content */}
-              <p className="mt-3 text-sm text-gray-700">{post.content}</p>
-
-              {/* Post Media */}
-              {post.media && post.media.length > 0 && (
-                <div className="mt-3">
-                  {/* If 1 image → full width */}
-                  {post.media.length === 1 ? (
-                    <Image
-                      src={post.media[0].url}
-                      alt="Post media"
-                      width={800}
-                      height={500}
-                      className="w-full h-auto object-cover rounded-md"
-                    />
-                  ) : (
-                    // If multiple → grid layout
-                    <div
-                      className={`grid gap-2 rounded-md overflow-hidden ${
-                        post.media.length === 2
-                          ? "grid-cols-2"
-                          : post.media.length === 3
-                          ? "grid-cols-2" // 2 on top, 1 bottom
-                          : "grid-cols-2" // 4+ = 2x2
-                      }`}
-                    >
-                      {post.media.slice(0, 4).map((file, idx) => (
-                        <Image
-                          key={idx}
-                          src={file.url}
-                          alt={`Post media ${idx + 1}`}
-                          width={500}
-                          height={300}
-                          className={`w-full h-auto object-cover ${
-                            post.media && post.media.length === 3 && idx === 2
-                              ? "col-span-2" // last image spans full width in 3-grid
-                              : ""
-                          } rounded-md`}
-                        />
-                      ))}
-
-                      {/* If more than 4 → show overlay on last one */}
-                      {post.media.length > 4 && (
-                        <div className="relative">
-                          <Image
-                            src={post.media[4].url}
-                            alt="extra media"
-                            width={500}
-                            height={300}
-                            className="w-full h-auto object-cover rounded-md brightness-75"
-                          />
-                          <span className="absolute inset-0 flex items-center justify-center text-white text-2xl font-bold">
-                            +{post.media.length - 4}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="w-full flex justify-between border-t border-[#E0E0E0] items-center text-gray-600 mt-4 px-2">
-                <div className="w-[25%] flex py-2.5 justify-between gap-1.5 items-center">
-                  <button
-                    onClick={() =>
-                      post.likes?.some(
-                        (like: any) => like === userId || like._id === userId
-                      )
-                        ? HandleUnlikePost(post._id)
-                        : HandleLikesonPost(post._id)
-                    }
-                    className="flex items-center gap-1 text-sm hover:text-blue-600"
-                  >
-                    <Heart
-                      size={18}
-                      className={
-                        post.likes?.some(
-                          (like: any) => like === userId || like._id === userId
-                        )
-                          ? "text-blue-600"
-                          : ""
-                      }
-                    />
-                    <span>{post.likes?.length || 0}</span>
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      setActiveCommentPostId(
-                        activeCommentPostId === post._id ? null : post._id
-                      )
-                    }
-                    className="flex items-center gap-1 text-sm hover:text-blue-600"
-                  >
-                    <AiOutlineComment size={18} />{" "}
-                    <span>{post.comments?.length || 0}</span>
-                  </button>
-
-                  <button className="flex items-center gap-1 text-sm hover:text-blue-600">
-                    <AiOutlineShareAlt size={18} />{" "}
-                    <span>{post.shares || 0}</span>
-                  </button>
-                </div>
-                <button
-                  onClick={() =>
-                    post.isSaved
-                      ? HandleRemovedSavePost(post._id)
-                      : HandleSavePost(post._id)
-                  }
-                  className="flex items-center gap-1 text-sm hover:text-green-600"
-                >
-                  {post.isSaved ? (
-                    <FaBookmark size={18} className="text-green-600" />
-                  ) : (
-                    <Bookmark size={18} className="text-gray-500" />
-                  )}
-                </button>
-              </div>
-              {/* Comments Section */}
-              {activeCommentPostId === post._id && (
-                <div className="mt-3">
-                  {/* Existing comments */}
-                  <div className="max-h-64 overflow-y-auto space-y-3 pr-2 mb-4">
-                    {post.comments &&
-                      post.comments.map((comment) => (
-                        <div
-                          key={comment._id}
-                          className="flex gap-2 items-start"
-                        >
-                          {/* Avatar */}
-                          <Image
-                            src={comment.user?.avatar?.url || ""}
-                            alt="comment user"
-                            width={30}
-                            height={30}
-                            className="w-8 h-8 rounded-full object-cover border"
-                          />
-                          <div className="bg-gray-100 rounded-lg px-3 py-2 text-sm flex-1">
-                            <div className="flex justify-between items-center">
-                              <p className="font-semibold">
-                                {comment.user?.fullname
-                                  ? capitalizeWords(comment.user.fullname)
-                                  : "Unknown"}
-                              </p>
-                              {comment.user?._id === userId && (
-                                <button
-                                  onClick={() =>
-                                    HandleDeleteComment(post._id, comment._id)
-                                  }
-                                  className="text-red-500 text-xs hover:underline"
-                                >
-                                  <Trash size={18} />
-                                </button>
-                              )}
-                            </div>
-                            <p className="text-gray-700">{comment.text}</p>
-                            <span className="text-xs text-gray-500">
-                              {timeAgoShort(comment.createdAt)}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-
-                  {/* New comment input */}
-                  <div className="flex gap-2 items-center pt-2 border-t border-gray-200">
-                    <input
-                      type="text"
-                      value={text}
-                      onChange={(e) => setText(e.target.value)}
-                      placeholder="Write a comment..."
-                      className="flex-1 border border-[#84C2A2] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#0A2540]"
-                    />
-                    <button
-                      onClick={() => handleComment(post._id)}
-                      className="px-3 py-2 bg-[#0A2540] text-white rounded-md text-sm hover:bg-[#1a3b5c]"
-                    >
-                      Post
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+        <div>
+          <Posts />
+        </div>
         <div className="block md:hidden">
           <Otherside accountType="user" />
         </div>

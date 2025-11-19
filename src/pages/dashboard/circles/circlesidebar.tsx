@@ -18,7 +18,7 @@ const CircleSidebar = ({
   setSelectedCircle,
   title = "My Circles", // 👈 Default value
 }: Props) => (
-  <div className={`${isMobile ? "w-full" : "w-80"} flex-shrink-0`}>
+  <div className={`${isMobile ? "w-full" : "w-80"} shrink-0`}>
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       <div className="p-4 border-b border-gray-200 flex items-center gap-3">
         <TbFidgetSpinner className="text-green-600" size={24} />
