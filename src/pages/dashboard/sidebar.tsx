@@ -12,6 +12,7 @@ import {
   User,
   Settings,
   LogOut,
+  ArrowBigLeftDash,
 } from "lucide-react";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
@@ -214,7 +215,7 @@ const Sidebar: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
         )}
 
         {/* Profile & Settings */}
-        <div className="w-[88%] md:h-[17%] h-[16%] bg-white shadow-md border border-[#E0E0E0] rounded-md flex flex-col">
+        <div className="w-[88%] md:h-[22%] h-[23%] bg-white shadow-md border border-[#E0E0E0] rounded-md flex flex-col">
           <button
             onClick={() => router.push("/dashboard/profile")}
             className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-md"
@@ -225,6 +226,13 @@ const Sidebar: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
           <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-md">
             <Settings size={18} />
             <span>Settings</span>
+          </button>
+          <button
+            onClick={() => router.push("/")}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-md "
+          >
+            <ArrowBigLeftDash size={18} />
+            <span>Go Home</span>
           </button>
           <button
             onClick={() => setopenModal(true)}

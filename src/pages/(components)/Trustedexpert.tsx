@@ -68,7 +68,7 @@ import toast from "react-hot-toast";
 //   },
 // ];
 
-const ExpertCard = ({ expert }: any) => {
+const ExpertCard = ({ expert, onFollow }: any) => {
   const investorCount = expert.rating?.investorCount?.[0]?.investorMembers || 0; // ✅ safe access
   const experience = expert.profileData?.experience || "No experience provided"; // ✅ safe access
 
@@ -141,7 +141,10 @@ const ExpertCard = ({ expert }: any) => {
         <button className="w-9 h-9 flex items-center justify-center rounded">
           <MessageSquare className="w-4 h-4 text-gray-600" />
         </button>
-        <button className="flex items-center justify-center gap-1 h-9 px-3 bg-[#0A2540] text-white text-xs font-medium rounded hover:bg-[#0d4074]">
+        <button
+          onClick={() => onFollow(expert.profileData.userId)}
+          className="flex items-center justify-center gap-1 h-9 px-3 bg-[#0A2540] text-white text-xs font-medium rounded hover:bg-[#0d4074]"
+        >
           <UserPlus className="w-3 h-3" /> Follow
         </button>
       </div>
@@ -155,6 +158,29 @@ const Trustedexpert = () => {
     triggerOnce: false,
     threshold: 0.15,
   });
+
+  const HandleFollowExpert = async (id: string) => {
+    try {
+      const res = await axios.post(
+        `users/follow/${id}`,
+        {},
+        {
+          headers: {
+            Authorization: `${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      toast.success(res.data.message);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch experts";
+        toast.error(msg);
+      }
+    }
+  };
 
   useEffect(() => {
     const getExpertData = async () => {
@@ -213,7 +239,7 @@ const Trustedexpert = () => {
               transition={{ duration: 0.6, delay: i * 0.2 }}
               className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 shrink-0"
             >
-              <ExpertCard expert={expert} />
+              <ExpertCard expert={expert} onFollow={HandleFollowExpert} />
             </motion.div>
           ))}
         </div>

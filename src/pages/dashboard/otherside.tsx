@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import { Star, ShieldCheck, TrendingUp } from "lucide-react";
 import { HiOutlineUserAdd } from "react-icons/hi";
-import suitguy from "../../../assets/suitguy.jpg";
+
 import Image from "next/image";
 import { TbLockAccess, TbFidgetSpinner } from "react-icons/tb";
 import { isAxiosError } from "axios";
@@ -92,26 +93,49 @@ const Otherside: React.FC<OthersideProps> = ({ accountType }) => {
     getAllCircles();
   }, []);
 
-  const gurus = [
-    {
-      name: "Adelaide Thompson",
-      role: "Real Estate Expert",
-      xp: "2.4k",
-      image: suitguy,
-    },
-    {
-      name: "Adelaide Thompson",
-      role: "Real Estate Expert",
-      xp: "2.4k",
-      image: suitguy,
-    },
-    {
-      name: "Adelaide Thompson",
-      role: "Real Estate Expert",
-      xp: "2.4k",
-      image: suitguy,
-    },
-  ];
+  const [expertData, setExpertData] = useState<any[]>([]);
+
+  const HandleFollowExpert = async (id: string) => {
+    try {
+      const res = await axios.post(
+        `users/follow/${id}`,
+        {},
+        {
+          headers: {
+            Authorization: `${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      toast.success(res.data.message);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch experts";
+        toast.error(msg);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const getExpertData = async () => {
+      try {
+        const response = await axios.get("/users/experts?pages=1&limit=5");
+        setExpertData(response.data.content.experts || []);
+      } catch (error) {
+        if (isAxiosError(error)) {
+          const msg =
+            error.response?.data?.message ||
+            error.message ||
+            "Failed to fetch experts";
+          toast.error(msg);
+        }
+      }
+    };
+
+    getExpertData();
+  }, []);
 
   return (
     <div className="w-full h-full overflow-y-auto px-3 py-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
@@ -121,7 +145,7 @@ const Otherside: React.FC<OthersideProps> = ({ accountType }) => {
           <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-700">
             <Star className="w-4 h-4 text-yellow-500" /> Suggested Gurus
           </h2>
-          {gurus.map((guru, idx) => (
+          {expertData.map((guru, idx) => (
             <div
               key={idx}
               className="flex items-center justify-between rounded-lg py-2"
@@ -130,28 +154,33 @@ const Otherside: React.FC<OthersideProps> = ({ accountType }) => {
               <div className="flex w-[90%] items-center justify-around">
                 <div>
                   <Image
-                    src={guru.image}
-                    alt={guru.name}
-                    className="w-10 h-10 rounded-full border-4 border-[#226B44] object-cover"
+                    src={guru.profileData?.avatar?.url}
+                    alt={guru.title}
+                    width={40}
+                    height={40}
+                    className=" rounded-full border-4 border-[#226B44] object-cover"
                   />
                 </div>
 
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-[12px]">{guru.name}</p>
+                    <p className="font-medium text-[12px]">{guru.fullName}</p>
                     <ShieldCheck size={14} className="text-[#226B44]" />
                   </div>
                   <div className="flex items-center gap-2 text-[10px] text-gray-500">
-                    <p>{guru.role}</p>
+                    <p>{guru.title}</p>
                     <span className="text-[#2E8B57] font-medium">
-                      {guru.xp}
+                      {guru.followers}
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Follow Button */}
-              <button className="px-3 py-1 flex items-center gap-1 bg-[#0A2540] text-white rounded-md text-xs">
+              <button
+                onClick={() => HandleFollowExpert(guru.profileData.userId)}
+                className="px-3 py-1 flex items-center gap-1 bg-[#0A2540] text-white rounded-md text-xs"
+              >
                 <HiOutlineUserAdd size={14} />
                 Follow
               </button>
