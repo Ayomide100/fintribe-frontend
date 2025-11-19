@@ -180,7 +180,7 @@ export default function ProjectDescriptionForm({
   const [dueDiligence, setDueDiligence] = useState<string[]>([
     "Power purchase agreements confirmed",
   ]);
-  const [keyHiglights, setkeyHiglights] = useState<string[]>([
+  const [keyHighlights, setkeyHighlights] = useState<string[]>([
     "Projected yield 15% annually",
   ]);
   const [riskFactors, setRiskFactors] = useState<string[]>([
@@ -229,7 +229,7 @@ export default function ProjectDescriptionForm({
         {
           description: fullDesc,
           dueDiligence,
-          keyHiglights,
+          keyHighlights,
           riskFactors,
         },
         {
@@ -306,21 +306,21 @@ export default function ProjectDescriptionForm({
       <Section
         title="Key keyHiglights"
         color="blue"
-        items={keyHiglights}
+        items={keyHighlights}
         showInput={showHighlightInput}
         setShowInput={setShowHighlightInput}
         inputValue={highlightInput}
         setInputValue={setHighlightInput}
         onAdd={() =>
           handleAdd(
-            keyHiglights,
-            setkeyHiglights,
+            keyHighlights,
+            setkeyHighlights,
             highlightInput,
             setHighlightInput,
             setShowHighlightInput
           )
         }
-        onRemove={(i) => handleRemove(keyHiglights, setkeyHiglights, i)}
+        onRemove={(i) => handleRemove(keyHighlights, setkeyHighlights, i)}
         suggestions={suggestedkeyHiglights}
       />
 

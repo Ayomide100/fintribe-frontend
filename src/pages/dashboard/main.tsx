@@ -235,9 +235,11 @@ const Main = () => {
                 <div className="flex gap-3">
                   <div className="w-[35px] h-[35px] rounded-full flex shrink-0 justify-center items-center">
                     <Image
-                      src={noface}
+                      src={profileImage ? profileImage : noface}
                       alt="user"
-                      className="w-full h-full object-cover rounded-full"
+                      width={40}
+                      height={40}
+                      className=" object-cover rounded-full "
                     />
                   </div>
                   <textarea
