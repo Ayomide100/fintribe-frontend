@@ -1,10 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import {
   Search,
   ChevronDown,
   Plus,
-  TrendingUp,
   ChartColumnBig,
+  Trash,
+  ShieldCheck,
+  Notebook,
+  Lock,
 } from "lucide-react";
 import Dashboardlayouts from "../../layouts/Dashboardlayouts";
 import Head from "next/head";
@@ -13,94 +17,29 @@ import { isAxiosError } from "axios";
 import toast from "react-hot-toast";
 import { TbFidgetSpinner } from "react-icons/tb";
 import { useRouter } from "next/router";
+import Image from "next/image";
 
 const Opportunities = () => {
   type Opportunity = {
-    title?: string;
-    company?: string;
-    roi?: string;
-    duration?: string;
-    category?: string;
-    risk?: string;
-    minInvestment?: string;
-    rating?: string;
-    tagColor?: string;
+    _id: string;
+    title: string;
+    category: string;
+    expectedROI: number;
+    roiTimeline: {
+      timelineMonths: number;
+    };
+    minInvestment?: number | string;
+    status: string;
   };
 
   const [accountType, setAccountType] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-
+  const [showModal, setShowModal] = useState(false);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<any>(null);
+  const [singleLoading, setSingleLoading] = useState(false);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-
-  const summary = [
-    {
-      label: "Total opportunities created ",
-      count: 12,
-      icon: <TrendingUp size={25} />,
-    },
-    {
-      label: "Active Opportunities",
-      count: 13,
-      icon: <TrendingUp size={25} />,
-    },
-    {
-      label: "Closed opportunities",
-      count: 1,
-      icon: <TbFidgetSpinner size={25} />,
-    },
-    {
-      label: "Average ROI",
-      count: 4,
-      icon: <ChartColumnBig size={25} />,
-    },
-  ];
-
-  // const opportunities = [
-  //   {
-  //     title: "Lagos Real Estate",
-  //     company: "Sterling Properties",
-  //     roi: "18–22%",
-  //     duration: "24 months",
-  //     category: "Real Estate",
-  //     risk: "Low Risk",
-  //     minInvestment: "₦250,000",
-  //     rating: "4.6 (234 investors)",
-  //     tagColor: "bg-emerald-100 text-emerald-700",
-  //   },
-  //   {
-  //     title: "Lagos Real Estate",
-  //     company: "Sterling Properties",
-  //     roi: "35–50%",
-  //     duration: "24 months",
-  //     category: "Agriculture",
-  //     risk: "High Risk",
-  //     minInvestment: "₦250,000",
-  //     rating: "4.6 (234 investors)",
-  //     tagColor: "bg-red-100 text-red-700",
-  //   },
-  //   {
-  //     title: "Lagos Real Estate",
-  //     company: "Sterling Properties",
-  //     roi: "25–30%",
-  //     duration: "24 months",
-  //     category: "Technology",
-  //     risk: "Medium Risk",
-  //     minInvestment: "₦250,000",
-  //     rating: "4.6 (234 investors)",
-  //     tagColor: "bg-yellow-100 text-yellow-700",
-  //   },
-  //   {
-  //     title: "Lagos Real Estate",
-  //     company: "Sterling Properties",
-  //     roi: "18–22%",
-  //     duration: "24 months",
-  //     category: "Real Estate",
-  //     risk: "Low Risk",
-  //     minInvestment: "₦250,000",
-  //     rating: "4.6 (234 investors)",
-  //     tagColor: "bg-emerald-100 text-emerald-700",
-  //   },
-  // ];
+  type SummaryStat = { label: string; count: number; icon: React.ReactNode };
+  const [summary, setsummary] = useState<SummaryStat[]>([]);
 
   const getUser = async () => {
     try {
@@ -123,7 +62,7 @@ const Opportunities = () => {
         toast.error(errorMsg);
       }
     } finally {
-      setLoading(false); // ✅ Stop loading after request completes
+      setLoading(false);
     }
   };
 
@@ -134,7 +73,41 @@ const Opportunities = () => {
           Authorization: `${localStorage.getItem("token")}`,
         },
       });
-      setOpportunities(res.data.content.opportunities);
+      const mapped = res.data.content.opportunities.map((item: any) => ({
+        _id: item._id,
+        title: item.title,
+        category: item.category,
+        expectedROI: item.expectedROI,
+        duration: `${item.roiTimeline.timelineMonths} months`,
+        minInvestment: item.minInvestment || "Not specified",
+        status: item.status || "inactive", // <-- added
+      }));
+      const m = res.data.content.metrics;
+
+      setsummary([
+        {
+          label: "Total Opportunities",
+          count: m.total,
+          icon: <ChartColumnBig size={24} />,
+        },
+        {
+          label: "Active Opportunities",
+          count: m.active,
+          icon: <Plus size={24} />,
+        },
+        {
+          label: "Draft Opportunities",
+          count: m.draft,
+          icon: <Notebook size={24} />,
+        },
+        {
+          label: "Closed Opportunities",
+          count: m.closed,
+          icon: <Lock size={24} />,
+        },
+      ]);
+
+      setOpportunities(mapped);
       console.log(res.data.content);
     } catch (error) {
       if (isAxiosError(error)) {
@@ -151,6 +124,34 @@ const Opportunities = () => {
     }
   };
 
+  const getSingleOpportunities = async (opportunityId: string) => {
+    try {
+      setSingleLoading(true);
+      const res = await axios.get(`/opportunity/${opportunityId}`, {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+      });
+
+      setSelectedOpportunity(res.data.content); // store the data
+      setShowModal(true); // open the modal
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
+    } finally {
+      setSingleLoading(false);
+    }
+  };
+
   useEffect(() => {
     getUser();
     getAllOpptunity();
@@ -158,6 +159,30 @@ const Opportunities = () => {
 
   const isPartner = accountType === "partner";
   const router = useRouter();
+
+  const handleDeleteOppturnity = async (opportunityId: string) => {
+    try {
+      const response = await axios.delete(`/opportunity/${opportunityId}`, {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+      });
+      toast.success(response.data.message);
+      getAllOpptunity();
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
+    }
+  };
 
   return (
     <Dashboardlayouts>
@@ -252,63 +277,218 @@ const Opportunities = () => {
                   : "grid grid-cols-1 sm:grid-cols-2"
               } gap-5 w-full`}
             >
-              {opportunities.map((item, i) => (
+              {opportunities.map((item: any, i) => (
                 <div
                   key={i}
-                  className="bg-white border border-gray-200 shadow-sm rounded-xl p-5 flex flex-col justify-between hover:shadow-md transition"
+                  className="bg-white border border-gray-100 shadow-md rounded-xl p-6 hover:shadow-lg transition-all flex flex-col gap-5"
                 >
+                  {/* Top Section */}
                   <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold">{item.title}</h3>
-                      <p className="text-xs text-gray-500">{item.company}</p>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {item.title}
+                        </h3>
+                        <ShieldCheck className="text-emerald-600" size={16} />
+                        <span
+                          className={`py-1 px-3 text-xs rounded-full ${
+                            item.status === "active"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-gray-200 text-gray-600"
+                          }`}
+                        >
+                          {item.status}
+                        </span>
+                      </div>
+
+                      <span className="py-1 px-3 bg-[#17A2B815] text-[#17A2B8] text-xs rounded-full w-max">
+                        {item.category}
+                      </span>
                     </div>
+
+                    {/* Delete Button */}
                     <span
-                      className={`text-xs font-medium px-2 py-1 rounded-full ${item.tagColor}`}
+                      onClick={() => handleDeleteOppturnity(item._id)}
+                      className="text-red-600 cursor-pointer hover:scale-110 transition"
                     >
-                      {item.category}
+                      <Trash size={18} />
                     </span>
                   </div>
-
-                  <div className="flex justify-between items-center mt-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Expected ROI</p>
-                      <h3 className="text-lg font-semibold text-gray-800">
-                        {item.roi}
+                  {/* ROI + Duration + Min Investment (VERTICAL LAYOUT) */}
+                  <div className="w-full flex justify-around items-center  text-black rounded-lg p-4 gap-4">
+                    {/* Min Investment */}
+                    <div className="flex flex-col">
+                      <p className="text-xs opacity-80">Min. Investment</p>
+                      <h3 className="text-lg font-bold">
+                        {item.minInvestment}
                       </h3>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">Duration</p>
-                      <h3 className="text-lg font-semibold text-gray-800">
+
+                    {/* Duration */}
+                    <div className="flex flex-col">
+                      <p className="text-xs opacity-80">Duration</p>
+                      <h3 className="text-base font-semibold">
                         {item.duration}
                       </h3>
                     </div>
+
+                    {/* Expected ROI */}
+                    <div className="flex flex-col">
+                      <p className="text-xs opacity-80">Expected ROI</p>
+                      <h3 className="text-base font-semibold text-emerald-300">
+                        {item.expectedROI}%
+                      </h3>
+                    </div>
                   </div>
 
-                  <div
-                    className={`flex justify-between items-center mt-3 ${item.tagColor} px-3 py-1 rounded-full w-max`}
-                  >
-                    <span className="text-xs text-gray-500">{item.risk}</span>
-                  </div>
-
-                  <div className="mt-4">
-                    <p className="text-xs text-gray-500 mb-1">
-                      ⭐ {item.rating}
-                    </p>
-                    <p className="text-xs text-gray-500 mb-3">
-                      Min. Investment:{" "}
-                      <span className="font-semibold">
-                        {item.minInvestment}
-                      </span>
-                    </p>
-
-                    <button className="w-full bg-[#001F3F] text-white text-sm py-2 rounded-md hover:bg-[#003366] transition">
-                      View details →
+                  {/* BUTTON GROUP */}
+                  <div className="flex items-center gap-3 mt-3">
+                    <button
+                      onClick={() => getSingleOpportunities(item._id)}
+                      className="flex-1 bg-[#001F3F] text-white text-sm py-2 rounded-md hover:bg-[#003366] transition"
+                    >
+                      View details
                     </button>
+
+                    <button className="flex-1 border border-[#0A2540] text-[#0A2540] text-sm py-2 rounded-md hover:bg-yellow-600 transition">
+                      Edit
+                    </button>
+
+                    {item.status === "active" && (
+                      <button className="flex-1 bg-red-600 text-white text-sm py-2 rounded-md hover:bg-red-700 transition">
+                        Close
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           </>
+        )}
+
+        {showModal && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+            <div className="bg-white w-full max-w-lg rounded-xl shadow-lg relative max-h-[90vh] flex flex-col">
+              {/* Close Button */}
+              <button
+                onClick={() => setShowModal(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 z-10"
+              >
+                ✕
+              </button>
+
+              {/* Scrollable Content */}
+              <div className="overflow-y-auto p-8 pt-12 flex-1">
+                {singleLoading ? (
+                  <div className="flex flex-col items-center py-12">
+                    <TbFidgetSpinner className="animate-spin text-3xl text-[#001F3F]" />
+                    <p className="text-sm mt-3 text-gray-600">
+                      Loading details...
+                    </p>
+                  </div>
+                ) : (
+                  selectedOpportunity && (
+                    <div className="flex flex-col gap-6">
+                      {/* TITLE */}
+                      <h2 className="text-2xl font-semibold mt-2">
+                        {selectedOpportunity.title}
+                      </h2>
+
+                      {/* CATEGORY */}
+                      <p className="text-sm text-gray-600">
+                        {selectedOpportunity.category}
+                      </p>
+
+                      {/* IMAGE */}
+                      {selectedOpportunity.media?.length > 0 && (
+                        <Image
+                          src={selectedOpportunity.media[0].url}
+                          alt="Opportunity"
+                          width={600}
+                          height={300}
+                          className="object-cover rounded-lg mt-3 mb-4 w-full"
+                        />
+                      )}
+
+                      {/* BASIC INFO */}
+                      <div className="grid grid-cols-2 gap-4 text-sm bg-gray-50 p-4 rounded-lg">
+                        <p>
+                          <strong>ROI:</strong>{" "}
+                          {selectedOpportunity.expectedROI}%
+                        </p>
+                        <p>
+                          <strong>Status:</strong> {selectedOpportunity.status}
+                        </p>
+                        <p>
+                          <strong>Currency:</strong>{" "}
+                          {selectedOpportunity.currency}
+                        </p>
+                        <p>
+                          <strong>Location:</strong>{" "}
+                          {selectedOpportunity.location}
+                        </p>
+                        <p>
+                          <strong>Duration:</strong>{" "}
+                          {selectedOpportunity.roiTimeline?.timelineMonths}{" "}
+                          months
+                        </p>
+                        <p>
+                          <strong>Closing Date:</strong>{" "}
+                          {new Date(
+                            selectedOpportunity.closingDate
+                          ).toLocaleDateString()}
+                        </p>
+                      </div>
+
+                      {/* DESCRIPTION */}
+                      <div className="mt-2">
+                        <h3 className="font-medium mb-1">Description</h3>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {selectedOpportunity.description}
+                        </p>
+                      </div>
+
+                      {/* DUE DILIGENCE */}
+                      <div className="mt-1">
+                        <h3 className="font-medium mb-1">Due Diligence</h3>
+                        <ul className="list-disc ml-6 text-sm space-y-1">
+                          {selectedOpportunity.dueDiligence?.map(
+                            (item: string, idx: number) => (
+                              <li key={idx}>{item}</li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+
+                      {/* KEY HIGHLIGHTS */}
+                      <div className="mt-1">
+                        <h3 className="font-medium mb-1">Key Highlights</h3>
+                        <ul className="list-disc ml-6 text-sm space-y-1">
+                          {selectedOpportunity.keyHighlights?.map(
+                            (item: string, idx: number) => (
+                              <li key={idx}>{item}</li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+
+                      {/* RISK FACTORS */}
+                      <div className="mt-1 mb-3">
+                        <h3 className="font-medium mb-1">Risk Factors</h3>
+                        <ul className="list-disc ml-6 text-sm space-y-1">
+                          {selectedOpportunity.riskFactors?.map(
+                            (item: string, idx: number) => (
+                              <li key={idx}>{item}</li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </Dashboardlayouts>
