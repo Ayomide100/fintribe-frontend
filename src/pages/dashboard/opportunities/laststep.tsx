@@ -4,6 +4,7 @@ import axios from "@/config/axiosconfig";
 import { isAxiosError } from "axios";
 import { CircleCheck } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/router";
 import React, { useEffect, useMemo, useState } from "react";
 import { Line } from "react-chartjs-2";
 import toast from "react-hot-toast";
@@ -32,7 +33,7 @@ const FinalStep: React.FC<FinalStepProps> = ({ onBack }) => {
   const id = localStorage.getItem("opportunityId");
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("published");
 
   // ✅ Fetch Opportunity for Review
   const getSingleOpportunity = async () => {
@@ -45,7 +46,7 @@ const FinalStep: React.FC<FinalStepProps> = ({ onBack }) => {
       });
       setOpportunity(response.data.content);
 
-      setStatus(response.data.content.status);
+      setStatus(status);
       console.log("this is teh status of the opporunity:", status);
     } catch (error: unknown) {
       if (isAxiosError(error)) {
@@ -96,6 +97,13 @@ const FinalStep: React.FC<FinalStepProps> = ({ onBack }) => {
         toast.error("Error occurred");
       }
     }
+  };
+
+  const router = useRouter();
+
+  const handleModalAction = () => {
+    setShowSuccessModal(false);
+    router.push("/dashboard/opportunities");
   };
 
   // ROI Chart Data
@@ -252,7 +260,7 @@ const FinalStep: React.FC<FinalStepProps> = ({ onBack }) => {
               Your opportunity is now live and visible to investors 🎉
             </p>
             <button
-              onClick={() => setShowSuccessModal(false)}
+              onClick={handleModalAction}
               className="bg-green-600 text-white px-6 py-2 rounded-md"
             >
               Close
