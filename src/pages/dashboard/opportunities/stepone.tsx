@@ -60,9 +60,10 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({ onNext }) => {
     location: "",
     investmentType: "",
     expectedROI: 0,
-    minimumInvestment: "",
+    minInvestmentAmount: "",
     currency: "NGN",
     closingDate: "",
+    investmentDuration: "",
   });
 
   const router = useRouter();
@@ -177,6 +178,7 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({ onNext }) => {
       {/* BASIC INFO */}
       <div className="bg-white border rounded-md p-6 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Title */}
           <InputField label="Title" required>
             <input
               value={form.title}
@@ -186,15 +188,23 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({ onNext }) => {
             />
           </InputField>
 
+          {/* Category */}
           <InputField label="Category" required>
-            <input
+            <select
               value={form.category}
               onChange={onChange("category")}
-              className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="e.g Renewable Energy"
-            />
+              className="w-full rounded-md border px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="">Select Category</option>
+              <option value="Agriculture">Agriculture</option>
+              <option value="Real Estate">Real Estate</option>
+              <option value="Renewable Energy">Renewable Energy</option>
+              <option value="Tech Startup">Tech Startup</option>
+              <option value="Transportation">Transportation</option>
+            </select>
           </InputField>
 
+          {/* Location */}
           <InputField label="Location" required>
             <input
               value={form.location}
@@ -204,34 +214,43 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({ onNext }) => {
             />
           </InputField>
 
+          {/* Investment Type */}
           <InputField label="Investment Type" required>
-            <input
+            <select
               value={form.investmentType}
               onChange={onChange("investmentType")}
-              className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="e.g Equity or Debt"
-            />
+              className="w-full rounded-md border px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="">Select Type</option>
+              <option value="Equity">Equity</option>
+              <option value="Debt">Debt</option>
+            </select>
           </InputField>
 
-          <InputField label="Expected ROI" required>
+          {/* Expected ROI */}
+          <InputField label="Expected ROI (%)" required>
             <input
+              type="number"
+              min={0}
               value={form.expectedROI}
               onChange={onChange("expectedROI")}
               className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="e.g 20%"
+              placeholder="e.g 20"
             />
           </InputField>
 
+          {/* Minimum Investment */}
           <InputField label="Minimum Investment" required>
             <input
               type="number"
-              value={form.minimumInvestment}
-              onChange={onChange("minimumInvestment")}
+              value={form.minInvestmentAmount}
+              onChange={onChange("minInvestmentAmount")}
               className="w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="e.g 1000000"
             />
           </InputField>
 
+          {/* Currency */}
           <InputField label="Currency" required>
             <select
               value={form.currency}
@@ -243,7 +262,23 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({ onNext }) => {
               <option value="EUR">EUR (€)</option>
             </select>
           </InputField>
+          {/* Investment Duration */}
+          <InputField label="Investment Duration" required>
+            <select
+              value={form.investmentDuration}
+              onChange={onChange("duration")}
+              className="w-full rounded-md border px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="">Select Duration</option>
+              <option value="3 Months">3 Months</option>
+              <option value="6 Months">6 Months</option>
+              <option value="12 Months">12 Months</option>
+              <option value="18 Months">18 Months</option>
+              <option value="24 Months">24 Months</option>
+            </select>
+          </InputField>
 
+          {/* Closing Date */}
           <InputField label="Closing Date" required>
             <input
               type="date"
