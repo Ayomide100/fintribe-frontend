@@ -196,11 +196,15 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({ onNext }) => {
               className="w-full rounded-md border px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
               <option value="">Select Category</option>
-              <option value="Agriculture">Agriculture</option>
+              <option value="AgriBusiness">AgriBusiness</option>
               <option value="Real Estate">Real Estate</option>
-              <option value="Renewable Energy">Renewable Energy</option>
-              <option value="Tech Startup">Tech Startup</option>
-              <option value="Transportation">Transportation</option>
+              <option value="Stocks">Stocks</option>
+              <option value="Bonds">Bonds</option>
+              <option value="Forex">Forex</option>
+              <option value="Mutual Funds">Mutual Funds</option>
+              <option value="others">Others</option>
+              <option value="Tech startup">Tech Startup</option>
+              <option value="Transportion">Transportation</option>
             </select>
           </InputField>
 
@@ -266,7 +270,7 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({ onNext }) => {
           <InputField label="Investment Duration" required>
             <select
               value={form.investmentDuration}
-              onChange={onChange("duration")}
+              onChange={onChange("investmentDuration")}
               className="w-full rounded-md border px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
               <option value="">Select Duration</option>

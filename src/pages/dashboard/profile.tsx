@@ -264,7 +264,7 @@ const Profile = () => {
           <EditProfileModal
             user={user}
             onClose={() => setIsModalOpen(false)}
-            onSave={handleProfileUpdate} // <-- Pass callback
+            onSave={handleProfileUpdate} // <-- THIS IS WHAT TRIGGERS THE REFRESH
           />
         )}
       </div>

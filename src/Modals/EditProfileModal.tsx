@@ -8,8 +8,10 @@ import { isAxiosError } from "axios";
 
 const EditProfileModal = ({ onClose, user, onSave }: any) => {
   const [profileImage, setProfileImage] = useState<string>(
-    user?.avatar || noface.src
+    user?.avatar?.url || noface.src
   );
+
+  console.log(onClose(), "testing the close");
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -60,8 +62,8 @@ const EditProfileModal = ({ onClose, user, onSave }: any) => {
       const updatedUser = res.data.content.user;
       toast.success("Profile updated successfully!");
 
-      // ✅ Trigger parent update immediately
       if (onSave) onSave(updatedUser);
+
       onClose();
     } catch (error) {
       if (isAxiosError(error)) {
@@ -100,12 +102,14 @@ const EditProfileModal = ({ onClose, user, onSave }: any) => {
               className="rounded-full object-cover border border-gray-300"
             />
           </div>
+
           <button
             onClick={() => fileInputRef.current?.click()}
             className="mt-3 text-sm bg-[#2E8B57] text-white px-4 py-1.5 rounded-md hover:bg-[#256a45] transition-all"
           >
             Upload Image
           </button>
+
           <input
             type="file"
             accept="image/*"
@@ -117,6 +121,7 @@ const EditProfileModal = ({ onClose, user, onSave }: any) => {
 
         {/* Form Fields */}
         <div className="flex flex-col gap-4">
+          {/* Fullname - Disabled */}
           <div>
             <label className="text-sm text-gray-600">Full Name</label>
             <input
@@ -124,11 +129,12 @@ const EditProfileModal = ({ onClose, user, onSave }: any) => {
               name="fullname"
               value={formData.fullname}
               onChange={handleChange}
-              className="w-full mt-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#2E8B57]"
-              placeholder="Enter your full name"
+              disabled
+              className="w-full mt-1 border border-gray-300 bg-gray-100 rounded-md px-3 py-2 text-sm cursor-not-allowed"
             />
           </div>
 
+          {/* Email - Disabled */}
           <div>
             <label className="text-sm text-gray-600">Email</label>
             <input
@@ -136,11 +142,25 @@ const EditProfileModal = ({ onClose, user, onSave }: any) => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full mt-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#2E8B57]"
-              placeholder="Enter your email"
+              disabled
+              className="w-full mt-1 border border-gray-300 bg-gray-100 rounded-md px-3 py-2 text-sm cursor-not-allowed"
             />
           </div>
 
+          {/* Phone - Disabled */}
+          <div>
+            <label className="text-sm text-gray-600">Phone Number</label>
+            <input
+              type="text"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              disabled
+              className="w-full mt-1 border border-gray-300 bg-gray-100 rounded-md px-3 py-2 text-sm cursor-not-allowed"
+            />
+          </div>
+
+          {/* Editable Fields */}
           <div>
             <label className="text-sm text-gray-600">Address</label>
             <input
@@ -148,8 +168,7 @@ const EditProfileModal = ({ onClose, user, onSave }: any) => {
               name="address"
               value={formData.address}
               onChange={handleChange}
-              className="w-full mt-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#2E8B57]"
-              placeholder="Enter your address"
+              className="w-full mt-1 border border-gray-300 rounded-md px-3 py-2 text-sm"
             />
           </div>
 
@@ -160,20 +179,7 @@ const EditProfileModal = ({ onClose, user, onSave }: any) => {
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className="w-full mt-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#2E8B57]"
-              placeholder="Enter your username"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm text-gray-600">Phone Number</label>
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="w-full mt-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#2E8B57]"
-              placeholder="Enter your phone number"
+              className="w-full mt-1 border border-gray-300 rounded-md px-3 py-2 text-sm"
             />
           </div>
 
@@ -184,13 +190,12 @@ const EditProfileModal = ({ onClose, user, onSave }: any) => {
               value={formData.bio}
               onChange={handleChange}
               rows={3}
-              className="w-full mt-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#2E8B57] resize-none"
-              placeholder="Write something about yourself"
+              className="w-full mt-1 border border-gray-300 rounded-md px-3 py-2 text-sm resize-none"
             />
           </div>
         </div>
 
-        {/* Save Button */}
+        {/* Save */}
         <div className="flex justify-end mt-6">
           <button
             onClick={handleSubmit}

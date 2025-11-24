@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import {
@@ -33,13 +34,20 @@ const Opportunities = () => {
   };
 
   const [accountType, setAccountType] = useState<string | null>(null);
+  console.log(accountType);
+
   const [loading, setLoading] = useState<boolean>(true);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState<any>(null);
   const [singleLoading, setSingleLoading] = useState(false);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   type SummaryStat = { label: string; count: number; icon: React.ReactNode };
   const [summary, setsummary] = useState<SummaryStat[]>([]);
+
+  const [opportunityToDelete, setOpportunityToDelete] = useState<string | null>(
+    null
+  );
 
   const getUser = async () => {
     try {
@@ -48,7 +56,9 @@ const Opportunities = () => {
           Authorization: `${localStorage.getItem("token")}`,
         },
       });
-      setAccountType(res.data.content.user.account_type);
+      const type = res.data.content.user.account_type;
+      console.log(type, "confirm if this correct...");
+      setAccountType(type);
     } catch (error) {
       if (isAxiosError(error)) {
         const apiMessage = error.response?.data?.message;
@@ -66,22 +76,35 @@ const Opportunities = () => {
     }
   };
 
-  const getAllOpptunity = async () => {
+  const getAllOpportunities = async () => {
+    setLoading(true);
+
     try {
-      const res = await axios.get("/opportunity/me?page=1&limit=5", {
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-        },
+      const url =
+        accountType === "partner"
+          ? "/opportunity/all?page=1&limit=5"
+          : "/opportunity/me?page=1&limit=5";
+
+      const res = await axios.get(url, {
+        headers: { Authorization: `${localStorage.getItem("token")}` },
       });
+
       const mapped = res.data.content.opportunities.map((item: any) => ({
         _id: item._id,
         title: item.title,
         category: item.category,
         expectedROI: item.expectedROI,
-        duration: `${item.roiTimeline.timelineMonths} months`,
-        minInvestment: item.minInvestment || "Not specified",
-        status: item.status || "inactive", // <-- added
+        investmentDuration: item.investmentDuration,
+        minInvestmentAmount: item.minInvestmentAmount
+          ? Number(item.minInvestmentAmount).toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
+          : "Not specified",
+        status: item.status || "inactive",
+        currency: item.currency,
       }));
+
       const m = res.data.content.metrics;
 
       setsummary([
@@ -108,7 +131,6 @@ const Opportunities = () => {
       ]);
 
       setOpportunities(mapped);
-      console.log(res.data.content);
     } catch (error) {
       if (isAxiosError(error)) {
         const apiMessage = error.response?.data?.message;
@@ -118,9 +140,10 @@ const Opportunities = () => {
         const errorMsg =
           `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
           fallback;
-
         toast.error(errorMsg);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -154,21 +177,22 @@ const Opportunities = () => {
 
   useEffect(() => {
     getUser();
-    getAllOpptunity();
+
+    getAllOpportunities();
   }, []);
 
   const isPartner = accountType === "partner";
   const router = useRouter();
 
-  const handleDeleteOppturnity = async (opportunityId: string) => {
+  const handleDeleteOpportunity = async () => {
+    if (!opportunityToDelete) return;
+
     try {
-      const response = await axios.delete(`/opportunity/${opportunityId}`, {
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-        },
+      const res = await axios.delete(`/opportunity/${opportunityToDelete}`, {
+        headers: { Authorization: `${localStorage.getItem("token")}` },
       });
-      toast.success(response.data.message);
-      getAllOpptunity();
+      toast.success(res.data.message);
+      getAllOpportunities();
     } catch (error) {
       if (isAxiosError(error)) {
         const apiMessage = error.response?.data?.message;
@@ -178,9 +202,11 @@ const Opportunities = () => {
         const errorMsg =
           `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
           fallback;
-
         toast.error(errorMsg);
       }
+    } finally {
+      setDeleteModalOpen(false);
+      setOpportunityToDelete(null);
     }
   };
 
@@ -308,7 +334,10 @@ const Opportunities = () => {
 
                     {/* Delete Button */}
                     <span
-                      onClick={() => handleDeleteOppturnity(item._id)}
+                      onClick={() => {
+                        setOpportunityToDelete(item._id); // store the ID
+                        setDeleteModalOpen(true); // open modal
+                      }}
                       className="text-red-600 cursor-pointer hover:scale-110 transition"
                     >
                       <Trash size={18} />
@@ -320,7 +349,7 @@ const Opportunities = () => {
                     <div className="flex flex-col">
                       <p className="text-xs opacity-80">Min. Investment</p>
                       <h3 className="text-lg font-bold">
-                        {item.minInvestment}
+                        {item.currency} {item.minInvestmentAmount}
                       </h3>
                     </div>
 
@@ -328,7 +357,7 @@ const Opportunities = () => {
                     <div className="flex flex-col">
                       <p className="text-xs opacity-80">Duration</p>
                       <h3 className="text-base font-semibold">
-                        {item.duration}
+                        {item.investmentDuration}
                       </h3>
                     </div>
 
@@ -486,6 +515,32 @@ const Opportunities = () => {
                     </div>
                   )
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Delete Confirmation Modal */}
+        {deleteModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl w-full max-w-sm">
+              <h3 className="text-lg font-semibold mb-4">Confirm Delete</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                Are you sure you want to delete this opportunity? This action
+                cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setDeleteModalOpen(false)}
+                  className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteOpportunity}
+                  className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           </div>
