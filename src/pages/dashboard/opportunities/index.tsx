@@ -42,6 +42,7 @@ const Opportunities = () => {
   const [selectedOpportunity, setSelectedOpportunity] = useState<any>(null);
   const [singleLoading, setSingleLoading] = useState(false);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [allOpportunities, setAllOpportunities] = useState<Opportunity[]>([]);
   type SummaryStat = { label: string; count: number; icon: React.ReactNode };
   const [summary, setsummary] = useState<SummaryStat[]>([]);
 
@@ -82,8 +83,8 @@ const Opportunities = () => {
     try {
       const url =
         accountType === "partner"
-          ? "/opportunity/all?page=1&limit=5"
-          : "/opportunity/me?page=1&limit=5";
+          ? "/opportunity/me?page=1&limit=5"
+          : "/opportunity/all?page=1&limit=5";
 
       const res = await axios.get(url, {
         headers: { Authorization: `${localStorage.getItem("token")}` },
@@ -129,6 +130,7 @@ const Opportunities = () => {
           icon: <Lock size={24} />,
         },
       ]);
+      setAllOpportunities(mapped);
 
       setOpportunities(mapped);
     } catch (error) {
@@ -177,9 +179,13 @@ const Opportunities = () => {
 
   useEffect(() => {
     getUser();
-
-    getAllOpportunities();
   }, []);
+
+  useEffect(() => {
+    if (accountType) {
+      getAllOpportunities();
+    }
+  }, [accountType]);
 
   const isPartner = accountType === "partner";
   const router = useRouter();
@@ -209,6 +215,8 @@ const Opportunities = () => {
       setOpportunityToDelete(null);
     }
   };
+
+  const dataToRender = isPartner ? opportunities : allOpportunities;
 
   return (
     <Dashboardlayouts>
@@ -303,7 +311,7 @@ const Opportunities = () => {
                   : "grid grid-cols-1 sm:grid-cols-2"
               } gap-5 w-full`}
             >
-              {opportunities.map((item: any, i) => (
+              {dataToRender.map((item: any, i) => (
                 <div
                   key={i}
                   className="bg-white border border-gray-100 shadow-md rounded-xl p-6 hover:shadow-lg transition-all flex flex-col gap-5"
@@ -333,15 +341,17 @@ const Opportunities = () => {
                     </div>
 
                     {/* Delete Button */}
-                    <span
-                      onClick={() => {
-                        setOpportunityToDelete(item._id); // store the ID
-                        setDeleteModalOpen(true); // open modal
-                      }}
-                      className="text-red-600 cursor-pointer hover:scale-110 transition"
-                    >
-                      <Trash size={18} />
-                    </span>
+                    {isPartner && (
+                      <span
+                        onClick={() => {
+                          setOpportunityToDelete(item._id);
+                          setDeleteModalOpen(true);
+                        }}
+                        className="text-red-600 cursor-pointer hover:scale-110 transition"
+                      >
+                        <Trash size={18} />
+                      </span>
+                    )}
                   </div>
                   {/* ROI + Duration + Min Investment (VERTICAL LAYOUT) */}
                   <div className="w-full flex justify-around items-center  text-black rounded-lg p-4 gap-4">
@@ -370,8 +380,8 @@ const Opportunities = () => {
                     </div>
                   </div>
 
-                  {/* BUTTON GROUP */}
                   <div className="flex items-center gap-3 mt-3">
+                    {/* VIEW DETAILS (Always Visible) */}
                     <button
                       onClick={() => getSingleOpportunities(item._id)}
                       className="flex-1 bg-[#001F3F] text-white text-sm py-2 rounded-md hover:bg-[#003366] transition"
@@ -379,14 +389,19 @@ const Opportunities = () => {
                       View details
                     </button>
 
-                    <button className="flex-1 border border-[#0A2540] text-[#0A2540] text-sm py-2 rounded-md hover:bg-yellow-600 transition">
-                      Edit
-                    </button>
+                    {/* ONLY SHOW THESE IF PARTNER */}
+                    {isPartner && (
+                      <>
+                        <button className="flex-1 border border-[#0A2540] text-[#0A2540] text-sm py-2 rounded-md hover:bg-yellow-600 transition">
+                          Edit
+                        </button>
 
-                    {item.status === "active" && (
-                      <button className="flex-1 bg-red-600 text-white text-sm py-2 rounded-md hover:bg-red-700 transition">
-                        Close
-                      </button>
+                        {item.status === "active" && (
+                          <button className="flex-1 bg-red-600 text-white text-sm py-2 rounded-md hover:bg-red-700 transition">
+                            Close
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

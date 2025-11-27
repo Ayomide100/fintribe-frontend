@@ -3,30 +3,6 @@ import axios from "../../../config/axiosconfig";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 
-const suggestedDueDiligence = [
-  "Government backed project",
-  "Verified Location and assets",
-  "Experienced Management Team",
-  "Strong Market Demand",
-  "Insurance Coverage Included",
-];
-
-const suggestedkeyHiglights = [
-  "Low operating costs",
-  "Scalable model",
-  "Experienced partners",
-  "Favorable policy incentives",
-  "Long-term contracts",
-];
-
-const suggestedRiskFactors = [
-  "Market volatility",
-  "Regulatory changes",
-  "Natural disasters",
-  "Operational inefficiencies",
-  "Supply chain issues",
-];
-
 interface SectionProps {
   title: string;
   color: string;
@@ -37,7 +13,6 @@ interface SectionProps {
   setInputValue: React.Dispatch<React.SetStateAction<string>>;
   onAdd: () => void;
   onRemove: (index: number) => void;
-  suggestions: string[];
 }
 
 function Section({
@@ -50,7 +25,6 @@ function Section({
   setInputValue,
   onAdd,
   onRemove,
-  suggestions,
 }: SectionProps) {
   const colorClasses: Record<
     string,
@@ -152,18 +126,6 @@ function Section({
           </button>
         </div>
       )}
-
-      <div className="flex flex-wrap gap-2">
-        {suggestions.map((item, idx) => (
-          <span
-            key={idx}
-            className={`${c.lightBg} ${c.lightText} px-3 py-1 rounded-full text-xs cursor-pointer hover:opacity-80`}
-            onClick={() => setInputValue(item)}
-          >
-            {item}
-          </span>
-        ))}
-      </div>
     </div>
   );
 }
@@ -176,16 +138,11 @@ export default function ProjectDescriptionForm({
   onBack: () => void;
 }) {
   const [fullDesc, setFullDesc] = useState("");
+  const [descError, setDescError] = useState("");
 
-  const [dueDiligence, setDueDiligence] = useState<string[]>([
-    "Power purchase agreements confirmed",
-  ]);
-  const [keyHighlights, setkeyHighlights] = useState<string[]>([
-    "Projected yield 15% annually",
-  ]);
-  const [riskFactors, setRiskFactors] = useState<string[]>([
-    "Market Risk: Weather dependency and seasonal variations",
-  ]);
+  const [dueDiligence, setDueDiligence] = useState<string[]>([]);
+  const [keyHighlights, setkeyHighlights] = useState<string[]>([]);
+  const [riskFactors, setRiskFactors] = useState<string[]>([]);
 
   // Input visibility + temp inputs
   const [showDueInput, setShowDueInput] = useState(false);
@@ -219,8 +176,16 @@ export default function ProjectDescriptionForm({
   };
 
   const handleDescription = async (): Promise<boolean> => {
-    const toastId = toast.loading("Updating description...");
+    // local validation
+    if (fullDesc.trim().length < 20) {
+      setDescError("Project description must be at least 20 characters.");
+      toast.error("Description must be at least 20 characters.");
+      return false;
+    }
 
+    setDescError(""); // clear error if valid
+
+    const toastId = toast.loading("Updating description...");
     const id = localStorage.getItem("opportunityId");
 
     try {
@@ -239,21 +204,24 @@ export default function ProjectDescriptionForm({
           },
         }
       );
+      console.log(res.data.content);
 
-      console.log(res.data);
       toast.success("Description updated successfully ✅");
-      return true; // ✅ success
-    } catch (error: unknown) {
+      return true;
+    } catch (error) {
       if (isAxiosError(error)) {
         const message =
           error.response?.data?.message ||
           error.response?.data?.error ||
           "An unexpected error occurred";
+
+        // show backend validation error under textarea
+        setDescError(message);
         toast.error(message);
       } else {
         toast.error("Error occurred");
       }
-      return false; // ❌ fail
+      return false;
     } finally {
       toast.dismiss(toastId);
     }
@@ -274,14 +242,18 @@ export default function ProjectDescriptionForm({
         <textarea
           id="description"
           value={fullDesc}
-          onChange={(e) => setFullDesc(e.target.value)}
-          className="w-full border rounded px-3 py-2 mt-1 mb-4"
+          onChange={(e) => {
+            setFullDesc(e.target.value);
+            if (e.target.value.length >= 20) setDescError("");
+          }}
+          className="w-full border rounded px-3 py-2 mt-1 mb-1"
           rows={4}
           placeholder="Provide a detailed description of your investment opportunity"
         />
+
+        {descError && <p className="text-red-500 text-sm mb-4">{descError}</p>}
       </div>
 
-      {/* === Reusable Sections === */}
       <Section
         title="Due Diligence"
         color="green"
@@ -300,11 +272,10 @@ export default function ProjectDescriptionForm({
           )
         }
         onRemove={(i) => handleRemove(dueDiligence, setDueDiligence, i)}
-        suggestions={suggestedDueDiligence}
       />
 
       <Section
-        title="Key keyHiglights"
+        title="Key Highlights"
         color="blue"
         items={keyHighlights}
         showInput={showHighlightInput}
@@ -321,7 +292,6 @@ export default function ProjectDescriptionForm({
           )
         }
         onRemove={(i) => handleRemove(keyHighlights, setkeyHighlights, i)}
-        suggestions={suggestedkeyHiglights}
       />
 
       <Section
@@ -342,7 +312,6 @@ export default function ProjectDescriptionForm({
           )
         }
         onRemove={(i) => handleRemove(riskFactors, setRiskFactors, i)}
-        suggestions={suggestedRiskFactors}
       />
 
       <div className="flex justify-between">

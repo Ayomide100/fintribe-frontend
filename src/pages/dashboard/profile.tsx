@@ -15,9 +15,9 @@ const Profile = () => {
     noface
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"posts" | "liked" | "comments">(
-    "posts"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "posts" | "liked" | "comments" | "followers" | "following"
+  >("posts");
   const [user, setUser] = useState<any>(null);
 
   // Inside Profile component
@@ -198,7 +198,9 @@ const Profile = () => {
         {/* Tabs Section */}
         <div className="w-full flex flex-col mt-8 items-center">
           <div className="w-[94%] md:w-[96%] flex justify-around border-b border-[#E0E0E0] mb-4">
-            {(["posts", "liked", "comments"] as const).map((tab) => (
+            {(
+              ["posts", "liked", "comments", "followers", "following"] as const
+            ).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
