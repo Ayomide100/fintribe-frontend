@@ -24,7 +24,6 @@ interface Props {
 const DashboardHeader: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
   const [dropdown, setDropdown] = useState(false);
   const [user, setUser] = useState<any>(null);
-  console.log(user);
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
@@ -81,6 +80,7 @@ const DashboardHeader: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
       <div className="w-[25%] md:w-[10%]">
         <Image src={logo} alt="logo" />
       </div>
+      {user === null}
 
       {/* Search Bar - Hidden on mobile, visible on desktop */}
       <div className="w-[40%] h-[70%] bg-[#f1f1f1] rounded-md gap-2 hidden md:flex justify-center items-center">

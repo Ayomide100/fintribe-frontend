@@ -34,7 +34,6 @@ const Opportunities = () => {
   };
 
   const [accountType, setAccountType] = useState<string | null>(null);
-  console.log(accountType);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -217,6 +216,8 @@ const Opportunities = () => {
   };
 
   const dataToRender = isPartner ? opportunities : allOpportunities;
+
+  console.log("this is what is rendering:", allOpportunities);
 
   return (
     <Dashboardlayouts>
