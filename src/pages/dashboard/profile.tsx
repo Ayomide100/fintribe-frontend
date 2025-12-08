@@ -10,6 +10,30 @@ import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
 import EditProfileModal from "@/Modals/EditProfileModal";
 
+export interface LikedPost {
+  _id: string;
+  user: {
+    _id: string;
+    fullname: string;
+    username: string;
+    avatar: {
+      url: string;
+      id: string;
+    };
+  };
+  content: string;
+  media: { url: string; id: string }[];
+  likes: string[];
+  comments: {
+    user: string;
+    text: string;
+    _id: string;
+    createdAt: string;
+  }[];
+  likedAt: string;
+  createdAt: string;
+}
+
 const Profile = () => {
   const [profileImage, setProfileImage] = useState<StaticImageData | string>(
     noface
@@ -19,13 +43,19 @@ const Profile = () => {
     "posts" | "liked" | "comments" | "followers" | "following"
   >("posts");
   const [user, setUser] = useState<any>(null);
+  const [followers, setFollowers] = useState<any[]>([]);
+  const [following, setFollowing] = useState<any[]>([]);
+  const [loadingFollowers, setLoadingFollowers] = useState(false);
+  const [loadingFollowing, setLoadingFollowing] = useState(false);
 
-  // Inside Profile component
+  const [likedPosts, setLikedPosts] = useState<LikedPost[]>([]);
+  const [commentsList, setCommentsList] = useState<LikedPost[]>([]);
+  const [loadingLiked, setLoadingLiked] = useState(false);
+  const [loadingComments, setLoadingComments] = useState(false);
+
   const handleProfileUpdate = (updatedUser: any) => {
     setUser(updatedUser);
-    if (updatedUser.avatar && updatedUser.avatar.url) {
-      setProfileImage(updatedUser.avatar.url);
-    }
+    if (updatedUser.avatar?.url) setProfileImage(updatedUser.avatar.url);
   };
 
   const getUser = async () => {
@@ -37,10 +67,7 @@ const Profile = () => {
       const fetchedUser = res.data.content.user;
       setUser(fetchedUser);
 
-      // Use avatar if it exists
-      if (fetchedUser.avatar) {
-        setProfileImage(fetchedUser.avatar.url);
-      }
+      if (fetchedUser.avatar) setProfileImage(fetchedUser.avatar.url);
     } catch (error) {
       if (isAxiosError(error)) {
         const apiMessage = error.response?.data?.message;
@@ -56,33 +83,86 @@ const Profile = () => {
     }
   };
 
+  const getLikedPost = async () => {
+    try {
+      setLoadingLiked(true);
+      const res = await axios.get("/posts/liked?page=1&limit=20", {
+        headers: { Authorization: `${localStorage.getItem("token")}` },
+      });
+
+      setLikedPosts(res.data.data.posts);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to load liked posts.");
+    } finally {
+      setLoadingLiked(false);
+    }
+  };
+
+  const getComments = async () => {
+    try {
+      setLoadingComments(true);
+      const res = await axios.get("/posts/user_comment?page=1&limit=20", {
+        headers: { Authorization: `${localStorage.getItem("token")}` },
+      });
+
+      setCommentsList(res.data.data.posts);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to load comments.");
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  // ------------------------ FOLLOWERS ------------------------
+  const getFollowers = async () => {
+    try {
+      setLoadingFollowers(true);
+      const res = await axios.get("/users/followers?pages=1&limit=20", {
+        headers: { Authorization: `${localStorage.getItem("token")}` },
+      });
+
+      setFollowers(res.data?.content?.followers || []);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoadingFollowers(false);
+    }
+  };
+
+  // ------------------------ FOLLOWING ------------------------
+  const getFollowing = async () => {
+    try {
+      setLoadingFollowing(true);
+      const res = await axios.get("/users/followings?pages=1&limit=20", {
+        headers: { Authorization: `${localStorage.getItem("token")}` },
+      });
+
+      setFollowing(res.data?.content?.following || []);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoadingFollowing(false);
+    }
+  };
+
   useEffect(() => {
     getUser();
   }, []);
 
-  // Example tab content
+  useEffect(() => {
+    if (activeTab === "followers") getFollowers();
+    if (activeTab === "following") getFollowing();
+    if (activeTab === "liked") getLikedPost();
+    if (activeTab === "comments") getComments();
+  }, [activeTab]);
+
+  // Example static data
   const posts = [
     { id: 1, title: "Sustainable Investing 101", date: "Oct 1, 2025" },
     { id: 2, title: "The Rise of Clean Tech Startups", date: "Sep 25, 2025" },
     { id: 3, title: "Why Green Energy Matters", date: "Sep 10, 2025" },
-  ];
-
-  const liked = [
-    { id: 1, title: "10 Ways to Save Energy", author: "David John" },
-    { id: 2, title: "Fintech Revolution", author: "Mary Oke" },
-  ];
-
-  const comments = [
-    {
-      id: 1,
-      text: "Loved this post on sustainability!",
-      post: "The Rise of Clean Tech Startups",
-    },
-    {
-      id: 2,
-      text: "This was super insightful, thanks!",
-      post: "Why Green Energy Matters",
-    },
   ];
 
   return (
@@ -107,8 +187,7 @@ const Profile = () => {
           <div className="w-[94%] md:w-[96%] h-auto shadow-md border border-[#E0E0E0] rounded-xl flex flex-col items-center py-6 px-4 md:px-6">
             {/* Top Section */}
             <div className="w-full flex flex-col md:flex-row justify-between items-center gap-6 md:gap-0">
-              <div className="flex flex-col md:flex-row justify-start items-center gap-4 md:gap-6 relative w-full md:w-[60%]">
-                {/* Profile Image */}
+              <div className="flex flex-col md:flex-row justify-start items-center gap-4 md:gap-6 w-full md:w-[60%]">
                 <div className="relative w-[90px] h-[90px] md:w-[100px] md:h-[100px]">
                   <div className="w-full h-full rounded-full border-2 border-[#2E8B57] overflow-hidden relative">
                     <Image
@@ -120,24 +199,21 @@ const Profile = () => {
                   </div>
                 </div>
 
-                {/* User Info */}
                 <div className="text-center md:text-left">
                   <p className="font-medium text-lg md:text-xl capitalize">
                     {user?.fullname || "Loading..."}
                   </p>
                   <p className="text-sm text-[#2E8B57]">
                     Member since{" "}
-                    {user
-                      ? new Date(user.createdAt).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                        })
-                      : ""}
+                    {user &&
+                      new Date(user.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                      })}
                   </p>
                 </div>
               </div>
 
-              {/* Edit Button */}
               <div className="w-full md:w-auto flex justify-center md:justify-end">
                 <button
                   onClick={() => setIsModalOpen(true)}
@@ -148,7 +224,6 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* Divider */}
             <div className="w-full border-t border-[#E0E0E0] my-6" />
 
             {/* Bottom Info */}
@@ -171,26 +246,6 @@ const Profile = () => {
               <p className="text-[#6E6E6E] text-sm leading-relaxed">
                 {user?.bio || "No bio provided."}
               </p>
-
-              {/* <p className="text-sm text-gray-500">
-                Account Type:{" "}
-                <span className="capitalize text-[#2E8B57]">
-                  {user?.account_type}
-                </span>
-              </p> */}
-
-              {/* <p className="text-sm text-gray-500">
-                KYC Status:{" "}
-                <span
-                  className={`font-medium ${
-                    user?.kycStatus === "pending"
-                      ? "text-yellow-600"
-                      : "text-green-600"
-                  }`}
-                >
-                  {user?.kycStatus || "unknown"}
-                </span>
-              </p> */}
             </div>
           </div>
         </div>
@@ -215,13 +270,14 @@ const Profile = () => {
             ))}
           </div>
 
-          <div className="w-[94%] md:w-[96%] bg-white h-100 overflow-y-auto rounded-xl border border-[#E0E0E0] p-4 shadow-sm">
+          <div className="w-[94%] md:w-[96%]  max-h-[500px] overflow-y-scroll  bg-white rounded-xl border border-[#E0E0E0] p-4 shadow-sm">
+            {/* POSTS */}
             {activeTab === "posts" && (
               <div className="flex flex-col gap-4">
                 {posts.map((p) => (
                   <div
                     key={p.id}
-                    className="border border-[#E0E0E0] p-4 rounded-lg hover:bg-[#F9FAF9] transition-all"
+                    className="border border-[#E0E0E0] p-4 rounded-lg hover:bg-[#F9FAF9]"
                   >
                     <p className="font-semibold text-gray-800">{p.title}</p>
                     <p className="text-sm text-gray-500">{p.date}</p>
@@ -231,32 +287,215 @@ const Profile = () => {
             )}
 
             {activeTab === "liked" && (
-              <div className="flex flex-col gap-4">
-                {liked.map((l) => (
-                  <div
-                    key={l.id}
-                    className="border border-[#E0E0E0] p-4 rounded-lg hover:bg-[#F9FAF9] transition-all"
-                  >
-                    <p className="font-semibold text-gray-800">{l.title}</p>
-                    <p className="text-sm text-gray-500">by {l.author}</p>
+              <div>
+                {loadingLiked ? (
+                  <p className="text-center py-4 text-gray-500">
+                    Loading liked posts...
+                  </p>
+                ) : likedPosts.length === 0 ? (
+                  <p className="text-center py-4 text-gray-500">
+                    No liked posts yet.
+                  </p>
+                ) : (
+                  <div className="space-y-6">
+                    {loadingLiked && <p>Loading...</p>}
+
+                    {likedPosts.map((post) => (
+                      <div
+                        key={post._id}
+                        className="p-4 bg-white shadow rounded-lg border border-gray-200"
+                      >
+                        {/* USER INFO */}
+                        <div className="flex items-center gap-3 mb-3">
+                          <Image
+                            src={post.user.avatar.url}
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded-full object-cover"
+                            alt="avatar"
+                          />
+                          <div>
+                            <p className="font-semibold capitalize">
+                              {post.user.fullname}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              @{post.user.username}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* POST CONTENT */}
+                        <p className="mb-3 text-gray-800">{post.content}</p>
+
+                        {/* MEDIA */}
+                        {post.media.length > 0 && (
+                          <div className="grid grid-cols-2 gap-2 mb-3">
+                            {post.media.map((img) => (
+                              <Image
+                                key={img.id}
+                                alt="post-media"
+                                src={img.url}
+                                className="w-full rounded-lg object-cover"
+                                width={200}
+                                height={200}
+                              />
+                            ))}
+                          </div>
+                        )}
+
+                        {/* FOOTER */}
+                        <div className="flex items-center justify-between text-sm text-gray-600">
+                          <p>❤️ {post.likes.length} likes</p>
+                          <p>💬 {post.comments.length} comments</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             )}
 
+            {/* COMMENTS */}
             {activeTab === "comments" && (
-              <div className="flex flex-col gap-4">
-                {comments.map((c) => (
-                  <div
-                    key={c.id}
-                    className="border border-[#E0E0E0] p-4 rounded-lg hover:bg-[#F9FAF9] transition-all"
-                  >
-                    <p className="text-gray-700">{c.text}</p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      on &ldquo;{c.post}&ldquo;
-                    </p>
+              <div>
+                {loadingComments ? (
+                  <p className="text-center py-4 text-gray-500">
+                    Loading comments...
+                  </p>
+                ) : commentsList.length === 0 ? (
+                  <p className="text-center py-4 text-gray-500">
+                    No comments yet.
+                  </p>
+                ) : (
+                  <div className="space-y-6">
+                    {loadingComments && <p>Loading...</p>}
+
+                    {commentsList.map((post) => (
+                      <div
+                        key={post._id}
+                        className="p-4 bg-white shadow rounded-lg border border-gray-200"
+                      >
+                        {/* USER INFO */}
+                        <div className="flex items-center gap-3 mb-3">
+                          <Image
+                            src={post.user.avatar.url}
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded-full object-cover"
+                            alt="avatar"
+                          />
+                          <div>
+                            <p className="font-semibold capitalize">
+                              {post.user.fullname}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              @{post.user.username}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* POST CONTENT */}
+                        <p className="mb-3 text-gray-800">{post.content}</p>
+
+                        {/* MEDIA */}
+                        {post.media.length > 0 && (
+                          <div className="grid grid-cols-2 gap-2 mb-3">
+                            {post.media.map((img) => (
+                              <Image
+                                key={img.id}
+                                alt="post-media"
+                                src={img.url}
+                                className="w-full rounded-lg object-cover"
+                                width={200}
+                                height={200}
+                              />
+                            ))}
+                          </div>
+                        )}
+
+                        {/* FOOTER */}
+                        <div className="flex items-center justify-between text-sm text-gray-600">
+                          <p>❤️ {post.likes.length} likes</p>
+                          <p>💬 {post.comments.length} comments</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+              </div>
+            )}
+
+            {/* FOLLOWERS */}
+            {activeTab === "followers" && (
+              <div>
+                {loadingFollowers ? (
+                  <p className="text-center py-4 text-gray-500">
+                    Loading followers...
+                  </p>
+                ) : followers.length === 0 ? (
+                  <p className="text-center py-4 text-gray-500">
+                    No followers yet.
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    {followers.map((f) => (
+                      <div
+                        key={f._id}
+                        className="border border-[#E0E0E0] p-4 rounded-lg flex items-center gap-4 hover:bg-[#F9FAF9]"
+                      >
+                        <Image
+                          src={f.avatar?.url || noface}
+                          width={45}
+                          height={45}
+                          className="rounded-full object-cover border"
+                          alt="follower"
+                        />
+
+                        <div>
+                          <p className="font-medium capitalize">{f.fullname}</p>
+                          <p className="text-sm text-gray-500">{f.username}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* FOLLOWING */}
+            {activeTab === "following" && (
+              <div>
+                {loadingFollowing ? (
+                  <p className="text-center py-4 text-gray-500">
+                    Loading following...
+                  </p>
+                ) : following.length === 0 ? (
+                  <p className="text-center py-4 text-gray-500">
+                    You are not following anyone yet.
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    {following.map((f) => (
+                      <div
+                        key={f._id}
+                        className="border border-[#E0E0E0] p-4 rounded-lg flex items-center gap-4 hover:bg-[#F9FAF9]"
+                      >
+                        <Image
+                          src={f.avatar?.url || noface}
+                          width={45}
+                          height={45}
+                          className="rounded-full object-cover border"
+                          alt="following"
+                        />
+
+                        <div>
+                          <p className="font-medium capitalize">{f.fullname}</p>
+                          <p className="text-sm text-gray-500">{f.username}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -266,7 +505,7 @@ const Profile = () => {
           <EditProfileModal
             user={user}
             onClose={() => setIsModalOpen(false)}
-            onSave={handleProfileUpdate} // <-- THIS IS WHAT TRIGGERS THE REFRESH
+            onSave={handleProfileUpdate}
           />
         )}
       </div>
