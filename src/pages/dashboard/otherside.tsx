@@ -23,8 +23,26 @@ type Circle = {
   lastMessage?: { text: string };
 };
 
+interface Investment {
+  title: string;
+  minInvestmentAmount: number;
+  description: string;
+  category: string;
+  categoryColor: string;
+  rating: number;
+  investmentDuration: string;
+  investors: number;
+  expectedROI: string;
+  duration: string;
+  minInvestment: string;
+  riskLevel: string;
+  riskColor: string;
+  _id: string;
+}
+
 const Otherside: React.FC<OthersideProps> = ({ accountType }) => {
   const [circles, setCircles] = useState<Circle[]>([]);
+  const [investmentData, setInvestmentData] = useState<Investment[]>([]);
 
   const router = useRouter();
 
@@ -89,8 +107,24 @@ const Otherside: React.FC<OthersideProps> = ({ accountType }) => {
     }
   };
 
+  const getAllOpp = async () => {
+    try {
+      const res = await axios.get("/opportunity/?page=1&limit=5");
+      setInvestmentData(res.data.content.opportunities);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const msg =
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch opportunities";
+        toast.error(msg);
+      }
+    }
+  };
+
   useEffect(() => {
     getAllCircles();
+    getAllOpp();
   }, []);
 
   const [expertData, setExpertData] = useState<any[]>([]);
@@ -237,64 +271,79 @@ const Otherside: React.FC<OthersideProps> = ({ accountType }) => {
 
       {/* Featured Opportunity */}
       <div className="bg-white rounded-xl shadow-lg p-4 max-w-sm">
-        {/* Header */}
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-blue-500" />
-          <span className="text-gray-600 font-medium text-sm">
-            Featured Opportunity
-          </span>
-        </div>
+        {investmentData.length > 0 &&
+          (() => {
+            const opp = investmentData[0];
 
-        {/* Company Info */}
-        <div className="mb-4">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-gray-800">Green Energy</h3>
-            <ShieldCheck className="w-4 h-4 text-green-500" />
-          </div>
-          <p className="text-xs text-gray-500 mb-3">SolarVest Nigeria</p>
+            return (
+              <>
+                {/* Header */}
+                <div className="flex items-center gap-2 mb-4">
+                  <TrendingUp className="w-5 h-5 text-blue-500" />
+                  <span className="text-gray-600 font-medium text-sm">
+                    Featured Opportunity
+                  </span>
+                </div>
 
-          {/* Investment Details */}
-          <div className="flex items-end justify-between mb-3">
-            <div>
-              <div className="text-2xl font-bold text-gray-800">18–22%</div>
-              <div className="text-xs text-gray-500">Expected ROI</div>
-            </div>
-            <div className="text-right">
-              <div className="text-lg font-semibold text-gray-700">
-                24 months
-              </div>
-              <div className="text-xs text-gray-500">Duration</div>
-            </div>
-          </div>
+                {/* Title */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-gray-800">{opp.title}</h3>
+                    <ShieldCheck className="w-4 h-4 text-green-500" />
+                  </div>
 
-          {/* Rating */}
-          <div className="flex items-center gap-1 mb-2">
-            <Star className="w-4 h-4 text-yellow-400 fill-current" />
-            <span className="font-medium text-sm text-gray-700">4.6</span>
-            <span className="text-xs text-gray-500">(234 investors)</span>
-          </div>
+                  <p className="text-xs text-gray-500 mb-3">
+                    {opp.description}
+                  </p>
 
-          {/* Tags */}
-          <div className="flex gap-2 mb-3">
-            <span className="bg-cyan-100 text-cyan-700 px-2 py-1 rounded text-xs font-medium">
-              Real Estate
-            </span>
-            <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">
-              Low Risk
-            </span>
-          </div>
+                  {/* Investment Details */}
+                  <div className="flex items-end justify-between mb-3">
+                    <div>
+                      <div className="text-2xl font-bold text-gray-800">
+                        {opp.expectedROI}%
+                      </div>
+                      <div className="text-xs text-gray-500">Expected ROI</div>
+                    </div>
 
-          {/* Minimum Investment */}
-          <div className="text-xs text-gray-600 mb-4">
-            Min. Investment: <span className="font-semibold">₦250,000</span>
-          </div>
-        </div>
+                    <div className="text-right">
+                      <div className="text-lg font-semibold text-gray-700">
+                        {opp.investmentDuration}
+                      </div>
+                      <div className="text-xs text-gray-500">Duration</div>
+                    </div>
+                  </div>
 
-        {/* Action Button */}
-        <button className="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-lg font-medium text-sm transition-colors duration-200 flex items-center justify-center gap-2">
-          View Details
-          <TrendingUp className="w-4 h-4" />
-        </button>
+                  {/* Meta */}
+                  <div className="flex gap-2 mb-3">
+                    <span className="bg-cyan-100 text-cyan-700 px-2 py-1 rounded text-xs font-medium">
+                      {opp.category}
+                    </span>
+
+                    <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-medium">
+                      Risk Aware
+                    </span>
+                  </div>
+
+                  {/* Minimum Investment */}
+                  <div className="text-xs text-gray-600 mb-4">
+                    Min. Investment:{" "}
+                    <span className="font-semibold">
+                      ₦{opp.minInvestmentAmount.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Action Button */}
+                <button
+                  onClick={() => router.push(`/opportunities/${opp._id}`)}
+                  className="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-lg font-medium text-sm transition-colors duration-200 flex items-center justify-center gap-2"
+                >
+                  View Details
+                  <TrendingUp className="w-4 h-4" />
+                </button>
+              </>
+            );
+          })()}
       </div>
     </div>
   );
