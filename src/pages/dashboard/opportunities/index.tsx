@@ -5,11 +5,11 @@ import {
   Search,
   ChevronDown,
   Plus,
-  ChartColumnBig,
+  // ChartColumnBig,
   Trash,
   ShieldCheck,
-  Notebook,
-  Lock,
+  // Notebook,
+  // Lock,
 } from "lucide-react";
 import Dashboardlayouts from "../../layouts/Dashboardlayouts";
 import Head from "next/head";
@@ -41,9 +41,10 @@ const Opportunities = () => {
   const [selectedOpportunity, setSelectedOpportunity] = useState<any>(null);
   const [singleLoading, setSingleLoading] = useState(false);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [allOpportunities, setAllOpportunities] = useState<Opportunity[]>([]);
+  // const [allOpportunities, setAllOpportunities] = useState<Opportunity[]>([]);
   type SummaryStat = { label: string; count: number; icon: React.ReactNode };
   const [summary, setsummary] = useState<SummaryStat[]>([]);
+  console.log(setsummary);
 
   const [opportunityToDelete, setOpportunityToDelete] = useState<string | null>(
     null
@@ -81,13 +82,19 @@ const Opportunities = () => {
 
     try {
       const url =
-        accountType === "partner"
-          ? "/opportunity/me?page=1&limit=5"
-          : "/opportunity/all?page=1&limit=5";
+        accountType === "expert"
+          ? "/opportunity/?page=1&limit=5"
+          : accountType === "partner"
+          ? "/opportunity/all?page=1&limit=5"
+          : "";
+
+      if (!url) return;
 
       const res = await axios.get(url, {
         headers: { Authorization: `${localStorage.getItem("token")}` },
       });
+
+      console.log("RAW RESPONSE:", res.data);
 
       const mapped = res.data.content.opportunities.map((item: any) => ({
         _id: item._id,
@@ -105,43 +112,15 @@ const Opportunities = () => {
         currency: item.currency,
       }));
 
-      const m = res.data.content.metrics;
-
-      setsummary([
-        {
-          label: "Total Opportunities",
-          count: m.total,
-          icon: <ChartColumnBig size={24} />,
-        },
-        {
-          label: "Active Opportunities",
-          count: m.active,
-          icon: <Plus size={24} />,
-        },
-        {
-          label: "Draft Opportunities",
-          count: m.draft,
-          icon: <Notebook size={24} />,
-        },
-        {
-          label: "Closed Opportunities",
-          count: m.closed,
-          icon: <Lock size={24} />,
-        },
-      ]);
-      setAllOpportunities(mapped);
+      console.log("MAPPED DATA:", mapped);
 
       setOpportunities(mapped);
     } catch (error) {
+      console.error("OPPORTUNITY ERROR:", error);
       if (isAxiosError(error)) {
-        const apiMessage = error.response?.data?.message;
-        const apiError = error.response?.data?.error;
-        const fallback = error.message || "An unexpected error occurred";
-
-        const errorMsg =
-          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-          fallback;
-        toast.error(errorMsg);
+        toast.error(
+          error.response?.data?.message || "An unexpected error occurred"
+        );
       }
     } finally {
       setLoading(false);
@@ -214,10 +193,9 @@ const Opportunities = () => {
       setOpportunityToDelete(null);
     }
   };
+  const dataToRender = opportunities;
 
-  const dataToRender = isPartner ? opportunities : allOpportunities;
-
-  console.log("this is what is rendering:", allOpportunities);
+  console.log("this is what is rendering:", opportunities);
 
   return (
     <Dashboardlayouts>
