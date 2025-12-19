@@ -10,6 +10,7 @@ import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
 import EditProfileModal from "@/Modals/EditProfileModal";
 import PostDetailsModal from "@/Modals/postdetails";
+import UserListModal from "@/Modals/userlistmodal";
 
 export interface LikedPost {
   _id: string;
@@ -72,6 +73,9 @@ const Profile = () => {
     LikedPost | UserComment | null
   >(null);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [isUserListModalOpen, setIsUserListModalOpen] = useState(false);
+  const [userListTitle, setUserListTitle] = useState("");
+  const [userListData, setUserListData] = useState<any[]>([]);
 
   const [following, setFollowing] = useState<any[]>([]);
   const [loadingFollowers, setLoadingFollowers] = useState(false);
@@ -524,6 +528,11 @@ const Profile = () => {
                   <div className="flex flex-col gap-4">
                     {followers.map((f) => (
                       <div
+                        onClick={() => {
+                          setUserListTitle("Followers");
+                          setUserListData(followers);
+                          setIsUserListModalOpen(true);
+                        }}
                         key={f._id}
                         className="border border-[#E0E0E0] p-4 rounded-lg flex items-center gap-4 hover:bg-[#F9FAF9]"
                       >
@@ -561,6 +570,11 @@ const Profile = () => {
                   <div className="flex flex-col gap-4">
                     {following.map((f) => (
                       <div
+                        onClick={() => {
+                          setUserListTitle("Followers");
+                          setUserListData(followers);
+                          setIsUserListModalOpen(true);
+                        }}
                         key={f._id}
                         className="border border-[#E0E0E0] p-4 rounded-lg flex items-center gap-4 hover:bg-[#F9FAF9]"
                       >
@@ -598,6 +612,14 @@ const Profile = () => {
               setIsPostModalOpen(false);
               setSelectedPost(null);
             }}
+          />
+        )}
+
+        {isUserListModalOpen && (
+          <UserListModal
+            title={userListTitle}
+            users={userListData}
+            onClose={() => setIsUserListModalOpen(false)}
           />
         )}
       </div>
