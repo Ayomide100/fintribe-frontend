@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import Dashboardlayouts from "../layouts/Dashboardlayouts";
 import Head from "next/head";
 import Image, { StaticImageData } from "next/image";
 import noface from "../../../assets/blank-profile-picture.webp";
-import { Edit, Mail, Phone, User } from "lucide-react";
+import { Edit, Mail, Phone, User, MoreVertical } from "lucide-react";
 import { isAxiosError } from "axios";
 import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
@@ -75,7 +76,7 @@ const Profile = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [isUserListModalOpen, setIsUserListModalOpen] = useState(false);
   const [userListTitle, setUserListTitle] = useState("");
-  const [userListData, setUserListData] = useState<any[]>([]);
+  // const [userListData, setUserListData] = useState<any[]>([]);
 
   const [following, setFollowing] = useState<any[]>([]);
   const [loadingFollowers, setLoadingFollowers] = useState(false);
@@ -86,6 +87,10 @@ const Profile = () => {
 
   const [loadingLiked, setLoadingLiked] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false);
+
+  const [openMenuUserId, setOpenMenuUserId] = useState<string | null>(null);
+  const [viewedUser, setViewedUser] = useState<any>(null);
+  const [loadingViewedUser, setLoadingViewedUser] = useState(false);
 
   const handleProfileUpdate = (updatedUser: any) => {
     setUser(updatedUser);
@@ -114,6 +119,35 @@ const Profile = () => {
 
         toast.error(errorMsg);
       }
+    }
+  };
+
+  const viewUserProfile = async (userId: string) => {
+    try {
+      setLoadingViewedUser(true);
+
+      const res = await axios.get(`/users/profile/${userId}`, {
+        headers: { Authorization: `${localStorage.getItem("token")}` },
+      });
+
+      setViewedUser(res.data.content);
+      setIsUserListModalOpen(true);
+      setUserListTitle("Profile");
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
+    } finally {
+      setLoadingViewedUser(false);
+      setOpenMenuUserId(null);
     }
   };
 
@@ -528,25 +562,52 @@ const Profile = () => {
                   <div className="flex flex-col gap-4">
                     {followers.map((f) => (
                       <div
-                        onClick={() => {
-                          setUserListTitle("Followers");
-                          setUserListData(followers);
-                          setIsUserListModalOpen(true);
-                        }}
                         key={f._id}
-                        className="border border-[#E0E0E0] p-4 rounded-lg flex items-center gap-4 hover:bg-[#F9FAF9]"
+                        className="border border-[#E0E0E0] p-4 rounded-lg flex items-center justify-between hover:bg-[#F9FAF9]"
                       >
-                        <Image
-                          src={f.avatar?.url || noface}
-                          width={45}
-                          height={45}
-                          className="rounded-full object-cover border"
-                          alt="follower"
-                        />
+                        {/* LEFT: USER INFO */}
+                        <div className="flex items-center gap-4">
+                          <Image
+                            src={f.avatar?.url || noface}
+                            width={45}
+                            height={45}
+                            className="rounded-full object-cover border"
+                            alt="follower"
+                          />
 
-                        <div>
-                          <p className="font-medium capitalize">{f.fullname}</p>
-                          <p className="text-sm text-gray-500">{f.username}</p>
+                          <div>
+                            <p className="font-medium capitalize">
+                              {f.fullname}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              @{f.username}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* RIGHT: 3 DOT MENU */}
+                        <div className="relative">
+                          <button
+                            onClick={() =>
+                              setOpenMenuUserId(
+                                openMenuUserId === f._id ? null : f._id
+                              )
+                            }
+                            className="p-2 rounded-full hover:bg-gray-100"
+                          >
+                            <MoreVertical size={18} />
+                          </button>
+
+                          {openMenuUserId === f._id && (
+                            <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
+                              <button
+                                onClick={() => viewUserProfile(f._id)}
+                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                              >
+                                View profile
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -570,25 +631,52 @@ const Profile = () => {
                   <div className="flex flex-col gap-4">
                     {following.map((f) => (
                       <div
-                        onClick={() => {
-                          setUserListTitle("Followers");
-                          setUserListData(followers);
-                          setIsUserListModalOpen(true);
-                        }}
                         key={f._id}
-                        className="border border-[#E0E0E0] p-4 rounded-lg flex items-center gap-4 hover:bg-[#F9FAF9]"
+                        className="border border-[#E0E0E0] p-4 rounded-lg flex items-center justify-between hover:bg-[#F9FAF9]"
                       >
-                        <Image
-                          src={f.avatar?.url || noface}
-                          width={45}
-                          height={45}
-                          className="rounded-full object-cover border"
-                          alt="following"
-                        />
+                        {/* LEFT: USER INFO */}
+                        <div className="flex items-center gap-4">
+                          <Image
+                            src={f.avatar?.url || noface}
+                            width={45}
+                            height={45}
+                            className="rounded-full object-cover border"
+                            alt="follower"
+                          />
 
-                        <div>
-                          <p className="font-medium capitalize">{f.fullname}</p>
-                          <p className="text-sm text-gray-500">{f.username}</p>
+                          <div>
+                            <p className="font-medium capitalize">
+                              {f.fullname}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              @{f.username}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* RIGHT: 3 DOT MENU */}
+                        <div className="relative">
+                          <button
+                            onClick={() =>
+                              setOpenMenuUserId(
+                                openMenuUserId === f._id ? null : f._id
+                              )
+                            }
+                            className="p-2 rounded-full hover:bg-gray-100"
+                          >
+                            <MoreVertical size={18} />
+                          </button>
+
+                          {openMenuUserId === f._id && (
+                            <div className="absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg z-50">
+                              <button
+                                onClick={() => viewUserProfile(f._id)}
+                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                              >
+                                View profile
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -615,11 +703,14 @@ const Profile = () => {
           />
         )}
 
-        {isUserListModalOpen && (
+        {isUserListModalOpen && viewedUser && (
           <UserListModal
-            title={userListTitle}
-            users={userListData}
-            onClose={() => setIsUserListModalOpen(false)}
+            title="User Profile"
+            data={viewedUser}
+            onClose={() => {
+              setIsUserListModalOpen(false);
+              setViewedUser(null);
+            }}
           />
         )}
       </div>
