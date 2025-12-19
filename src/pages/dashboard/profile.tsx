@@ -9,6 +9,7 @@ import { isAxiosError } from "axios";
 import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
 import EditProfileModal from "@/Modals/EditProfileModal";
+import PostDetailsModal from "@/Modals/postdetails";
 
 export interface LikedPost {
   _id: string;
@@ -25,13 +26,36 @@ export interface LikedPost {
   media: { url: string; id: string }[];
   likes: string[];
   comments: {
-    user: string;
+    user: {
+      _id: string;
+      fullname: string;
+      username: string;
+      avatar: {
+        url: string;
+      };
+    };
     text: string;
     _id: string;
     createdAt: string;
   }[];
   likedAt: string;
   createdAt: string;
+}
+
+export interface UserComment {
+  _id: string;
+  text: string;
+  createdAt: string;
+  post: {
+    _id: string;
+    content: string;
+    media: { url: string; id: string }[];
+    user: {
+      fullname: string;
+      username: string;
+      avatar: { url: string };
+    };
+  };
 }
 
 const Profile = () => {
@@ -44,12 +68,18 @@ const Profile = () => {
   >("posts");
   const [user, setUser] = useState<any>(null);
   const [followers, setFollowers] = useState<any[]>([]);
+  const [selectedPost, setSelectedPost] = useState<
+    LikedPost | UserComment | null
+  >(null);
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+
   const [following, setFollowing] = useState<any[]>([]);
   const [loadingFollowers, setLoadingFollowers] = useState(false);
   const [loadingFollowing, setLoadingFollowing] = useState(false);
 
   const [likedPosts, setLikedPosts] = useState<LikedPost[]>([]);
-  const [commentsList, setCommentsList] = useState<LikedPost[]>([]);
+  const [commentsList, setCommentsList] = useState<any[]>([]);
+
   const [loadingLiked, setLoadingLiked] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false);
 
@@ -108,8 +138,17 @@ const Profile = () => {
 
       setCommentsList(res.data.data.posts);
     } catch (error) {
-      console.log(error);
-      toast.error("Failed to load comments.");
+      if (isAxiosError(error)) {
+        const apiMessage = error.response?.data?.message;
+        const apiError = error.response?.data?.error;
+        const fallback = error.message || "An unexpected error occurred";
+
+        const errorMsg =
+          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+          fallback;
+
+        toast.error(errorMsg);
+      }
     } finally {
       setLoadingComments(false);
     }
@@ -165,6 +204,23 @@ const Profile = () => {
     { id: 3, title: "Why Green Energy Matters", date: "Sep 10, 2025" },
   ];
 
+  const currentUserId = user?._id; // logged-in user id
+
+  const userComments = (commentsList || [])
+    .map((post) => {
+      const myComments = post.comments?.filter(
+        (c: { user: any }) => c.user === currentUserId
+      );
+
+      if (!myComments || myComments.length === 0) return null;
+
+      return {
+        ...post,
+        comments: myComments,
+      };
+    })
+    .filter(Boolean);
+
   return (
     <Dashboardlayouts>
       <Head>
@@ -181,7 +237,6 @@ const Profile = () => {
             Manage your Profile Information.
           </p>
         </div>
-
         {/* Profile Card */}
         <div className="w-full flex justify-center items-center mt-6">
           <div className="w-[94%] md:w-[96%] h-auto shadow-md border border-[#E0E0E0] rounded-xl flex flex-col items-center py-6 px-4 md:px-6">
@@ -249,7 +304,6 @@ const Profile = () => {
             </div>
           </div>
         </div>
-
         {/* Tabs Section */}
         <div className="w-full flex flex-col mt-8 items-center">
           <div className="w-[94%] md:w-[96%] flex justify-around border-b border-[#E0E0E0] mb-4">
@@ -302,6 +356,10 @@ const Profile = () => {
 
                     {likedPosts.map((post) => (
                       <div
+                        onClick={() => {
+                          setSelectedPost(post);
+                          setIsPostModalOpen(true);
+                        }}
                         key={post._id}
                         className="p-4 bg-white shadow rounded-lg border border-gray-200"
                       >
@@ -362,23 +420,25 @@ const Profile = () => {
                   <p className="text-center py-4 text-gray-500">
                     Loading comments...
                   </p>
-                ) : commentsList.length === 0 ? (
+                ) : userComments.length === 0 ? (
                   <p className="text-center py-4 text-gray-500">
                     No comments yet.
                   </p>
                 ) : (
                   <div className="space-y-6">
-                    {loadingComments && <p>Loading...</p>}
-
-                    {commentsList.map((post) => (
+                    {userComments.map((post) => (
                       <div
                         key={post._id}
-                        className="p-4 bg-white shadow rounded-lg border border-gray-200"
+                        onClick={() => {
+                          setSelectedPost(post);
+                          setIsPostModalOpen(true);
+                        }}
+                        className="p-4 bg-white shadow rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50"
                       >
-                        {/* USER INFO */}
+                        {/* POST OWNER */}
                         <div className="flex items-center gap-3 mb-3">
                           <Image
-                            src={post.user.avatar.url}
+                            src={post.user.avatar?.url || "/default-avatar.png"}
                             width={40}
                             height={40}
                             className="w-10 h-10 rounded-full object-cover"
@@ -394,30 +454,54 @@ const Profile = () => {
                           </div>
                         </div>
 
-                        {/* POST CONTENT */}
-                        <p className="mb-3 text-gray-800">{post.content}</p>
-
-                        {/* MEDIA */}
-                        {post.media.length > 0 && (
-                          <div className="grid grid-cols-2 gap-2 mb-3">
-                            {post.media.map((img) => (
-                              <Image
-                                key={img.id}
-                                alt="post-media"
-                                src={img.url}
-                                className="w-full rounded-lg object-cover"
-                                width={200}
-                                height={200}
-                              />
-                            ))}
-                          </div>
+                        {/* YOUR COMMENT */}
+                        {post.comments.map(
+                          (comment: {
+                            _id: React.Key | null | undefined;
+                            text:
+                              | string
+                              | number
+                              | bigint
+                              | boolean
+                              | React.ReactElement<
+                                  unknown,
+                                  string | React.JSXElementConstructor<any>
+                                >
+                              | Iterable<React.ReactNode>
+                              | React.ReactPortal
+                              | Promise<
+                                  | string
+                                  | number
+                                  | bigint
+                                  | boolean
+                                  | React.ReactPortal
+                                  | React.ReactElement<
+                                      unknown,
+                                      string | React.JSXElementConstructor<any>
+                                    >
+                                  | Iterable<React.ReactNode>
+                                  | null
+                                  | undefined
+                                >
+                              | null
+                              | undefined;
+                          }) => (
+                            <div
+                              key={comment._id}
+                              className="bg-gray-100 rounded-lg p-3 mb-3"
+                            >
+                              <p className="text-sm font-medium text-gray-700">
+                                Your comment
+                              </p>
+                              <p className="text-gray-800">{comment.text}</p>
+                            </div>
+                          )
                         )}
 
-                        {/* FOOTER */}
-                        <div className="flex items-center justify-between text-sm text-gray-600">
-                          <p>❤️ {post.likes.length} likes</p>
-                          <p>💬 {post.comments.length} comments</p>
-                        </div>
+                        {/* POST CONTENT */}
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {post.content}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -500,12 +584,20 @@ const Profile = () => {
             )}
           </div>
         </div>
-
         {isModalOpen && (
           <EditProfileModal
             user={user}
             onClose={() => setIsModalOpen(false)}
             onSave={handleProfileUpdate}
+          />
+        )}
+        {isPostModalOpen && selectedPost && (
+          <PostDetailsModal
+            post={selectedPost}
+            onClose={() => {
+              setIsPostModalOpen(false);
+              setSelectedPost(null);
+            }}
           />
         )}
       </div>
