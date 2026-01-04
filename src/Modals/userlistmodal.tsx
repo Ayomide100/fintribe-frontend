@@ -1,117 +1,152 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import Image from "next/image";
-import { X } from "lucide-react";
+import {
+  X,
+  Users,
+  UserPlus,
+  Heart,
+  MessageCircle,
+  Share2,
+  MoreVertical,
+} from "lucide-react";
 import noface from "../../assets/notfiyimg.png";
 
-interface UserProfileResponse {
-  user: {
-    _id: string;
-    fullname: string;
-    username: string;
-    email: string;
-    bio: string | null;
-    avatar: { url?: string } | null;
-    createdAt: string;
-  };
-  followers: number;
-  followings: number;
-  userPosts: {
-    _id: string;
-    title: string;
-    content: string;
-    createdAt: string;
-  }[];
-}
-
-interface Props {
-  data: UserProfileResponse;
-  onClose: () => void;
-  title: string;
-}
-
-const ViewUserProfileModal: React.FC<Props> = ({ data, onClose, title }) => {
+const ViewUserProfileModal = ({ data, onClose }: any) => {
   const { user, followers, followings, userPosts } = data;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex justify-center items-center">
-      <div className="bg-white w-[95%] md:w-[520px] max-h-[85vh] rounded-xl shadow-lg overflow-hidden">
-        {/* HEADER */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="font-semibold text-lg">{title}</h2>
-          <button onClick={onClose}>
-            <X size={20} />
-          </button>
-        </div>
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+      <div className="bg-white w-[95%] md:w-[540px] max-h-[90vh] rounded-xl shadow-xl overflow-hidden relative">
+        {/* CLOSE */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 bg-emerald-100 p-1 rounded-full"
+        >
+          <X size={16} />
+        </button>
 
-        {/* BODY */}
-        <div className="p-4 overflow-y-auto max-h-[75vh] space-y-6">
-          {/* USER INFO */}
-          <div className="flex items-center gap-4">
-            <Image
-              src={user.avatar?.url || noface}
-              width={64}
-              height={64}
-              className="rounded-full object-cover border"
-              alt="avatar"
-            />
-            <div>
-              <p className="font-semibold text-lg capitalize">
-                {user.fullname}
-              </p>
-              <p className="text-sm text-gray-500">@{user.username}</p>
-              <p className="text-xs text-gray-400">
-                Joined{" "}
-                {new Date(user.createdAt).toLocaleDateString("en-US", {
-                  month: "long",
-                  year: "numeric",
-                })}
-              </p>
+        {/* CONTENT */}
+        <div className="px-6 py-8 overflow-y-auto max-h-[90vh]">
+          {/* PROFILE */}
+          <div className="flex flex-col items-center text-center space-y-3">
+            <div className="p-1 rounded-full border-2 border-emerald-400">
+              <Image
+                src={user.avatar?.url || noface}
+                width={96}
+                height={96}
+                alt="avatar"
+                className="rounded-full object-cover"
+              />
             </div>
+
+            <div className="flex items-center gap-2">
+              <p className="font-semibold text-lg">{user.fullname}</p>
+              <button className="text-emerald-600 text-sm font-medium">
+                Follow
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-500">@{user.username}</p>
+
+            {/* STATS */}
+            <div className="flex gap-12 pt-4">
+              <div className="flex flex-col items-center">
+                <Users size={18} className="text-emerald-600" />
+                <p className="font-semibold text-emerald-600">
+                  {followers.toLocaleString()}
+                </p>
+                <p className="text-xs text-gray-500">Followers</p>
+              </div>
+
+              <div className="flex flex-col items-center">
+                <UserPlus size={18} className="text-emerald-600" />
+                <p className="font-semibold text-emerald-600">
+                  {followings.toLocaleString()}
+                </p>
+                <p className="text-xs text-gray-500">Following</p>
+              </div>
+            </div>
+
+            {/* BIO */}
+            <p className="text-sm text-gray-500 max-w-md pt-2">
+              {user.bio || "No bio provided."}
+            </p>
           </div>
 
-          {/* BIO */}
-          <p className="text-sm text-gray-600">
-            {user.bio || "No bio provided."}
-          </p>
-
-          {/* STATS */}
-          <div className="flex justify-around border rounded-lg py-3">
-            <div className="text-center">
-              <p className="font-semibold">{followers}</p>
-              <p className="text-xs text-gray-500">Followers</p>
-            </div>
-            <div className="text-center">
-              <p className="font-semibold">{followings}</p>
-              <p className="text-xs text-gray-500">Following</p>
-            </div>
-            <div className="text-center">
-              <p className="font-semibold">{userPosts.length}</p>
-              <p className="text-xs text-gray-500">Posts</p>
-            </div>
+          {/* POSTS LABEL */}
+          <div className="pt-8 pb-4 border-b">
+            <p className="font-semibold text-sm">Posts</p>
           </div>
 
           {/* POSTS */}
-          <div className="space-y-4">
-            <p className="font-semibold text-sm">Posts</p>
+          {/* POSTS */}
+          <div className="space-y-6 pt-6">
+            {userPosts.map((post: any) => {
+              const image = post.attachments?.find(
+                (att: any) => att.fileType === "image"
+              );
 
-            {userPosts.length === 0 ? (
-              <p className="text-sm text-gray-500">No posts yet.</p>
-            ) : (
-              userPosts.map((post) => (
+              return (
                 <div
                   key={post._id}
-                  className="border rounded-lg p-3 hover:bg-gray-50"
+                  className="border rounded-xl shadow-sm bg-white overflow-hidden"
                 >
-                  <p className="font-medium">{post.title}</p>
-                  <p className="text-sm text-gray-600 line-clamp-2">
+                  {/* POST HEADER */}
+                  <div className="flex justify-between items-center px-4 py-3">
+                    <div className="flex gap-3 items-center">
+                      <Image
+                        src={user.avatar?.url || noface}
+                        width={36}
+                        height={36}
+                        alt="avatar"
+                        className="rounded-full"
+                      />
+                      <div>
+                        <p className="text-sm font-medium">{user.fullname}</p>
+                        <p className="text-xs text-gray-400">
+                          Real Estate Expert ·{" "}
+                          {new Date(post.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <MoreVertical size={18} className="text-gray-400" />
+                  </div>
+
+                  {/* TEXT */}
+                  <div className="px-4 text-sm text-gray-600 pb-3">
                     {post.content}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(post.createdAt).toLocaleDateString()}
-                  </p>
+                  </div>
+
+                  {/* IMAGE */}
+                  {image ? (
+                    <div className="relative w-full h-[220px]">
+                      <Image
+                        src={image.url}
+                        alt="post image"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-[220px] bg-linear-to-br from-emerald-800 to-emerald-950" />
+                  )}
+
+                  {/* ACTIONS */}
+                  <div className="flex gap-8 px-4 py-3 text-gray-500 text-sm border-t">
+                    <div className="flex gap-1 items-center">
+                      <Heart size={18} /> {post.likeCount || 0}
+                    </div>
+                    <div className="flex gap-1 items-center">
+                      <MessageCircle size={18} /> {post.commentCount || 0}
+                    </div>
+                    <div className="flex gap-1 items-center">
+                      <Share2 size={18} />
+                    </div>
+                  </div>
                 </div>
-              ))
-            )}
+              );
+            })}
           </div>
         </div>
       </div>
