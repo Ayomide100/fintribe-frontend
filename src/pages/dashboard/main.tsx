@@ -163,6 +163,36 @@ const Main = () => {
     getUser();
   }, []);
 
+  // const SaveItem = async (postId: string) => {
+  //   try {
+  //     const res = await axios.post(`/saved/${postId}`, {
+  //       headers: { Authorization: `${localStorage.getItem("token")}` },
+  //     });
+  //     toast.success(res.data.message);
+  //     // Optionally update local state to reflect the change
+
+  //     setPosts((prev) =>
+  //       prev.map((post) =>
+  //         post._id === postId ? { ...post, isSaved: !post.isSaved } : post
+  //       )
+  //     );
+  //   } catch (error) {
+  //     if (isAxiosError(error)) {
+  //       const apiMessage = error.response?.data?.message;
+  //       const apiError = error.response?.data?.error;
+  //       const fallback = error.message || "An unexpected error occurred";
+
+  //       const errorMsg =
+  //         `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
+  //         fallback;
+
+  //       toast.error(errorMsg);
+  //     } else {
+  //       toast.error("Something went wrong");
+  //     }
+  //   }
+  // };
+
   return (
     <Dashboardlayouts>
       <Head>

@@ -18,6 +18,7 @@ const CirclePostCard = ({ post, selectedCircle, getTimeAgo }: any) => {
 
   const [liked, setLiked] = useState(post?.liked || false);
   const [likeCount, setLikeCount] = useState(post?.likeCount || 0);
+  const [isSaved, setIsSaved] = useState<boolean>(post?.isSaved ?? false);
 
   const handleLikePost = async (postId: string) => {
     try {
@@ -51,6 +52,40 @@ const CirclePostCard = ({ post, selectedCircle, getTimeAgo }: any) => {
     const link = `${window.location.origin}/circle/post/${postId}`;
     navigator.clipboard.writeText(link);
     toast.success("Post link copied!");
+  };
+
+  const toggleSavePost = async () => {
+    const postId = post._id;
+    const type = "Circle";
+
+    try {
+      const token = localStorage.getItem("token");
+
+      // 🔥 Optimistic UI
+      setIsSaved((prev) => !prev);
+
+      if (isSaved) {
+        await axios.delete(`/saved/${postId}`, {
+          data: { type },
+          headers: { Authorization: `${token}` },
+        });
+        toast.success("Removed from saved");
+      } else {
+        await axios.post(
+          `/saved/${postId}`,
+          { type },
+          {
+            headers: { Authorization: `${token}` },
+          }
+        );
+        toast.success("Post saved");
+      }
+    } catch (error) {
+      // ❌ revert on failure
+      setIsSaved((prev) => !prev);
+      console.error("toggle save error:", error);
+      toast.error("Failed to update saved post");
+    }
   };
 
   return (
@@ -103,12 +138,12 @@ const CirclePostCard = ({ post, selectedCircle, getTimeAgo }: any) => {
                     alt="Post attachment"
                     width={500}
                     height={300}
-                    className="rounded-lg border border-gray-100 object-cover w-full max-h-[25rem]"
+                    className="rounded-lg border border-gray-100 object-cover w-full max-h-100"
                   />
                 ) : file.fileType === "video" ? (
                   <video
                     controls
-                    className="rounded-lg border border-gray-100 w-full max-h-[25rem]"
+                    className="rounded-lg border border-gray-100 w-full max-h-100"
                   >
                     <source src={file.url} type="video/mp4" />
                     Your browser does not support the video tag.
@@ -182,10 +217,17 @@ const CirclePostCard = ({ post, selectedCircle, getTimeAgo }: any) => {
           </div>
 
           {/* 🔖 Bookmark */}
-          <button className="text-gray-600 hover:text-yellow-600 transition-colors group">
+          <button
+            onClick={toggleSavePost}
+            className={`transition-colors group ${
+              isSaved ? "text-green-600" : "text-gray-600 hover:text-yellow-600"
+            }`}
+          >
             <Bookmark
               size={20}
-              className="group-hover:scale-110 transition-transform"
+              className={`transition-transform group-hover:scale-110 ${
+                isSaved ? "fill-green-600 text-green-600" : ""
+              }`}
             />
           </button>
         </div>
