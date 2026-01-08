@@ -1,62 +1,72 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Dashboardlayouts from "../layouts/Dashboardlayouts";
 import Head from "next/head";
-import {
-  Search,
-  Filter,
-  Bookmark,
-  TrendingUp,
-  GraduationCap,
-  ScrollText,
-} from "lucide-react";
+import { Search, Filter, Bookmark, TrendingUp, ScrollText } from "lucide-react";
 import { TbFidgetSpinner } from "react-icons/tb";
+import axios from "@/config/axiosconfig";
+import Image from "next/image";
 
 const SavedItems = () => {
-  const summary = [
-    { label: "Total Saved", count: 12, icon: <Bookmark size={25} /> },
-    { label: "Opportunities", count: 3, icon: <TrendingUp size={25} /> },
-    { label: "Circles", count: 1, icon: <TbFidgetSpinner size={25} /> },
-    { label: "Courses", count: 4, icon: <GraduationCap size={25} /> },
-    { label: "Posts", count: 4, icon: <ScrollText size={25} /> },
-  ];
+  const [items, setItems] = useState<any[]>([]);
+  const [metrics, setMetrics] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [type, setType] = useState<string>("");
 
-  const items = [
-    {
-      type: "Opportunity",
-      category: "Real Estate",
-      title: "Lagos Real Estate",
-      sub: "35 Startup Properties",
-      extra: "24 months Duration",
-      stat: "18–22% Expected ROI",
-      meta: "Min. Investment: ₦250,000",
-      saved: "31/01/2024",
-      rating: "⭐ 4.6 (243 Investors)",
-    },
-    {
-      type: "Circle",
-      title: "Young NG Investors circle",
-      sub: "Members: 350",
-      desc: "A community of beginner-to-intermediate investors sharing daily stock tips and strategies.",
-      saved: "30/01/2024",
-    },
-    {
-      type: "Course",
-      title: "Investment Fundamentals",
-      sub: "By Sarah Owolumate",
-      desc: "Learn the basics of investing, risk management, and portfolio diversification.",
-      meta: "2 hours · 12 lessons",
-      rating: "⭐ 4.6 (234 learners)",
-      saved: "31/01/2024",
-    },
-    {
-      type: "Post",
-      title: "Adebimpe Thompson",
-      sub: "Real Estate Expert · 10min ago",
-      desc: "The Nigerian real estate market is showing strong fundamentals despite global uncertainties...",
-      saved: "31/01/2024",
-    },
-  ];
+  const getSavedItems = async () => {
+    try {
+      setLoading(true);
+
+      const res = await axios.get(`/saved/all?page=1&limit=10&type=${type}`, {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+      });
+
+      const content = res.data?.content;
+
+      // ✅ saved items
+      setItems(content?.items || []);
+
+      // ✅ metrics
+      setMetrics(content?.metrics || null);
+    } catch (error) {
+      console.error("Failed to fetch saved items", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getSavedItems();
+  }, [type]);
+
+  const summaryCards = metrics
+    ? [
+        {
+          label: "Total Saved",
+          count: metrics.totalSaved,
+          icon: <Bookmark size={24} />,
+        },
+        {
+          label: "Posts",
+          count: metrics.totalSavedPosts,
+          icon: <ScrollText size={24} />,
+        },
+        {
+          label: "Opportunities",
+          count: metrics.totalSavedOpportunity,
+          icon: <TrendingUp size={24} />,
+        },
+        {
+          label: "Circles",
+          count: metrics.totalSavedCircle,
+          icon: <TbFidgetSpinner size={24} />,
+        },
+      ]
+    : [];
 
   return (
     <Dashboardlayouts>
@@ -65,15 +75,15 @@ const SavedItems = () => {
       </Head>
 
       <div className="p-6 space-y-8">
-        {/* Summary */}
-        <div className="flex flex-col md:flex-row justify-between gap-4">
-          {summary.map((stat, idx) => (
+        {/* ================= SUMMARY METRICS ================= */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {summaryCards.map((stat, idx) => (
             <div
               key={idx}
-              className="flex-1 min-w-[150px] bg-[#84C2A229] p-5 rounded-xl shadow-sm flex flex-col items-start"
+              className="bg-[#84C2A229] p-5 rounded-xl flex flex-col gap-2"
             >
-              <div className="mb-2 text-[#2E8B57]">{stat.icon}</div>
-              <p className="text-xl font-semibold text-[#2E8B57]">
+              <div className="text-[#2E8B57]">{stat.icon}</div>
+              <p className="text-2xl font-semibold text-[#2E8B57]">
                 {stat.count}
               </p>
               <p className="text-sm text-gray-600">{stat.label}</p>
@@ -81,7 +91,7 @@ const SavedItems = () => {
           ))}
         </div>
 
-        {/* Search + Filter */}
+        {/* ================= SEARCH + FILTER ================= */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="relative flex-1">
             <Search className="absolute top-3 left-3 h-5 w-5 text-gray-400" />
@@ -93,13 +103,18 @@ const SavedItems = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <select className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-600 focus:outline-none">
-              <option>All Saved</option>
-              <option>Opportunities</option>
-              <option>Circles</option>
-              <option>Courses</option>
-              <option>Posts</option>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-600 focus:outline-none"
+            >
+              <option value="">All Saved</option>
+              <option value="Post">Posts</option>
+              <option value="Opportunity">Opportunities</option>
+              <option value="Circle">Circles</option>
+              <option value="Course">Courses</option>
             </select>
+
             <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">
               <Filter className="w-4 h-4" />
               Filter
@@ -107,59 +122,76 @@ const SavedItems = () => {
           </div>
         </div>
 
-        {/* Cards */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {items.map((item, i) => (
-            <div
-              key={i}
-              className="bg-white border border-gray-200 rounded-xl shadow-md p-5 space-y-3"
-            >
-              {/* Type Badge */}
-              <div className="flex justify-between items-center">
-                <span className="px-3 py-1 text-xs rounded-full bg-green-50 text-green-800 font-medium">
-                  {item.type}
-                </span>
-                <span className="text-xs text-gray-400">
-                  Saved {item.saved}
-                </span>
-              </div>
+        {/* ================= SAVED ITEMS ================= */}
+        {loading ? (
+          <p className="text-center text-gray-500">Loading saved items...</p>
+        ) : items.length === 0 ? (
+          <p className="text-center text-gray-500">No saved items found</p>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-6">
+            {items.map((saved) => {
+              const item = saved.itemId;
 
-              {/* Title */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">
-                  {item.title}
-                </h3>
-                {item.sub && (
-                  <p className="text-sm text-gray-500">{item.sub}</p>
-                )}
-              </div>
+              return (
+                <div
+                  key={saved._id}
+                  className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 space-y-4"
+                >
+                  {/* Type + Date */}
+                  <div className="flex justify-between items-center">
+                    <span className="px-3 py-1 text-xs rounded-full bg-green-50 text-green-800 font-medium">
+                      {saved.type}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      Saved {new Date(saved.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
 
-              {/* Description / Stats */}
-              {item.desc && (
-                <p className="text-sm text-gray-600">{item.desc}</p>
-              )}
-              {item.stat && (
-                <p className="text-sm font-semibold text-green-700">
-                  {item.stat}
-                </p>
-              )}
-              {item.extra && (
-                <p className="text-xs text-gray-500">{item.extra}</p>
-              )}
-              {item.meta && (
-                <p className="text-xs text-gray-500">{item.meta}</p>
-              )}
-              {item.rating && (
-                <p className="text-xs text-yellow-600">{item.rating}</p>
-              )}
+                  {/* User (for posts) */}
+                  {item?.user && (
+                    <div className="flex items-center gap-3">
+                      <Image
+                        src={item.user.avatar?.url}
+                        alt={item.user.fullname}
+                        width={40}
+                        height={40}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <p className="text-sm font-medium text-gray-800">
+                        {item.user.fullname}
+                      </p>
+                    </div>
+                  )}
 
-              {/* Action */}
-              <button className="px-4 py-2 mt-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition">
-                View
-              </button>
-            </div>
-          ))}
-        </div>
+                  {/* Content */}
+                  <p className="text-gray-700 text-sm">
+                    {item?.content || item?.description || "No content"}
+                  </p>
+
+                  {/* Media (posts) */}
+                  {item?.media?.length > 0 && (
+                    <div className="grid grid-cols-2 gap-2">
+                      {item.media.map((img: any, idx: number) => (
+                        <Image
+                          key={idx}
+                          src={img.url}
+                          alt="media"
+                          width={40}
+                          height={40}
+                          className="rounded-lg object-cover h-32 w-full"
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  <button className="w-full mt-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition">
+                    View
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </Dashboardlayouts>
   );

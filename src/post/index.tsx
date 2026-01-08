@@ -118,27 +118,41 @@ const Posts = () => {
     }
   };
 
-  const HandleSavePost = async (postId: string) => {
+  const toggleSavePost = async (
+    postId: string,
+    isSaved: boolean,
+    type: "Post" | "Circle" | "Opportunity" = "Post"
+  ) => {
     try {
-      await axios.post(
-        `/posts/${postId}/save`,
-        {},
-        { headers: { Authorization: `${localStorage.getItem("token")}` } }
-      );
-      fetchPosts();
-    } catch (error) {
-      console.error("save post error:", error);
-    }
-  };
+      const token = localStorage.getItem("token");
 
-  const HandleRemovedSavePost = async (postId: string) => {
-    try {
-      await axios.delete(`/posts/${postId}/save`, {
-        headers: { Authorization: `${localStorage.getItem("token")}` },
-      });
-      fetchPosts();
+      if (isSaved) {
+        await axios.delete(`/saved/${postId}`, {
+          data: { type }, // ✅ axios DELETE needs body in `data`
+          headers: { Authorization: ` ${token}` },
+        });
+      } else {
+        await axios.post(
+          `/saved/${postId}`,
+          { type }, // ✅ REQUIRED PARAM
+          {
+            headers: { Authorization: `${token}` },
+          }
+        );
+      }
+
+      // 🔥 update UI instantly
+      setPosts((prev) =>
+        prev.map((post) =>
+          post._id === postId ? { ...post, isSaved: !post.isSaved } : post
+        )
+      );
+      toast.success(
+        isSaved ? "Post removed from saved" : "Post saved successfully"
+      );
     } catch (error) {
-      console.error("remove save error:", error);
+      console.error("toggle save error:", error);
+      toast.error("Failed to update saved post");
     }
   };
 
@@ -337,12 +351,10 @@ const Posts = () => {
                   </div>
 
                   <button
-                    onClick={() =>
-                      post.isSaved
-                        ? HandleRemovedSavePost(post._id)
-                        : HandleSavePost(post._id)
-                    }
-                    className="flex items-center gap-1 text-sm hover:text-green-600"
+                    onClick={() => toggleSavePost(post._id, post.isSaved)}
+                    className={`flex items-center gap-1 text-sm transition ${
+                      post.isSaved ? "text-green-600" : "hover:text-green-600"
+                    }`}
                   >
                     {post.isSaved ? (
                       <FaBookmark size={18} className="text-green-600" />
