@@ -126,7 +126,29 @@ const SavedItems = () => {
         {loading ? (
           <p className="text-center text-gray-500">Loading saved items...</p>
         ) : items.length === 0 ? (
-          <p className="text-center text-gray-500">No saved items found</p>
+          <div className="flex flex-col items-center justify-center py-20 px-6 bg-white border border-dashed border-gray-300 rounded-xl text-center">
+            {/* Icon */}
+            <div className="w-16 h-16 flex items-center justify-center rounded-full bg-green-50 mb-4">
+              <Bookmark className="w-8 h-8 text-green-600" />
+            </div>
+
+            {/* Text */}
+            <h3 className="text-lg font-semibold text-gray-800">
+              No saved items yet
+            </h3>
+            <p className="text-sm text-gray-500 max-w-sm mt-2">
+              You haven’t saved any posts, opportunities, circles, or courses
+              yet. Start exploring and bookmark what matters to you.
+            </p>
+
+            {/* CTA */}
+            <button
+              onClick={() => (window.location.href = "/dashboard")}
+              className="mt-6 px-5 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition"
+            >
+              Explore content
+            </button>
+          </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {items.map((saved) => {

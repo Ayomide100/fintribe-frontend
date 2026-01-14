@@ -93,9 +93,10 @@ interface Investment {
   categoryColor: string;
   rating: number;
   investors: number;
-  roi: string;
+  expectedROI: string;
   duration: string;
-  minInvestment: string;
+  minInvestmentAmount: string;
+  currency: string;
   riskLevel: string;
   riskColor: string;
 }
@@ -130,7 +131,9 @@ const InvestmentCard = ({ investment }: { investment: Investment }) => {
       {/* ROI & Duration */}
       <div className="flex justify-between items-center mb-4">
         <div>
-          <p className="text-2xl font-bold text-green-700">{investment.roi}</p>
+          <p className="text-2xl font-bold text-green-700">
+            {investment.expectedROI}%
+          </p>
           <p className="text-xs text-gray-500">Expected ROI</p>
         </div>
         <div className="text-right">
@@ -160,7 +163,9 @@ const InvestmentCard = ({ investment }: { investment: Investment }) => {
       {/* Min Investment */}
       <p className="text-sm mb-4">
         <span className="text-gray-500">Min. Investment: </span>
-        <span className="font-semibold">{investment.minInvestment}</span>
+        <span className="font-semibold">
+          {investment.currency} {investment.minInvestmentAmount}
+        </span>
       </p>
 
       {/* Button */}

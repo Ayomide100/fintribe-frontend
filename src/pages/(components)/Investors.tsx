@@ -145,7 +145,7 @@ const Investors = () => {
   useEffect(() => {
     const getallCircles = async () => {
       try {
-        const response = await axios.get("/circle/all?pages=1&limit=6");
+        const response = await axios.get("/circle/?pages=1&limit=6");
         console.log(response.data.content.circles || []);
         setcirles(response.data.content.circles || []);
       } catch (error) {

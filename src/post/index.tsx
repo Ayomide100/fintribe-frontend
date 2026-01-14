@@ -119,15 +119,16 @@ const Posts = () => {
   };
 
   const toggleSavePost = async (
-    postId: string,
+    savedItemId: string,
     isSaved: boolean,
+    postId: string,
     type: "Post" | "Circle" | "Opportunity" = "Post"
   ) => {
     try {
       const token = localStorage.getItem("token");
 
       if (isSaved) {
-        await axios.delete(`/saved/${postId}`, {
+        await axios.delete(`/saved/${savedItemId}`, {
           data: { type }, // ✅ axios DELETE needs body in `data`
           headers: { Authorization: ` ${token}` },
         });
@@ -144,7 +145,7 @@ const Posts = () => {
       // 🔥 update UI instantly
       setPosts((prev) =>
         prev.map((post) =>
-          post._id === postId ? { ...post, isSaved: !post.isSaved } : post
+          post._id === savedItemId ? { ...post, isSaved: !post.isSaved } : post
         )
       );
       toast.success(
@@ -351,7 +352,9 @@ const Posts = () => {
                   </div>
 
                   <button
-                    onClick={() => toggleSavePost(post._id, post.isSaved)}
+                    onClick={() =>
+                      toggleSavePost(post.savedItemId, post.isSaved, post._id)
+                    }
                     className={`flex items-center gap-1 text-sm transition ${
                       post.isSaved ? "text-green-600" : "hover:text-green-600"
                     }`}
