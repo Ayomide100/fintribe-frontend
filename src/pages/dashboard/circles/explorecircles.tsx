@@ -1,104 +1,74 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React, { useEffect, useState } from "react";
+
 import Image from "next/image";
 import { TbLockAccess } from "react-icons/tb";
+import noface from "../../../../assets/blank-profile-picture.webp";
+import { useRouter } from "next/router";
+import { Bookmark } from "lucide-react";
 import axios from "@/config/axiosconfig";
 import toast from "react-hot-toast";
 import { isAxiosError } from "axios";
-import noface from "../../../../assets/blank-profile-picture.webp";
-import { useRouter } from "next/router";
 
-const InvestorCard = ({ circle }: any) => {
-  // const HandleJoincircle = async (circleId: string) => {
-  //   const loadingId = toast.loading("Joining...");
+type Props = {
+  circle: any;
+  onToggleSave: (
+    circleId: string,
+    isSaved?: boolean,
+    savedItemId?: string | null
+  ) => void;
+};
 
-  //   try {
-  //     const res = await axios.post(
-  //       `/circle/${circleId}/join`,
-  //       {},
-  //       {
-  //         headers: {
-  //           Authorization: `${localStorage.getItem("token")}`,
-  //         },
-  //       }
-  //     );
-
-  //     console.log(res.data);
-
-  //     // ✅ remove circle from list immediately
-  //     onJoined(circleId);
-
-  //     toast.success("Joined Successfully!");
-  //   } catch (error) {
-  //     if (isAxiosError(error)) {
-  //       const apiMessage = error.response?.data?.message;
-  //       const apiError = error.response?.data?.error;
-  //       const fallback = error.message || "An unexpected error occurred";
-
-  //       const errorMsg =
-  //         `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-  //         fallback;
-
-  //       toast.error(errorMsg);
-  //     }
-  //   } finally {
-  //     toast.dismiss(loadingId);
-  //   }
-  // };
-
-  // const getCircleById = async (id: string) => {
-  //   try {
-  //     const res = await axios.get(`/circle/single?circleId=${id}`);
-  //     console.log(res.data.content);
-  //   } catch (error) {
-  //     if (isAxiosError(error)) {
-  //       const apiMessage = error.response?.data?.message;
-  //       const apiError = error.response?.data?.error;
-  //       const fallback = error.message || "An unexpected error occurred";
-
-  //       const errorMsg =
-  //         `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-  //         fallback;
-
-  //       toast.error(errorMsg);
-  //     }
-  //   }
-  // };
-
+const InvestorCard = ({ circle, onToggleSave }: Props) => {
   const router = useRouter();
 
   return (
     <div
-      className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col justify-between hover:shadow-md transition
-        w-full sm:w-[280px] md:w-[300px] lg:w-[320px] h-auto"
+      className="
+        bg-white border border-gray-200 rounded-xl
+        w-[300px] h-[300px]
+        flex flex-col justify-between
+        p-5 hover:shadow-md transition
+      "
     >
-      {/* Circle Icon */}
-      <div className="w-full flex justify-center mb-3">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#226B44]">
-          <Image
-            src={circle.icon?.url || "/default-circle.png"}
-            alt="circle icon"
-            width={48}
-            height={48}
-            className="w-full h-full object-cover"
-          />
+      {/* ───────── Top Content ───────── */}
+      <div>
+        {/* Icon */}
+        <div className="flex justify-center mb-3">
+          <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#226B44]">
+            <Image
+              src={circle.icon?.url || "/default-circle.png"}
+              alt="circle icon"
+              width={48}
+              height={48}
+              className="object-cover"
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Title + Members */}
-      <div className="text-center">
-        <h3 className="font-semibold text-gray-900 mb-1">{circle.name}</h3>
-        <div className="flex items-center justify-center text-sm text-gray-600 mb-2 gap-1">
-          Members • {circle.totalMembers}{" "}
-          <TbLockAccess className="text-[#2E8B57]" size={18} />
+        {/* Title */}
+        <h3 className="text-center font-semibold text-gray-900">
+          {circle.name}
+        </h3>
+
+        {/* Members */}
+        <div className="flex justify-center items-center gap-1 text-xs text-gray-600 mt-1">
+          Members • {circle.totalMembers}
+          <TbLockAccess className="text-[#2E8B57]" size={16} />
         </div>
-        <p className="text-sm text-gray-600 mb-3">{circle.description}</p>
 
-        <div className="flex flex-wrap justify-center gap-2 mb-3">
-          {circle.tags?.map((tag: string, index: number) => (
+        {/* Description */}
+        <p className="text-sm text-gray-600 text-center mt-2 line-clamp-2">
+          {circle.description}
+        </p>
+
+        {/* Tags */}
+        <div className="flex flex-wrap justify-center gap-2 mt-3">
+          {circle.tags?.slice(0, 2).map((tag: string, i: number) => (
             <span
-              key={index}
-              className="px-4 py-1.5 border border-[#226B44] text-[#226B44] text-sm font-medium rounded-full bg-transparent hover:bg-[#226B4410] transition-colors"
+              key={i}
+              className="px-3 py-1 text-xs border border-[#226B44] text-[#226B44] rounded-full"
             >
               {tag}
             </span>
@@ -106,42 +76,90 @@ const InvestorCard = ({ circle }: any) => {
         </div>
       </div>
 
-      {/* Top Members */}
-      <div className="flex justify-center items-center -space-x-3 mb-4">
-        {circle.topMembers?.slice(0, 3).map((member: any, i: number) => (
-          <div
-            key={i}
-            className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#2E8B57]"
-          >
-            <Image
-              src={member.avatar?.url || noface}
-              alt={member.name}
-              width={40}
-              height={40}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        ))}
-        {circle.remainingCount > 0 && (
-          <div className="w-10 h-10 rounded-full bg-[#0A2540] flex items-center justify-center text-xs font-medium text-white border-2 border-white">
-            +{circle.remainingCount}
-          </div>
-        )}
-      </div>
+      {/* ───────── Bottom Actions ───────── */}
+      <div className="flex gap-2 mt-4">
+        {/* Join */}
+        <button
+          onClick={() =>
+            router.push(`/dashboard/circles/explore/${circle._id}`)
+          }
+          className="flex-1 bg-[#0A2540] text-white py-2 rounded-lg text-sm hover:bg-[#1a3b5c] transition"
+        >
+          Join
+        </button>
 
-      {/* Button */}
-      <button
-        onClick={() => router.push(`/dashboard/circles/explore/${circle._id}`)}
-        className="w-full bg-[#0A2540] text-white py-2 rounded-lg font-medium hover:bg-[#1a3b5c] transition text-sm"
-      >
-        Join Circle →
-      </button>
+        {/* Bookmark */}
+        <button
+          onClick={() =>
+            onToggleSave(circle._id, circle.isSaved, circle.savedItemId)
+          }
+          className={`
+            w-11 flex items-center justify-center rounded-lg border
+            transition
+            ${
+              circle.isSaved
+                ? "bg-[#226B44]/10 border-[#226B44]"
+                : "border-gray-300 hover:border-[#226B44]"
+            }
+          `}
+        >
+          <Bookmark
+            size={18}
+            className={
+              circle.isSaved ? "fill-[#226B44] text-[#226B44]" : "text-gray-500"
+            }
+          />
+        </button>
+      </div>
     </div>
   );
 };
 
 const Explorecircles = () => {
   const [circles, setCircles] = useState<any[]>([]);
+
+  const toggleSaveCircles = async (
+    circleId: string,
+    isSaved?: boolean,
+    savedItemId?: string | null
+  ) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (isSaved && savedItemId) {
+        await axios.delete(`/saved/${savedItemId}`, {
+          data: { type: "Circle" },
+          headers: { Authorization: `${token}` },
+        });
+      } else {
+        const res = await axios.post(
+          `/saved/${circleId}`,
+          { type: "Circle" },
+          { headers: { Authorization: `${token}` } }
+        );
+
+        savedItemId = res.data.content?._id;
+      }
+
+      // 🔥 Optimistic update
+      setCircles((prev) =>
+        prev.map((circle) =>
+          circle._id === circleId
+            ? {
+                ...circle,
+                isSaved: !isSaved,
+                savedItemId: isSaved ? null : savedItemId,
+              }
+            : circle
+        )
+      );
+
+      toast.success(isSaved ? "Removed from saved circles" : "Circle saved");
+    } catch (error) {
+      console.error("bookmark error:", error);
+      toast.error("Failed to update bookmark");
+    }
+  };
 
   const getAllCircles = async () => {
     try {
@@ -151,25 +169,20 @@ const Explorecircles = () => {
         },
       });
 
-      const fetchedCircles = res.data.content.circles;
+      const fetched = res.data.content.circles;
 
-      // ✅ filter using hasJoined flag
-      const filtered = fetchedCircles.filter(
-        (circle: any) => !circle.hasJoined
-      );
+      const filtered = fetched
+        .filter((circle: any) => !circle.hasJoined)
+        .map((circle: any) => ({
+          ...circle,
+          isSaved: circle.isSaved ?? false,
+          savedItemId: circle.savedItemId ?? null,
+        }));
 
       setCircles(filtered);
     } catch (error) {
       if (isAxiosError(error)) {
-        const apiMessage = error.response?.data?.message;
-        const apiError = error.response?.data?.error;
-        const fallback = error.message || "An unexpected error occurred";
-
-        const errorMsg =
-          `${apiMessage || ""}${apiError ? " - " + apiError : ""}`.trim() ||
-          fallback;
-
-        toast.error(errorMsg);
+        toast.error(error.response?.data?.message || "Error loading circles");
       }
     }
   };
@@ -178,18 +191,13 @@ const Explorecircles = () => {
     getAllCircles();
   }, []);
 
-  // ✅ remove joined circle locally
-  const handleJoined = (circleId: string) => {
-    setCircles((prev) => prev.filter((c) => c._id !== circleId));
-  };
-
   return (
-    <div className="w-full h-full flex flex-wrap gap-6 justify-center items-start p-4 bg-gray-50 overflow-y-scroll">
+    <div className="w-full h-full flex flex-wrap gap-6 justify-center p-4 bg-gray-50 overflow-y-scroll">
       {circles.map((circle) => (
         <InvestorCard
           key={circle._id}
           circle={circle}
-          onJoined={handleJoined}
+          onToggleSave={toggleSaveCircles}
         />
       ))}
     </div>

@@ -265,7 +265,7 @@ const Circles = () => {
             {/* Circle Header */}
             <div className="w-full h-[15%] flex sm:px-3 px-0 justify-between border-b border-[#E0E0E0] items-center gap-3 pb-2">
               <div className="flex justify-start gap-2 sm:gap-4 items-center w-full sm:w-[40%]">
-                <div className="w-[45px] h-[45px] sm:w-[40px] sm:h-[40px] rounded-full flex justify-center items-center bg-green-400">
+                <div className="w-[45px] h-[45px] sm:w-10 sm:h-10 rounded-full flex justify-center items-center bg-green-400">
                   <Image
                     src={post2image}
                     alt="Circle Image"

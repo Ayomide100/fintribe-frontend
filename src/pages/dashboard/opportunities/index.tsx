@@ -8,6 +8,7 @@ import {
   // ChartColumnBig,
   Trash,
   ShieldCheck,
+  Bookmark,
   // Notebook,
   // Lock,
 } from "lucide-react";
@@ -31,6 +32,8 @@ const Opportunities = () => {
     };
     minInvestment?: number | string;
     status: string;
+    isSaved?: boolean;
+    savedItemId?: string | null;
   };
 
   const [accountType, setAccountType] = useState<string | null>(null);
@@ -196,6 +199,52 @@ const Opportunities = () => {
   const dataToRender = opportunities;
 
   console.log("this is what is rendering:", opportunities);
+
+  const toggleSaveOpportunity = async (
+    opportunityId: string,
+    isSaved?: boolean,
+    savedItemId?: string | null
+  ) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (isSaved && savedItemId) {
+        await axios.delete(`/saved/${savedItemId}`, {
+          data: { type: "Opportunity" },
+          headers: { Authorization: `${token}` },
+        });
+      } else {
+        const res = await axios.post(
+          `/saved/${opportunityId}`,
+          { type: "Opportunity" },
+          { headers: { Authorization: `${token}` } }
+        );
+
+        // backend should return savedItemId
+        savedItemId = res.data.content?._id;
+      }
+
+      // 🔥 Optimistic UI update
+      setOpportunities((prev) =>
+        prev.map((opp) =>
+          opp._id === opportunityId
+            ? {
+                ...opp,
+                isSaved: !isSaved,
+                savedItemId: isSaved ? null : savedItemId,
+              }
+            : opp
+        )
+      );
+
+      toast.success(
+        isSaved ? "Removed from saved opportunities" : "Opportunity saved"
+      );
+    } catch (error) {
+      console.error("bookmark error:", error);
+      toast.error("Failed to update bookmark");
+    }
+  };
 
   return (
     <Dashboardlayouts>
@@ -382,6 +431,25 @@ const Opportunities = () => {
                         )}
                       </>
                     )}
+                    <div
+                      onClick={() =>
+                        toggleSaveOpportunity(
+                          item._id,
+                          item.isSaved,
+                          item.savedItemId
+                        )
+                      }
+                      className="cursor-pointer"
+                    >
+                      <Bookmark
+                        size={18}
+                        className={`transition ${
+                          item.isSaved
+                            ? "fill-green-500 text-green-500"
+                            : "text-gray-400 hover:text-[#001F3F]"
+                        }`}
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
