@@ -119,38 +119,54 @@ const Posts = () => {
   };
 
   const toggleSavePost = async (
-    savedItemId: string,
-    isSaved: boolean,
     postId: string,
+    isSaved: boolean,
+    savedItemId?: string | null,
     type: "Post" | "Circle" | "Opportunity" = "Post"
   ) => {
     try {
       const token = localStorage.getItem("token");
 
-      if (isSaved) {
+      if (isSaved && savedItemId) {
         await axios.delete(`/saved/${savedItemId}`, {
-          data: { type }, // ✅ axios DELETE needs body in `data`
-          headers: { Authorization: ` ${token}` },
+          data: { type },
+          headers: { Authorization: `${token}` },
         });
-      } else {
-        await axios.post(
-          `/saved/${postId}`,
-          { type }, // ✅ REQUIRED PARAM
-          {
-            headers: { Authorization: `${token}` },
-          }
-        );
-      }
 
-      // 🔥 update UI instantly
-      setPosts((prev) =>
-        prev.map((post) =>
-          post._id === savedItemId ? { ...post, isSaved: !post.isSaved } : post
-        )
-      );
-      toast.success(
-        isSaved ? "Post removed from saved" : "Post saved successfully"
-      );
+        // 🔥 optimistic unsave
+        setPosts((prev) =>
+          prev.map((post) =>
+            post._id === postId
+              ? { ...post, isSaved: false, savedItemId: null }
+              : post
+          )
+        );
+
+        toast.success("Post removed from saved");
+      } else {
+        const res = await axios.post(
+          `/saved/${postId}`,
+          { type },
+          { headers: { Authorization: `${token}` } }
+        );
+
+        const newSavedItemId = res.data?.content?._id;
+
+        // 🔥 optimistic save
+        setPosts((prev) =>
+          prev.map((post) =>
+            post._id === postId
+              ? {
+                  ...post,
+                  isSaved: true,
+                  savedItemId: newSavedItemId,
+                }
+              : post
+          )
+        );
+
+        toast.success("Post saved successfully");
+      }
     } catch (error) {
       console.error("toggle save error:", error);
       toast.error("Failed to update saved post");
@@ -353,7 +369,7 @@ const Posts = () => {
 
                   <button
                     onClick={() =>
-                      toggleSavePost(post.savedItemId, post.isSaved, post._id)
+                      toggleSavePost(post._id, post.isSaved, post.savedItemId)
                     }
                     className={`flex items-center gap-1 text-sm transition ${
                       post.isSaved ? "text-green-600" : "hover:text-green-600"
