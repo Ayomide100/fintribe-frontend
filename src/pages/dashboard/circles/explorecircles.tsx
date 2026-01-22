@@ -16,7 +16,7 @@ type Props = {
   onToggleSave: (
     circleId: string,
     isSaved?: boolean,
-    savedItemId?: string | null
+    savedItemId?: string | null,
   ) => void;
 };
 
@@ -62,6 +62,39 @@ const InvestorCard = ({ circle, onToggleSave }: Props) => {
         <p className="text-sm text-gray-600 text-center mt-2 line-clamp-2">
           {circle.description}
         </p>
+        {/* Top Members Avatars */}
+        {circle.topMembers?.length > 0 && (
+          <div className="flex justify-center mt-3">
+            <div className="flex items-center">
+              {circle.topMembers
+                .slice(0, 3)
+                .map((member: any, index: number) => (
+                  <div
+                    key={member._id}
+                    className={`w-8 h-8 rounded-full border-2 border-white overflow-hidden ${
+                      index !== 0 ? "-ml-3" : ""
+                    }`}
+                    title={member.name}
+                  >
+                    <Image
+                      src={member.avatar?.url || noface}
+                      alt={member.name}
+                      width={90}
+                      height={90}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                ))}
+
+              {/* Remaining Count */}
+              {circle.remainingCount > 0 && (
+                <div className="-ml-3 w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[10px] font-semibold text-gray-700">
+                  +{circle.remainingCount}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Tags */}
         <div className="flex flex-wrap justify-center gap-2 mt-3">
@@ -121,7 +154,7 @@ const Explorecircles = () => {
   const toggleSaveCircles = async (
     circleId: string,
     isSaved?: boolean,
-    savedItemId?: string | null
+    savedItemId?: string | null,
   ) => {
     try {
       const token = localStorage.getItem("token");
@@ -135,7 +168,7 @@ const Explorecircles = () => {
         const res = await axios.post(
           `/saved/${circleId}`,
           { type: "Circle" },
-          { headers: { Authorization: `${token}` } }
+          { headers: { Authorization: `${token}` } },
         );
 
         savedItemId = res.data.content?._id;
@@ -150,8 +183,8 @@ const Explorecircles = () => {
                 isSaved: !isSaved,
                 savedItemId: isSaved ? null : savedItemId,
               }
-            : circle
-        )
+            : circle,
+        ),
       );
 
       toast.success(isSaved ? "Removed from saved circles" : "Circle saved");

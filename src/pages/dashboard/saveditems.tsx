@@ -4,7 +4,14 @@
 import React, { useEffect, useState } from "react";
 import Dashboardlayouts from "../layouts/Dashboardlayouts";
 import Head from "next/head";
-import { Search, Filter, Bookmark, TrendingUp, ScrollText } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Bookmark,
+  TrendingUp,
+  ScrollText,
+  X,
+} from "lucide-react";
 import { TbFidgetSpinner } from "react-icons/tb";
 import axios from "@/config/axiosconfig";
 import Image from "next/image";
@@ -14,6 +21,29 @@ const SavedItems = () => {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState<string>("");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSaved, setSelectedSaved] = useState<any>(null);
+
+  const handleDelete = async (savedId: string) => {
+    try {
+      await axios.delete(`/saved/${savedId}`, {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+      });
+
+      // remove from UI instantly
+      setItems((prev) => prev.filter((item) => item._id !== savedId));
+    } catch (error) {
+      console.error("Failed to delete saved item", error);
+    }
+  };
+
+  const handleView = (saved: any) => {
+    setSelectedSaved(saved);
+    setIsModalOpen(true);
+  };
 
   const getSavedItems = async () => {
     try {
@@ -168,6 +198,18 @@ const SavedItems = () => {
                       Saved {new Date(saved.createdAt).toLocaleDateString()}
                     </span>
                   </div>
+                  <div className="flex justify-between items-center">
+                    <span className="px-3 py-1 text-xs bg-green-50 text-green-700 rounded-full">
+                      {saved.type}
+                    </span>
+
+                    <button
+                      onClick={() => handleDelete(saved._id)}
+                      className="text-xs text-red-600 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </div>
 
                   {/* User (for posts) */}
                   {item?.user && (
@@ -206,7 +248,10 @@ const SavedItems = () => {
                     </div>
                   )}
 
-                  <button className="w-full mt-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition">
+                  <button
+                    onClick={() => handleView(saved)}
+                    className="w-full mt-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition"
+                  >
                     View
                   </button>
                 </div>
@@ -215,6 +260,43 @@ const SavedItems = () => {
           </div>
         )}
       </div>
+      {/* ================= VIEW MODAL ================= */}
+      {isModalOpen && selectedSaved && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white w-[90%] max-w-lg rounded-xl p-6 relative">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4"
+            >
+              <X />
+            </button>
+
+            <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
+              {selectedSaved.type}
+            </span>
+
+            <p className="mt-4 text-gray-800">
+              {selectedSaved.itemId?.content ||
+                selectedSaved.itemId?.description}
+            </p>
+
+            {selectedSaved.itemId?.media?.length > 0 && (
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                {selectedSaved.itemId.media.map((img: any, idx: number) => (
+                  <Image
+                    key={idx}
+                    src={img.url}
+                    alt="media"
+                    width={200}
+                    height={200}
+                    className="rounded-lg object-cover"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </Dashboardlayouts>
   );
 };
