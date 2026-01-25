@@ -94,7 +94,7 @@ interface Investment {
   rating: number;
   investors: number;
   expectedROI: string;
-  duration: string;
+  investmentDuration: string;
   minInvestmentAmount: string;
   currency: string;
   riskLevel: string;
@@ -138,7 +138,7 @@ const InvestmentCard = ({ investment }: { investment: Investment }) => {
         </div>
         <div className="text-right">
           <p className="text-lg font-semibold text-gray-800">
-            {investment.duration}
+            {investment.investmentDuration}
           </p>
           <p className="text-xs text-gray-500">Duration</p>
         </div>
