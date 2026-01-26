@@ -200,7 +200,12 @@ const SavedItems = () => {
                   return (
                     <div
                       key={saved._id}
-                      className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
+                      className="
+    bg-white border border-gray-200 rounded-xl p-6
+    hover:shadow-md transition-shadow
+    min-h-[360px]
+    flex flex-col justify-between
+  "
                     >
                       {/* Header */}
                       <div className="flex items-center justify-between mb-4">
@@ -284,7 +289,7 @@ const SavedItems = () => {
                               )}
                             </div>
 
-                            {item?.media && item.media.length > 0 && (
+                            {/* {item?.media && item.media.length > 0 && (
                               <div className="grid grid-cols-2 gap-2 mt-2">
                                 {item.media
                                   .slice(0, 2)
@@ -299,7 +304,7 @@ const SavedItems = () => {
                                     />
                                   ))}
                               </div>
-                            )}
+                            )} */}
                           </>
                         )}
 
@@ -409,6 +414,7 @@ const SavedItems = () => {
                                   {item.user.fullname?.charAt(0) || "U"}
                                 </div>
                               )}
+
                               <div>
                                 <p className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
                                   {item.user.fullname}
@@ -427,43 +433,18 @@ const SavedItems = () => {
                               </div>
                             </div>
 
-                            <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">
+                            <p className="text-sm text-gray-700 leading-relaxed line-clamp-4">
                               {item?.content}
                             </p>
 
-                            {item?.media && item.media.length > 0 && (
-                              <div className="grid grid-cols-2 gap-2 mt-2">
-                                {item.media
-                                  .slice(0, 2)
-                                  .map((img: any, idx: number) => (
-                                    <Image
-                                      key={idx}
-                                      src={img.url}
-                                      alt="post media"
-                                      width={150}
-                                      height={150}
-                                      className="rounded-lg object-cover h-28 w-full"
-                                    />
-                                  ))}
-                              </div>
-                            )}
-
-                            {item?.likes && item.likes.length > 0 && (
+                            {/* {item?.likes && item.likes.length > 0 && (
                               <div className="flex items-center gap-4 text-xs text-gray-500 pt-2 border-t border-gray-100">
-                                <span className="flex items-center gap-1">
-                                  ❤️ {item.likes.length}{" "}
-                                  {item.likes.length === 1 ? "like" : "likes"}
-                                </span>
-                                {item?.comments && item.comments.length > 0 && (
-                                  <span className="flex items-center gap-1">
-                                    💬 {item.comments.length}{" "}
-                                    {item.comments.length === 1
-                                      ? "comment"
-                                      : "comments"}
-                                  </span>
+                                <span>❤️ {item.likes.length}</span>
+                                {item?.comments && (
+                                  <span>💬 {item.comments.length}</span>
                                 )}
                               </div>
-                            )}
+                            )} */}
                           </>
                         )}
                       </div>
