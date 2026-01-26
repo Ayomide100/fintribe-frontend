@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import {
   X,
@@ -11,9 +11,49 @@ import {
   MoreVertical,
 } from "lucide-react";
 import noface from "../../assets/notfiyimg.png";
+import toast from "react-hot-toast";
+import axios from "@/config/axiosconfig";
+import { isAxiosError } from "axios";
 
 const ViewUserProfileModal = ({ data, onClose }: any) => {
   const { user, followers, followings, userPosts } = data;
+
+  const [isFollowing, setIsFollowing] = useState(user.isFollowing);
+  const [followersCount, setFollowersCount] = useState(followers);
+  const [loading, setLoading] = useState(false);
+
+  const HandleFollow = async () => {
+    if (loading) return;
+
+    try {
+      setLoading(true);
+
+      const res = await axios.post(
+        `users/follow/${user._id}`,
+        {},
+        {
+          headers: {
+            Authorization: `${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      toast.success(res.data.message);
+
+      setIsFollowing((prev: boolean) => !prev);
+      setFollowersCount((prev: number) => (isFollowing ? prev - 1 : prev + 1));
+    } catch (error) {
+      if (isAxiosError(error)) {
+        toast.error(
+          error.response?.data?.message ||
+            error.message ||
+            "Failed to follow user",
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
@@ -42,8 +82,23 @@ const ViewUserProfileModal = ({ data, onClose }: any) => {
 
             <div className="flex items-center gap-2">
               <p className="font-semibold text-lg">{user.fullname}</p>
-              <button className="text-emerald-600 text-sm font-medium">
-                Follow
+              <button
+                onClick={HandleFollow}
+                disabled={loading}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition
+    ${
+      isFollowing
+        ? "bg-emerald-100 text-emerald-700"
+        : "bg-emerald-600 text-white hover:bg-emerald-700"
+    }
+    ${loading && "opacity-60 cursor-not-allowed"}
+  `}
+              >
+                {loading
+                  ? "Please wait..."
+                  : isFollowing
+                    ? "Following"
+                    : "Follow"}
               </button>
             </div>
 
@@ -54,7 +109,7 @@ const ViewUserProfileModal = ({ data, onClose }: any) => {
               <div className="flex flex-col items-center">
                 <Users size={18} className="text-emerald-600" />
                 <p className="font-semibold text-emerald-600">
-                  {followers.toLocaleString()}
+                  {followersCount.toLocaleString()}
                 </p>
                 <p className="text-xs text-gray-500">Followers</p>
               </div>
@@ -84,7 +139,7 @@ const ViewUserProfileModal = ({ data, onClose }: any) => {
           <div className="space-y-6 pt-6">
             {userPosts.map((post: any) => {
               const image = post.attachments?.find(
-                (att: any) => att.fileType === "image"
+                (att: any) => att.fileType === "image",
               );
 
               return (
