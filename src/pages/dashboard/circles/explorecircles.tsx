@@ -148,6 +148,36 @@ const InvestorCard = ({ circle, onToggleSave }: Props) => {
   );
 };
 
+const EmptyExploreState = () => {
+  // const router = useRouter();
+
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center text-center px-4">
+      <div className="w-20 h-20 rounded-full bg-[#226B44]/10 flex items-center justify-center mb-4">
+        <TbLockAccess size={36} className="text-[#226B44]" />
+      </div>
+
+      <h2 className="text-xl font-semibold text-gray-900">
+        You’ve joined all circles 🎉
+      </h2>
+
+      <p className="text-gray-600 mt-2 max-w-sm">
+        You’re currently a member of every available circle. You can manage the
+        circles you’ve joined. Kindly check your joined circles for more
+      </p>
+
+      {/* <div className="flex gap-3 mt-6">
+        <button
+          onClick={() => router.push("/dashboard/circles")}
+          className="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:border-gray-400 transition"
+        >
+          My Circles
+        </button>
+      </div> */}
+    </div>
+  );
+};
+
 const Explorecircles = () => {
   const [circles, setCircles] = useState<any[]>([]);
 
@@ -225,14 +255,20 @@ const Explorecircles = () => {
   }, []);
 
   return (
-    <div className="w-full h-full flex flex-wrap gap-6 justify-center p-4 bg-gray-50 overflow-y-scroll">
-      {circles.map((circle) => (
-        <InvestorCard
-          key={circle._id}
-          circle={circle}
-          onToggleSave={toggleSaveCircles}
-        />
-      ))}
+    <div className="w-full h-full bg-gray-50 overflow-y-scroll">
+      {circles.length === 0 ? (
+        <EmptyExploreState />
+      ) : (
+        <div className="flex flex-wrap gap-6 justify-center p-4">
+          {circles.map((circle) => (
+            <InvestorCard
+              key={circle._id}
+              circle={circle}
+              onToggleSave={toggleSaveCircles}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
