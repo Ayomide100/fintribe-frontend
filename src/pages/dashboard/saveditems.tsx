@@ -17,6 +17,7 @@ import {
 import { TbFidgetSpinner } from "react-icons/tb";
 import axios from "@/config/axiosconfig";
 import Image from "next/image";
+import toast from "react-hot-toast";
 
 const SavedItems = () => {
   const [items, setItems] = useState<any[]>([]);
@@ -26,19 +27,30 @@ const SavedItems = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSaved, setSelectedSaved] = useState<any>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
 
-  const handleDelete = async (savedId: string) => {
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+
     try {
-      await axios.delete(`/saved/${savedId}`, {
+      setDeleteLoading(true);
+
+      await axios.delete(`/saved/${deleteTarget._id}`, {
         headers: {
           Authorization: localStorage.getItem("token"),
         },
       });
 
-      // remove from UI instantly
-      setItems((prev) => prev.filter((item) => item._id !== savedId));
+      setItems((prev) => prev.filter((item) => item._id !== deleteTarget._id));
+
+      toast.success("Saved item removed successfully");
+      setDeleteTarget(null);
     } catch (error) {
-      console.error("Failed to delete saved item", error);
+      toast.error("Failed to delete saved item");
+      console.error(error);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -218,8 +230,8 @@ const SavedItems = () => {
                         </span>
 
                         <button
-                          onClick={() => handleDelete(saved._id)}
-                          className="text-gray-400 hover:text-red-500 transition p-1"
+                          onClick={() => setDeleteTarget(saved)}
+                          className="text-red-600 hover:text-red-500 transition p-1"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -625,6 +637,41 @@ const SavedItems = () => {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Delete saved item?
+            </h3>
+
+            <p className="text-sm text-gray-600 mt-2">
+              This action cannot be undone. Are you sure you want to remove this
+              item from your saved list?
+            </p>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleteLoading}
+                className="px-4 py-2 text-sm rounded-lg border border-gray-300 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleDelete}
+                disabled={deleteLoading}
+                className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 flex items-center gap-2"
+              >
+                {deleteLoading && (
+                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                )}
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
