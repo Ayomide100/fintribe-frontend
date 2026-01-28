@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   ArrowBigLeftDash,
+  Wallet,
 } from "lucide-react";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
@@ -122,10 +123,16 @@ const Sidebar: React.FC<Props> = ({ setSidebarOpen, sidebarOpen }) => {
       path: "/dashboard/saveditems",
       roles: ["user", "expert", "partner"], // partners won’t see
     },
+    {
+      name: "Wallet",
+      icon: <Wallet size={20} />,
+      path: "/dashboard/wallet",
+      roles: ["expert"],
+    },
   ];
 
   const NestedBar = allItems.filter((item) =>
-    item.roles.includes(accountType || "")
+    item.roles.includes(accountType || ""),
   );
 
   return (
