@@ -1,10 +1,15 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Head from "next/head";
 import Dashboardlayouts from "../layouts/Dashboardlayouts";
 import { Search, SquareArrowOutUpRight } from "lucide-react";
+import AddBankModal from "@/Modals/addModal";
+import WithdrawModal from "@/Modals/withdrawalmodal";
 
 const Wallet = () => {
+  const [openBankModal, setOpenBankModal] = useState(false);
+  const [openWithdraw, setOpenWithdraw] = useState(false);
+
   return (
     <Dashboardlayouts>
       <Head>
@@ -21,7 +26,10 @@ const Wallet = () => {
           </div>
 
           <div className="flex justify-between items-center w-full">
-            <button className="px-6 py-3 bg-[#0B2545] md:px-40 text-white rounded-lg flex gap-3 text-sm font-medium">
+            <button
+              onClick={() => setOpenWithdraw(true)}
+              className="px-6 py-3 bg-[#0B2545] md:px-40 text-white rounded-lg flex gap-3 text-sm font-medium"
+            >
               <SquareArrowOutUpRight size={20} /> Withdraw
             </button>
             <button className="px-11 py-1 border md:px-40 border-green-600 text-green-600 rounded-lg text-sm font-medium">
@@ -49,7 +57,10 @@ const Wallet = () => {
               <p className="mt-2 text-xs opacity-70">Guru&lsquo;s name</p>
             </div>
 
-            <button className="w-full py-3 border border-green-600 text-green-600 rounded-lg text-sm font-medium">
+            <button
+              onClick={() => setOpenBankModal(true)}
+              className="w-full py-3 border border-green-600 text-green-600 rounded-lg text-sm font-medium"
+            >
               + Add New Bank
             </button>
           </div>
@@ -508,6 +519,15 @@ const Wallet = () => {
           </div>
         </div>
       </div>
+      <AddBankModal
+        isOpen={openBankModal}
+        onClose={() => setOpenBankModal(false)}
+      />
+
+      <WithdrawModal
+        isOpen={openWithdraw}
+        onClose={() => setOpenWithdraw(false)}
+      />
     </Dashboardlayouts>
   );
 };
